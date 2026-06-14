@@ -40,9 +40,26 @@ Atlas Food adalah platform survey recall makanan yang terinspirasi dari Intake24
 | Language | TypeScript | Type safety |
 | UI Library | React | Component model |
 | Data Fetching | TanStack Query | Query/mutation API state |
-| Styling | Global CSS | Styling dasar MVP |
-| API Client | Fetch wrapper | Komunikasi dengan backend Atlas Food |
+| Styling & UI | Tailwind CSS + Shadcn UI (Rekomendasi) | Styling modern dan komponen UI reusable |
+| API Client | Fetch wrapper / Axios | Komunikasi dengan backend Atlas Food |
+| Client State | Zustand | Manajemen state lokal/UI (misal: UI state, multi-step form) |
+| Form & Validation | React Hook Form + Zod (Rekomendasi) | Manajemen form yang efisien dan validasi schema type-safe |
 | Auth | JWT + Refresh Token | Mengikuti backend auth flow |
+
+### Alur Arsitektur & Pemisahan Tanggung Jawab (Separation of Concerns)
+
+Aplikasi ini menggunakan adaptasi **Domain-Driven Design / Feature-Sliced Design** untuk memisahkan tugas secara jelas:
+
+1. **Routing Layer (`app/`)**  
+   Hanya mengatur struktur URL, metadata, dan layout utama. Tidak boleh berisi *business logic* panjang.
+2. **Presentation Layer (`components/` pada domain)**  
+   Bertugas merender UI dan elemen visual. Tidak melakukan pemanggilan *fetch* secara langsung.
+3. **Logic & State Layer (`hooks/` & `store/` pada domain)**  
+   Jembatan antara UI dan data. **React Query** digunakan di `hooks` untuk mengelola *Server State* (data API), sedangkan **Zustand** digunakan di `store` untuk mengelola *Client State* (data spesifik UI/Frontend).
+4. **Network Layer (`services/` pada domain)**  
+   Kumpulan fungsi untuk melakukan HTTP request ke Backend secara murni.
+5. **Typing & Validation Layer (`schemas/` & `types/` pada domain)**  
+   Menggunakan TypeScript interfaces dan skema Zod untuk menjaga keamanan tipe data payload dan response.
 
 ---
 
