@@ -1,13 +1,27 @@
-import type { ReactNode } from "react";
-import { QueryProvider } from "@/internal/pkg/providers/QueryProvider";
-import "@/styles/globals.css";
+import type { Metadata } from "next";
+import "../styles/globals.css";
+import { ReactQueryProvider } from "@/internal/providers/query-provider";
+import { AuthProvider } from "@/internal/providers/auth-provider";
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export const metadata: Metadata = {
+  title: "Atlas Food — Survey Gizi & Find Your Food",
+  description:
+    "Platform survey recall makanan dan katalog visual estimasi porsi makanan Indonesia.",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body>
-        <QueryProvider>{children}</QueryProvider>
+        <ReactQueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
 }
+

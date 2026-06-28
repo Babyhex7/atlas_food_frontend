@@ -10,12 +10,23 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
+    "@tailwindcss/typography": "^0.5.20",
     "@tanstack/react-query": "latest",
+    "autoprefixer": "^10.5.0",
+    "axios": "^1.18.0",
+    "lucide-react": "^1.21.0",
     "next": "latest",
+    "postcss": "^8.5.15",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "react-hook-form": "^7.80.0",
+    "tailwindcss": "^4.3.1",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.1",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",

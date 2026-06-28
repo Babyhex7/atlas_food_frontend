@@ -1,24 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { AuthResponse, UserInfo } from "../types/auth";
+import { useAuthStore } from "../store/authStore";
+import type { UserInfo } from "../types/auth";
 
 export function useAuth() {
-  const [session, setSession] = useState<AuthResponse | null>(null);
+  const session = useAuthStore((state) => state.session);
+  const setSession = useAuthStore((state) => state.setSession);
+  const clearSession = useAuthStore((state) => state.clearSession);
 
-  const value = useMemo(
-    () => ({
-      user: session?.user ?? null,
-      accessToken: session?.access_token,
-      refreshToken: session?.refresh_token,
-      isAuthenticated: Boolean(session?.access_token),
-      setSession,
-      clearSession: () => setSession(null),
-    }),
-    [session],
-  );
-
-  return value;
+  return {
+    user: session?.user ?? null,
+    accessToken: session?.access_token,
+    refreshToken: session?.refresh_token,
+    isAuthenticated: Boolean(session?.access_token),
+    setSession,
+    clearSession,
+  };
 }
 
 export type AuthUser = UserInfo;

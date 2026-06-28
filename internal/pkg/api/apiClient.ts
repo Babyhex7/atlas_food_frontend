@@ -1,6 +1,10 @@
 import type { ApiResponse } from "../utils/response";
+import { getAccessToken } from "@/internal/lib/cookies";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api/v1";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  "http://localhost:8080/api/v1";
 
 type RequestOptions = RequestInit & {
   token?: string;
@@ -8,12 +12,13 @@ type RequestOptions = RequestInit & {
 
 export async function apiClient<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { token, headers, ...requestOptions } = options;
+  const authToken = token ?? getAccessToken();
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...requestOptions,
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...headers,
     },
   });
