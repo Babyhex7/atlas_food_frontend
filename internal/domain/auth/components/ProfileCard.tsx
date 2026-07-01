@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLogout } from "../hooks/useLogout";
 import { authRoles } from "../constants/authRoles";
-import { ClipboardList, Settings, Search } from "lucide-react";
+import { Settings, Search } from "lucide-react";
 import { Button } from "@/internal/pkg/components/Button";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
@@ -71,10 +71,6 @@ export function ProfileCard() {
                 <Search className="w-5 h-5 text-accent-600" />
                 <span className="text-sm font-medium">Find Your Food</span>
               </Link>
-              <p className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-border text-muted text-sm">
-                <ClipboardList className="w-5 h-5" />
-                Survey recall diakses via link undangan dari peneliti
-              </p>
             </div>
 
             <Button variant="outline" className="w-full mt-8" onClick={() => logout()}>

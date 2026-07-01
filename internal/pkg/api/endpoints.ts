@@ -14,4 +14,13 @@ export const apiEndpoints = {
     detail: (accessToken: string) => `/surveys/${accessToken}`,
     join: (accessToken: string) => `/surveys/${accessToken}/join`,
   },
+  // Public endpoints (tanpa auth, untuk respondent)
+  public: {
+    // Food Search (FREE SEARCH — parameter: q, type, limit)
+    foodSearch: "/public/foods/search",
+    foodDetail: (id: string) => `/public/foods/${id}`,
+    categories: "/public/categories",
+    // Survey submit memakai JWT respondent via POST /survey/submit
+    surveySubmit: "/survey/submit",
+  },
 } as const;

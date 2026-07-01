@@ -45,20 +45,30 @@ export function AppHeader() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {isAuthenticated && user && (
-            <span className="hidden md:inline text-sm text-muted truncate max-w-[140px]">
-              {user.name}
-            </span>
+          {isAuthenticated && user ? (
+            <>
+              <span className="hidden md:inline text-sm text-muted truncate max-w-[140px]">
+                {user.name}
+              </span>
+              <button
+                type="button"
+                onClick={logout}
+                className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full text-sm font-medium text-red-600 border border-red-200 hover:bg-red-50 transition-colors"
+                aria-label="Keluar dari akun"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Keluar</span>
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full text-sm font-medium text-primary border border-primary/20 hover:bg-primary/5 transition-colors"
+            >
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">Masuk</span>
+            </Link>
           )}
-          <button
-            type="button"
-            onClick={logout}
-            className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full text-sm font-medium text-red-600 border border-red-200 hover:bg-red-50 transition-colors"
-            aria-label="Keluar dari akun"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Keluar</span>
-          </button>
         </div>
       </div>
     </header>

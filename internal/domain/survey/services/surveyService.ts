@@ -32,17 +32,32 @@ export function deleteSurvey(id: string, token: string) {
   });
 }
 
-export function cloneSurvey(id: string, token: string) {
+export function cloneSurvey(id: string, payload: { new_name: string; new_slug: string }, token: string) {
   return apiClient<Survey>(apiEndpoints.admin.cloneSurvey(id), {
     method: "POST",
     token,
+    body: JSON.stringify(payload),
   });
 }
 
+/** Public survey info by access token — GET /survey/:token/info */
+export function getPublicSurveyInfo(accessToken: string, token: string) {
+  return apiClient<Survey>(`/survey/${accessToken}/info`, { token });
+}
+
+/** List active surveys for respondents */
+export function getActiveSurveys(token: string, page = 1, limit = 10) {
+  return apiClient<{ surveys: Survey[]; total: number; page: number; limit: number }>(
+    `/survey/active?page=${page}&limit=${limit}`,
+    { token }
+  );
+}
+
+// Legacy stubs kept for query hook compatibility
 export function getPublicSurvey(accessToken: string) {
-  return apiClient<Survey>(apiEndpoints.publicSurvey.detail(accessToken));
+  return apiClient<Survey>(`/survey/${accessToken}/info`);
 }
 
 export function joinSurvey(accessToken: string) {
-  return apiClient<JoinSurveyResponse>(apiEndpoints.publicSurvey.join(accessToken), { method: "POST" });
+  return apiClient<JoinSurveyResponse>(`/survey/access`, { method: "POST", body: JSON.stringify({ token: accessToken }) });
 }

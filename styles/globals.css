@@ -60,6 +60,506 @@
   .portion-thumb.selected {
     @apply border-primary ring-2 ring-primary/20;
   }
+
+  /* ══════════════════════════════════════════
+     RECALL WIZARD — LAYOUT
+  ══════════════════════════════════════════ */
+  .recall-wizard {
+    @apply min-h-screen flex flex-col bg-gray-50;
+  }
+
+  .wizard-header {
+    @apply flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200;
+  }
+  .wizard-back-btn {
+    @apply flex items-center gap-2 text-red-600 font-semibold text-sm hover:text-red-700 transition-colors;
+  }
+  .wizard-help-btn {
+    @apply w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 flex items-center justify-center text-sm font-bold hover:border-red-400 hover:text-red-500 transition-colors;
+  }
+
+  .wizard-progress-bar {
+    @apply bg-white border-b border-gray-200 px-6 py-2;
+  }
+  .wizard-progress-bar__track {
+    @apply h-1.5 bg-gray-200 rounded-full overflow-hidden;
+  }
+  .wizard-progress-bar__fill {
+    @apply h-full bg-red-600 rounded-full transition-all duration-500 ease-out;
+  }
+  .wizard-progress-label {
+    @apply text-[10px] font-semibold uppercase tracking-widest text-gray-400 mt-1 block;
+  }
+
+  .wizard-body {
+    @apply flex flex-1;
+  }
+
+  /* ── Sidebar ─────────────────────────────── */
+  .wizard-sidebar {
+    @apply w-56 bg-white border-r border-gray-200 flex flex-col p-4 gap-4 shrink-0;
+  }
+  .wizard-steps-nav {
+    @apply flex flex-col gap-1;
+  }
+  .sidebar-step {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg cursor-default;
+  }
+  .sidebar-step__num {
+    @apply w-7 h-7 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs font-bold text-gray-400 shrink-0;
+  }
+  .sidebar-step__label {
+    @apply text-sm text-gray-400 font-medium;
+  }
+  .sidebar-step--active .sidebar-step__num {
+    @apply bg-red-600 border-red-600 text-white;
+  }
+  .sidebar-step--active .sidebar-step__label {
+    @apply text-gray-900 font-semibold;
+  }
+  .sidebar-step--done .sidebar-step__num {
+    @apply bg-green-500 border-green-500 text-white;
+  }
+  .sidebar-step--done .sidebar-step__label {
+    @apply text-gray-500;
+  }
+  .sidebar-tip {
+    @apply mt-auto bg-red-50 border border-red-100 rounded-lg p-3 text-xs text-red-700;
+  }
+  .sidebar-tip strong {
+    @apply block font-semibold mb-1;
+  }
+
+  /* ── Main content ────────────────────────── */
+  .wizard-main {
+    @apply flex-1 overflow-y-auto;
+  }
+  .step-content {
+    @apply max-w-2xl mx-auto px-6 py-8 flex flex-col gap-6;
+  }
+  .step-content--centered {
+    @apply items-center text-center;
+  }
+  .step-title {
+    @apply text-2xl font-bold text-gray-900;
+  }
+  .step-subtitle {
+    @apply text-sm text-gray-500 -mt-4;
+  }
+
+  /* ── Step 1: Select Meal ─────────────────── */
+  .step-columns {
+    @apply grid grid-cols-2 gap-4;
+  }
+  .meal-type-card,
+  .time-picker-card {
+    @apply bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3;
+  }
+  .card-label {
+    @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-400;
+  }
+  .meal-grid {
+    @apply grid grid-cols-2 gap-2;
+  }
+  .meal-option {
+    @apply flex flex-col items-center gap-1 p-3 rounded-xl border-2 border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all cursor-pointer text-center;
+  }
+  .meal-option--active {
+    @apply border-red-500 bg-red-50 text-red-700;
+  }
+  .meal-option__icon {
+    @apply text-xl;
+  }
+  .meal-option__name {
+    @apply text-xs font-medium;
+  }
+
+  .time-display {
+    @apply flex items-center justify-center gap-3;
+  }
+  .time-col {
+    @apply flex flex-col items-center gap-1;
+  }
+  .time-arrow {
+    @apply text-gray-300 hover:text-red-500 text-sm font-bold transition-colors;
+  }
+  .time-digit {
+    @apply text-4xl font-bold text-red-600 tabular-nums;
+  }
+  .time-colon {
+    @apply text-3xl font-bold text-red-600 mb-2;
+  }
+  .time-period {
+    @apply flex rounded-lg overflow-hidden border border-gray-200 self-center;
+  }
+  .period-btn {
+    @apply px-4 py-1.5 text-sm font-semibold text-gray-400 hover:bg-gray-50 transition-colors;
+  }
+  .period-btn--active {
+    @apply bg-red-600 text-white;
+  }
+  .time-hint {
+    @apply flex gap-2 text-xs text-red-600 bg-red-50 rounded-lg p-2;
+  }
+  .hint-icon {
+    @apply shrink-0;
+  }
+
+  .guided-banner {
+    @apply bg-gradient-to-r from-red-600 to-teal-500 rounded-xl p-5 text-white;
+  }
+  .guided-banner__text strong {
+    @apply block font-bold text-base mb-1;
+  }
+  .guided-banner__text p {
+    @apply text-sm opacity-90;
+  }
+
+  /* ── Step 2: Add Food (Free Search) ─────── */
+  .info-banner {
+    @apply flex gap-2 bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-700;
+  }
+  .info-icon {
+    @apply shrink-0 text-red-500;
+  }
+
+  .search-input-group {
+    @apply flex flex-col gap-2;
+  }
+  .search-input-label {
+    @apply text-xs font-semibold uppercase tracking-wider text-gray-500;
+  }
+  .search-input-row {
+    @apply flex gap-2;
+  }
+  .search-input-wrapper {
+    @apply relative flex-1;
+  }
+  .search-icon {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none;
+  }
+  .search-input {
+    @apply w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-red-400 transition-all;
+  }
+  .search-spinner {
+    @apply absolute right-3 top-1/2 -translate-y-1/2 text-xs animate-spin;
+  }
+  .btn-add {
+    @apply bg-red-600 text-white font-bold text-sm px-4 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .search-dropdown {
+    @apply absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden;
+  }
+  .search-result-item {
+    @apply flex items-center gap-2 px-4 py-3 text-sm text-left hover:bg-red-50 w-full transition-colors border-b border-gray-100 last:border-0;
+  }
+  .result-icon {
+    @apply shrink-0;
+  }
+  .result-name {
+    @apply font-medium text-gray-800 flex-1;
+  }
+  .result-local {
+    @apply text-xs text-gray-400;
+  }
+  .result-category {
+    @apply text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full;
+  }
+  .search-missing-hint {
+    @apply flex items-center gap-2 px-4 py-3 text-xs text-gray-500 bg-gray-50;
+  }
+  .btn-add-manual {
+    @apply text-red-600 font-semibold hover:underline;
+  }
+
+  .added-items {
+    @apply border border-gray-200 rounded-xl overflow-hidden;
+  }
+  .added-items__header {
+    @apply flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200;
+  }
+  .added-items__title {
+    @apply text-sm font-semibold text-gray-700;
+  }
+  .added-items__count {
+    @apply text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-medium;
+  }
+  .added-items__hint {
+    @apply flex gap-2 px-4 py-2 text-xs text-red-600 bg-red-50 border-b border-red-100;
+  }
+  .added-items__list {
+    @apply divide-y divide-gray-100;
+  }
+  .added-item {
+    @apply flex items-center gap-3 px-4 py-3;
+  }
+  .added-item__icon {
+    @apply text-lg shrink-0;
+  }
+  .added-item__info {
+    @apply flex-1 flex flex-col;
+  }
+  .added-item__name {
+    @apply text-sm font-medium text-gray-800;
+  }
+  .added-item__local {
+    @apply text-xs text-gray-400;
+  }
+  .added-item__remove {
+    @apply text-gray-300 hover:text-red-500 text-sm font-bold transition-colors;
+  }
+
+  /* ── Step 3: Portion ─────────────────────── */
+  .food-nav-pills {
+    @apply flex flex-wrap gap-2;
+  }
+  .food-pill {
+    @apply text-xs px-3 py-1.5 rounded-full border border-gray-200 text-gray-500 hover:border-red-300 transition-all;
+  }
+  .food-pill--active {
+    @apply bg-red-600 text-white border-red-600;
+  }
+  .food-pill--done {
+    @apply bg-green-100 text-green-700 border-green-300;
+  }
+
+  .loading-state {
+    @apply flex flex-col items-center gap-3 py-12 text-gray-400;
+  }
+  .spinner {
+    @apply w-8 h-8 border-4 border-gray-200 border-t-red-500 rounded-full animate-spin;
+  }
+
+  .portion-grid {
+    @apply grid grid-cols-4 gap-3;
+  }
+  .portion-card {
+    @apply flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-gray-200 hover:border-red-300 hover:bg-red-50/50 transition-all cursor-pointer;
+  }
+  .portion-card--active {
+    @apply border-red-500 bg-red-50;
+  }
+  .portion-card__img-wrap {
+    @apply w-full aspect-square rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center;
+  }
+  .portion-card__img {
+    @apply w-full h-full object-cover;
+  }
+  .portion-card__img-placeholder {
+    @apply text-3xl;
+  }
+  .portion-card__label {
+    @apply text-xs font-bold text-gray-700;
+  }
+  .portion-card__desc {
+    @apply text-[10px] text-gray-400 text-center;
+  }
+
+  .no-portions-hint {
+    @apply py-8 text-center text-sm text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200;
+  }
+
+  .custom-weight {
+    @apply flex flex-col gap-2;
+  }
+  .custom-weight__label {
+    @apply text-xs font-semibold text-gray-500 uppercase tracking-wider;
+  }
+  .custom-weight__row {
+    @apply flex items-center gap-2;
+  }
+  .custom-weight__input {
+    @apply w-32 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 text-center font-mono;
+  }
+  .custom-weight__unit {
+    @apply text-sm text-gray-500;
+  }
+
+  .total-weight {
+    @apply bg-white border-2 border-red-100 rounded-xl p-4 flex flex-col items-center gap-1;
+  }
+  .total-weight__label {
+    @apply text-xs font-semibold uppercase tracking-widest text-gray-400;
+  }
+  .total-weight__value {
+    @apply text-3xl font-bold text-red-600;
+  }
+
+  .portion-food-nav {
+    @apply flex justify-between;
+  }
+  .btn-prev-food,
+  .btn-next-food {
+    @apply text-sm text-red-600 font-semibold hover:underline disabled:opacity-30 disabled:no-underline transition-opacity;
+  }
+
+  /* ── Step 4: Additional ─────────────────── */
+  .additional-food-section {
+    @apply bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3;
+  }
+  .additional-food-header {
+    @apply flex items-center gap-2;
+  }
+  .additional-food-icon {
+    @apply text-lg;
+  }
+  .additional-food-name {
+    @apply font-semibold text-gray-800 flex-1;
+  }
+  .additional-food-portion {
+    @apply text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium;
+  }
+
+  .quick-add {
+    @apply flex flex-col gap-2;
+  }
+  .quick-add__label {
+    @apply text-xs text-gray-400 font-medium;
+  }
+  .quick-add__chips {
+    @apply flex flex-wrap gap-1.5;
+  }
+  .chip {
+    @apply text-xs px-3 py-1 rounded-full border border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-600 transition-all cursor-pointer;
+  }
+  .chip--active {
+    @apply bg-red-100 border-red-400 text-red-700;
+  }
+
+  .additionals-list {
+    @apply flex flex-col gap-2 border-t border-gray-100 pt-3;
+  }
+  .additional-row {
+    @apply flex items-center gap-2;
+  }
+  .additional-name {
+    @apply flex-1 text-sm text-gray-700;
+  }
+  .additional-input {
+    @apply w-20 px-2 py-1 rounded-lg border border-gray-200 text-sm text-center font-mono focus:outline-none focus:ring-2 focus:ring-red-400;
+  }
+  .additional-unit {
+    @apply text-xs text-gray-400 w-8;
+  }
+  .additional-remove {
+    @apply text-gray-300 hover:text-red-500 text-xs transition-colors;
+  }
+
+  .btn-skip {
+    @apply text-sm text-gray-400 hover:text-gray-600 font-medium transition-colors;
+  }
+
+  /* ── Step 5: Review ──────────────────────── */
+  .review-layout {
+    @apply grid grid-cols-3 gap-4;
+  }
+  .review-card {
+    @apply col-span-2 bg-white border border-gray-200 rounded-xl overflow-hidden;
+  }
+  .review-card__header {
+    @apply flex items-center gap-2 px-4 py-3 border-b border-gray-100;
+  }
+  .review-card__icon {
+    @apply text-red-500 font-bold;
+  }
+  .review-card__title {
+    @apply flex-1 font-semibold text-gray-800;
+  }
+  .btn-edit-list {
+    @apply text-xs text-red-600 font-semibold hover:underline;
+  }
+
+  .review-items {
+    @apply divide-y divide-gray-100;
+  }
+  .review-item {
+    @apply flex items-start gap-3 px-4 py-3;
+  }
+  .review-item__img-wrap {
+    @apply text-2xl;
+  }
+  .review-item__info {
+    @apply flex-1 flex flex-col;
+  }
+  .review-item__name {
+    @apply text-sm font-medium text-gray-800;
+  }
+  .review-item__additionals {
+    @apply text-xs text-gray-400;
+  }
+  .review-item__portion {
+    @apply text-sm font-semibold text-gray-600;
+  }
+
+  .review-addons {
+    @apply px-4 py-3 border-t border-gray-100;
+  }
+  .review-addons__title {
+    @apply text-xs font-semibold text-gray-500 mb-2 block;
+  }
+  .review-addons__grid {
+    @apply flex flex-wrap gap-2;
+  }
+  .addon-tag {
+    @apply flex flex-col items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-center;
+  }
+  .addon-tag__name {
+    @apply text-[10px] text-gray-500;
+  }
+  .addon-tag__amount {
+    @apply text-xs font-bold text-red-600;
+  }
+
+  .quick-actions {
+    @apply col-span-1 flex flex-col gap-2;
+  }
+  .quick-actions__title {
+    @apply text-xs font-semibold uppercase tracking-wider text-gray-400;
+  }
+  .quick-action-btn {
+    @apply w-full py-2.5 px-3 rounded-xl border-2 border-gray-200 text-sm font-medium text-gray-600 hover:border-red-300 hover:text-red-600 transition-all text-left;
+  }
+  .btn-submit {
+    @apply mt-auto w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center gap-2 uppercase tracking-wider text-sm disabled:opacity-60;
+  }
+  .submit-error {
+    @apply text-xs text-red-600 bg-red-50 rounded-lg p-2;
+  }
+  .review-policy {
+    @apply text-center text-xs text-gray-400;
+  }
+
+  /* ── Step 6: Result ──────────────────────── */
+  .result-success-icon {
+    @apply text-5xl;
+  }
+  .result-summary {
+    @apply flex flex-col gap-3 w-full max-w-sm;
+  }
+  .result-summary__item {
+    @apply flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3;
+  }
+  .result-summary__icon {
+    @apply text-xl;
+  }
+  .result-summary__label {
+    @apply text-sm font-medium text-gray-700;
+  }
+  .result-actions {
+    @apply flex gap-3 mt-2;
+  }
+
+  /* ── Navigation buttons ─────────────────── */
+  .step-nav {
+    @apply flex items-center justify-between pt-4 border-t border-gray-100;
+  }
+  .btn-back {
+    @apply text-sm text-gray-400 hover:text-gray-600 font-medium transition-colors;
+  }
+  .btn-continue {
+    @apply bg-red-600 text-white font-semibold text-sm px-6 py-2.5 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
 }
 
 @layer utilities {

@@ -13,13 +13,15 @@ export type Survey = {
   slug: string;
   name: string;
   description: string;
-  meals_config: MealConfig[];
+  /** API returns { meals: MealConfig[] } shape from backend DTO */
+  meals_config: MealsConfigPayload | MealConfig[];
   prompts?: SurveyPrompts;
   locale_id: number;
   start_date?: string | null;
   end_date?: string | null;
   status: SurveyStatus;
   access_token: string;
+  access_url?: string;
   created_by: string;
   created_at: string;
 };
@@ -39,11 +41,15 @@ export type Locale = {
   name: string;
 };
 
+export type MealsConfigPayload = {
+  meals: MealConfig[];
+};
+
 export type CreateSurveyRequest = {
   slug?: string;
   name: string;
   description?: string;
-  meals_config: MealConfig[];
+  meals_config: MealsConfigPayload;
   prompts?: SurveyPrompts;
   locale_id?: number;
   start_date?: string;
@@ -54,7 +60,7 @@ export type CreateSurveyRequest = {
 export type UpdateSurveyRequest = {
   name?: string;
   description?: string;
-  meals_config?: MealConfig[];
+  meals_config?: MealsConfigPayload;
   prompts?: SurveyPrompts;
   locale_id?: number;
   start_date?: string;

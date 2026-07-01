@@ -1,5 +1,5 @@
-import { PublicSurvey } from "@/internal/domain/survey/components/PublicSurvey";
+import { redirect } from 'next/navigation';
 
-export default function PublicSurveyPage() {
-  return <PublicSurvey />;
+export default function SurveyIndexPage({ params }: { params: { accessToken: string } }) {
+  redirect(`/surveys/${params.accessToken}/join`);
 }

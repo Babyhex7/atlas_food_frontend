@@ -1,41 +1,55 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createSurvey, getPublicSurvey, getSurveyById, getSurveys, joinSurvey } from "../services/surveyService";
+import {
+  createSurvey,
+  getActiveSurveys,
+  getPublicSurveyInfo,
+  getSurveyById,
+  getSurveys,
+} from "../services/surveyService";
 import type { CreateSurveyRequest } from "../types/survey";
+import { getAccessToken } from "@/internal/lib/cookies";
 
-export function useSurveys(token: string) {
+export function useSurveys() {
+  const token = getAccessToken() ?? "";
   return useQuery({
-    queryKey: ["surveys"],
+    queryKey: ["admin-surveys"],
     queryFn: () => getSurveys(token),
     enabled: Boolean(token),
   });
 }
 
-export function useSurvey(id: string, token: string) {
+export function useSurvey(id: string) {
+  const token = getAccessToken() ?? "";
   return useQuery({
-    queryKey: ["survey", id],
+    queryKey: ["admin-survey", id],
     queryFn: () => getSurveyById(id, token),
     enabled: Boolean(id && token),
   });
 }
 
-export function useCreateSurvey(token: string) {
+export function useCreateSurvey() {
+  const token = getAccessToken() ?? "";
   return useMutation({
     mutationFn: (payload: CreateSurveyRequest) => createSurvey(payload, token),
   });
 }
 
 export function usePublicSurvey(accessToken: string) {
+  const jwtToken = getAccessToken() ?? "";
   return useQuery({
     queryKey: ["public-survey", accessToken],
-    queryFn: () => getPublicSurvey(accessToken),
-    enabled: Boolean(accessToken),
+    queryFn: () => getPublicSurveyInfo(accessToken, jwtToken),
+    enabled: Boolean(accessToken && jwtToken),
   });
 }
 
-export function useJoinSurvey() {
-  return useMutation({
-    mutationFn: joinSurvey,
+export function useActiveSurveys(page = 1, limit = 10) {
+  const token = getAccessToken() ?? "";
+  return useQuery({
+    queryKey: ["active-surveys", page, limit],
+    queryFn: () => getActiveSurveys(token, page, limit),
+    enabled: Boolean(token),
   });
 }

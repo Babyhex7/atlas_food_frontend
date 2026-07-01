@@ -8,6 +8,6 @@ export function useSurveySubmissions(surveyId: string, token: string) {
   return useQuery({ queryKey: ["survey-submissions", surveyId], queryFn: () => getSurveySubmissions(surveyId, token), enabled: Boolean(surveyId && token) });
 }
 
-export function useSubmitSurvey(surveyAccessToken: string) {
-  return useMutation({ mutationFn: (payload: CreateSubmissionRequest) => submitSurvey(payload, surveyAccessToken) });
+export function useSubmitSurvey() {
+  return useMutation({ mutationFn: (payload: CreateSubmissionRequest) => submitSurvey(payload) });
 }
