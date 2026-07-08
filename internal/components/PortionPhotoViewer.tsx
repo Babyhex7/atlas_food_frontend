@@ -1,16 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import type { PortionPhoto } from "@/internal/types/food.types";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PortionPhotoViewerProps {
   photos: PortionPhoto[];
   photoType: "series" | "range";
+  activeIndex?: number;
+  onSelect?: (index: number) => void;
 }
 
-export function PortionPhotoViewer({ photos, photoType }: PortionPhotoViewerProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
+export function PortionPhotoViewer({ photos, photoType, activeIndex: controlledIndex, onSelect }: PortionPhotoViewerProps) {
+  const [internalIndex, setInternalIndex] = useState(0);
+  const activeIndex = controlledIndex !== undefined ? controlledIndex : internalIndex;
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const checkArrows = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setShowLeftArrow(el.scrollLeft > 8);
+    setShowRightArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+  }, []);
+
+  useEffect(() => {
+    checkArrows();
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", checkArrows, { passive: true });
+    window.addEventListener("resize", checkArrows);
+    return () => {
+      el.removeEventListener("scroll", checkArrows);
+      window.removeEventListener("resize", checkArrows);
+    };
+  }, [checkArrows, photos]);
+
+  const handleSelect = (index: number) => {
+    if (controlledIndex === undefined) setInternalIndex(index);
+    onSelect?.(index);
+  };
+
+  const scrollBy = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.6;
+    el.scrollBy({ left: direction === "left" ? -amount : amount, behavior: "smooth" });
+  };
 
   if (!photos || photos.length === 0) {
     return (
@@ -22,6 +59,7 @@ export function PortionPhotoViewer({ photos, photoType }: PortionPhotoViewerProp
   }
 
   const activePhoto = photos[activeIndex];
+  const needsScroll = photos.length > 5;
 
   return (
     <div className="space-y-6">
@@ -63,50 +101,71 @@ export function PortionPhotoViewer({ photos, photoType }: PortionPhotoViewerProp
       {/* Thumbnails */}
       <div>
         <p className="text-sm font-medium text-muted-foreground mb-3">Pilih variasi ukuran:</p>
-        <div 
-          className={
-            photoType === 'series' 
-              ? 'flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth hide-scrollbar' 
-              : 'grid gap-3 grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
-          }
-        >
-          {photos.map((photo, index) => {
-            const isActive = index === activeIndex;
-            return (
-              <button
-                key={photo.id}
-                onClick={() => setActiveIndex(index)}
-                className={`relative shrink-0 snap-center rounded-xl overflow-hidden border-2 transition-all duration-300 outline-none ${
-                  photoType === 'series' ? 'w-24 h-24 md:w-32 md:h-32' : 'aspect-square w-full'
-                } ${
-                  isActive 
-                    ? 'border-primary ring-4 ring-primary/20 scale-105 z-10 shadow-md' 
-                    : 'border-transparent hover:border-primary/50 opacity-70 hover:opacity-100'
-                }`}
-              >
-                {photo.thumbnail_url || photo.image_url ? (
-                  <img
-                    src={photo.thumbnail_url || photo.image_url}
-                    alt={photo.label}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center text-xs text-muted-foreground/50 font-bold">
-                    {photo.label}
+        <div className="relative">
+          {needsScroll && showLeftArrow && (
+            <button
+              onClick={() => scrollBy("left")}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow-md border border-border text-foreground hover:bg-white transition-colors"
+              aria-label="Scroll kiri"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
+          {needsScroll && showRightArrow && (
+            <button
+              onClick={() => scrollBy("right")}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow-md border border-border text-foreground hover:bg-white transition-colors"
+              aria-label="Scroll kanan"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+          <div
+            ref={scrollRef}
+            className={
+              photoType === "series"
+                ? "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth hide-scrollbar"
+                : "grid gap-3 grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+            }
+          >
+            {photos.map((photo, index) => {
+              const isActive = index === activeIndex;
+              return (
+                <button
+                  key={photo.id}
+                  onClick={() => handleSelect(index)}
+                  className={`relative shrink-0 snap-center rounded-xl overflow-hidden border-2 transition-all duration-300 outline-none ${
+                    photoType === "series" ? "w-24 h-24 md:w-32 md:h-32" : "aspect-square w-full"
+                  } ${
+                    isActive
+                      ? "border-primary ring-4 ring-primary/20 scale-105 z-10 shadow-md"
+                      : "border-transparent hover:border-primary/50 opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  {photo.thumbnail_url || photo.image_url ? (
+                    <img
+                      src={photo.thumbnail_url || photo.image_url}
+                      alt={photo.label}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center text-xs text-muted-foreground/50 font-bold">
+                      {photo.label}
+                    </div>
+                  )}
+
+                  {isActive && (
+                    <div className="absolute inset-0 bg-primary/10"></div>
+                  )}
+                  <div className="absolute bottom-0 inset-x-0 bg-black/60 p-1 text-center">
+                    <span className="text-[10px] md:text-xs font-bold text-white leading-none">
+                      {photo.weight_gram}g
+                    </span>
                   </div>
-                )}
-                
-                {isActive && (
-                  <div className="absolute inset-0 bg-primary/10"></div>
-                )}
-                <div className="absolute bottom-0 inset-x-0 bg-black/60 p-1 text-center">
-                  <span className="text-[10px] md:text-xs font-bold text-white leading-none">
-                    {photo.weight_gram}g
-                  </span>
-                </div>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

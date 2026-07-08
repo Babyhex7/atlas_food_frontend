@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { searchFoodsPublic } from "@/internal/domain/food/services/foodService";
+import { searchFoodsPublic } from "@/internal/services/food.service";
 import type { SearchFoodResult } from "@/internal/domain/food/types/food";
 import type { RecallFood, MissingFood } from "../types/recall";
 

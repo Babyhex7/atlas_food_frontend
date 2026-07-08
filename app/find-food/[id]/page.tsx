@@ -16,6 +16,7 @@ export default function FoodDetailPage() {
   const router = useRouter();
   const foodId = params.id as string;
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
   useEffect(() => {
     setIsBookmarked(isFoodBookmarked(foodId));
@@ -110,38 +111,52 @@ export default function FoodDetailPage() {
             <h2 className="text-2xl font-semibold">Album Foto Porsi</h2>
           </div>
           
-          {/* Interactive Photo Viewer */}
-          <PortionPhotoViewer 
-            photos={food.portion_photos || []} 
-            photoType={food.photo_type || 'series'} 
-          />
-
-          {/* Portion Table */}
-          {food.portion_photos && food.portion_photos.length > 0 && (
-            <div className="mt-12">
-              <h3 className="text-lg font-medium text-foreground mb-4">Tabel Ukuran Porsi</h3>
-              <div className="overflow-x-auto rounded-xl border border-border">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-muted text-muted-foreground font-medium">
-                    <tr>
-                      <th className="px-4 py-3 border-b border-border">Kode</th>
-                      <th className="px-4 py-3 border-b border-border text-right">Berat (g)</th>
-                      <th className="px-4 py-3 border-b border-border">Keterangan</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {food.portion_photos.map((photo) => (
-                      <tr key={photo.id} className="hover:bg-muted/50 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-foreground">{photo.label}</td>
-                        <td className="px-4 py-3 text-right font-mono text-primary">{photo.weight_gram} g</td>
-                        <td className="px-4 py-3 text-muted-foreground">{photo.description || '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          <div className="lg:flex lg:gap-8 lg:items-start">
+            {/* Kiri: Interactive Photo Viewer */}
+            <div className="lg:w-3/5 lg:flex-shrink-0">
+              <PortionPhotoViewer 
+                photos={food.portion_photos || []} 
+                photoType={food.photo_type || 'series'}
+                activeIndex={activePhotoIndex}
+                onSelect={setActivePhotoIndex}
+              />
             </div>
-          )}
+
+            {/* Kanan: Tabel Ukuran Porsi (desktop) / bawah (mobile) */}
+            {food.portion_photos && food.portion_photos.length > 0 && (
+              <div className="lg:w-2/5 lg:flex-shrink-0 mt-8 lg:mt-0">
+                <h3 className="text-lg font-medium text-foreground mb-4 lg:mb-3">Tabel Ukuran Porsi</h3>
+                <div className="overflow-x-auto rounded-xl border border-border">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-muted text-muted-foreground font-medium">
+                      <tr>
+                        <th className="px-4 py-3 border-b border-border">Kode</th>
+                        <th className="px-4 py-3 border-b border-border text-right">Berat (g)</th>
+                        <th className="px-4 py-3 border-b border-border hidden sm:table-cell">Keterangan</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {food.portion_photos.map((photo, idx) => (
+                        <tr
+                          key={photo.id}
+                          onClick={() => setActivePhotoIndex(idx)}
+                          className={`cursor-pointer transition-colors ${
+                            idx === activePhotoIndex
+                              ? "bg-primary/10 border-l-[3px] border-l-primary"
+                              : "hover:bg-muted/50 border-l-[3px] border-l-transparent"
+                          }`}
+                        >
+                          <td className="px-4 py-3 font-semibold text-foreground">{photo.label}</td>
+                          <td className="px-4 py-3 text-right font-mono text-primary">{photo.weight_gram} g</td>
+                          <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{photo.description || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Nutrition Info */}

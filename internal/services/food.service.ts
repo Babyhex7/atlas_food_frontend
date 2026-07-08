@@ -2,9 +2,9 @@ import { publicApiClient } from "@/internal/lib/axios";
 import type { FoodSearchResult, FoodDetail } from "@/internal/types/food.types";
 
 // ── Search makanan (public, no login) ─────────────────────────
-export async function searchFoodsPublic(query: string, limit = 20): Promise<FoodSearchResult[]> {
+export async function searchFoodsPublic(query: string, type?: "food" | "drink" | "", limit = 20): Promise<FoodSearchResult[]> {
   const { data } = await publicApiClient.get("/public/foods/search", {
-    params: { q: query, limit },
+    params: { q: query, type, limit },
   });
   return data.data;
 }
@@ -14,6 +14,9 @@ export async function getFoodDetailPublic(foodId: string): Promise<FoodDetail> {
   const { data } = await publicApiClient.get(`/public/foods/${foodId}`);
   return data.data;
 }
+
+// Alias for recall flow
+export { getFoodDetailPublic as getFoodPublic };
 
 // ── List kategori (public) ────────────────────────────────────
 export async function getCategoriesPublic() {

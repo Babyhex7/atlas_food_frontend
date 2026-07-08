@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getFoodPublic } from "@/internal/domain/food/services/foodService";
+import { getFoodPublic } from "@/internal/services/food.service";
 import type { FoodDetail, PortionPhoto } from "@/internal/domain/food/types/food";
 import type { RecallFood } from "../types/recall";
 import type { SelectedPortion } from "@/internal/domain/portion/types/portion";
@@ -146,6 +146,7 @@ export function Step3Portion({
                     ) : (
                       <div className="portion-card__img-placeholder">🍽️</div>
                     )}
+                    <span className="portion-card__weight">{photo.weight_gram}g</span>
                   </div>
                   <span className="portion-card__label">{photo.label}</span>
                   {photo.description && (

@@ -341,10 +341,13 @@
     @apply border-red-500 bg-red-50;
   }
   .portion-card__img-wrap {
-    @apply w-full aspect-square rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center;
+    @apply w-full aspect-square rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center relative;
   }
   .portion-card__img {
     @apply w-full h-full object-cover;
+  }
+  .portion-card__weight {
+    @apply absolute bottom-1 right-1 text-[10px] font-bold text-white bg-black/60 rounded px-1.5 py-0.5;
   }
   .portion-card__img-placeholder {
     @apply text-3xl;
