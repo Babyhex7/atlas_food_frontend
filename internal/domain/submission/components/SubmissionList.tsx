@@ -107,10 +107,10 @@ export function SubmissionList() {
                     </p>
                   </div>
                   <div className="flex gap-2 flex-wrap justify-end">
-                    <NutrientBadge label="Energi" value={sub.total_energy as unknown as number} unit=" kcal" />
-                    <NutrientBadge label="Protein" value={sub.total_protein as unknown as number} unit="g" />
-                    <NutrientBadge label="Karb" value={sub.total_carbs as unknown as number} unit="g" />
-                    <NutrientBadge label="Lemak" value={sub.total_fat as unknown as number} unit="g" />
+                    <NutrientBadge label="Energi" value={sub.total_energy ?? 0} unit=" kcal" />
+                    <NutrientBadge label="Protein" value={sub.total_protein ?? 0} unit="g" />
+                    <NutrientBadge label="Karb" value={sub.total_carbs ?? 0} unit="g" />
+                    <NutrientBadge label="Lemak" value={sub.total_fat ?? 0} unit="g" />
                   </div>
                 </div>
 

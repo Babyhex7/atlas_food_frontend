@@ -42,6 +42,10 @@ export type SurveySubmission = {
   respondent_email?: string | null;
   meals_data: SubmissionMeal[];
   missing_foods?: MissingFood[];
+  total_energy?: number;
+  total_protein?: number;
+  total_carbs?: number;
+  total_fat?: number;
   submitted_at: string;
   created_at: string;
 };

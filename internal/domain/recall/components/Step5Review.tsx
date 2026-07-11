@@ -5,6 +5,7 @@ import { submitSurvey } from "@/internal/domain/submission/services/submissionSe
 import type { CreateSubmissionRequest } from "@/internal/domain/submission/types/submission";
 import type { RecallSession, RecallFood, AdditionalItem } from "../types/recall";
 import { calcNutrientsForPortion } from "../utils/nutrients";
+import { getApiErrorMessage } from "@/internal/pkg/utils/apiError";
 
 interface Props {
   session: RecallSession;
@@ -133,7 +134,7 @@ export function Step5Review({
       await submitSurvey(buildSubmitPayload(session));
       onSubmitSuccess();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Gagal submit. Silakan coba lagi.");
+      setError(getApiErrorMessage(e, "Gagal submit. Silakan coba lagi."));
     } finally {
       setSubmitting(false);
     }

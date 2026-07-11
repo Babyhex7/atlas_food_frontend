@@ -9,6 +9,8 @@ import { Utensils } from 'lucide-react';
 import { apiClient as api } from '@/internal/lib/axios';
 import { initRecallSession } from '@/internal/domain/recall/services/recallStorage';
 import { getAccessToken } from '@/internal/lib/cookies';
+import { loginWithRedirect } from '@/internal/lib/layout';
+import { getApiErrorMessage } from '@/internal/pkg/utils/apiError';
 
 type MealConfig = {
   name: string;
@@ -37,7 +39,7 @@ export default function JoinSurveyPage() {
     }
 
     if (!getAccessToken()) {
-      router.push('/login');
+      router.push(loginWithRedirect(`/surveys/${accessToken}/join`));
       return;
     }
 
@@ -79,22 +81,7 @@ export default function JoinSurveyPage() {
 
       router.push(`/surveys/${accessToken}/recall`);
     } catch (err: unknown) {
-      const message =
-        err &&
-        typeof err === 'object' &&
-        'response' in err &&
-        err.response &&
-        typeof err.response === 'object' &&
-        'data' in err.response &&
-        err.response.data &&
-        typeof err.response.data === 'object' &&
-        'error' in err.response.data &&
-        err.response.data.error &&
-        typeof err.response.data.error === 'object' &&
-        'message' in err.response.data.error
-          ? String(err.response.data.error.message)
-          : 'Gagal masuk ke survey. Pastikan token & alias benar.';
-      setError(message);
+      setError(getApiErrorMessage(err, 'Gagal masuk ke survey. Pastikan token & alias benar.'));
     } finally {
       setLoading(false);
     }

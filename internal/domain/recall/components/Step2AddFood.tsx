@@ -37,12 +37,14 @@ function SearchInput({
   placeholder,
   foodType,
   onAdd,
+  onAddMissing,
 }: {
   label: string;
   icon: string;
   placeholder: string;
   foodType: "food" | "drink";
   onAdd: (food: SearchFoodResult, type: "food" | "drink") => void;
+  onAddMissing: (missing: MissingFood) => void;
 }) {
   const [state, setState] = useState<SearchState>({
     query: "",
@@ -159,14 +161,7 @@ function SearchInput({
                 type="button"
                 className="btn-add-manual"
                 onClick={() => {
-                  onAdd(
-                    {
-                      id: `missing-${Date.now()}`,
-                      code: "MISSING",
-                      name: state.query,
-                    },
-                    foodType
-                  );
+                  onAddMissing({ name: state.query });
                   setState({ query: "", results: [], loading: false, open: false });
                 }}
               >
@@ -185,6 +180,7 @@ export function Step2AddFood({
   addedFoods,
   onAddFood,
   onRemoveFood,
+  onAddMissing,
   onContinue,
   onBack,
 }: Props) {
@@ -213,6 +209,7 @@ export function Step2AddFood({
         placeholder="Search foods (e.g. Nasi Goreng, Ayam Goreng, Bubur Ayam...)"
         foodType="food"
         onAdd={onAddFood}
+        onAddMissing={onAddMissing}
       />
 
       {/* Drink Search */}
@@ -222,6 +219,7 @@ export function Step2AddFood({
         placeholder="Search drinks (e.g. Es Teh, Kopi Susu, Jus Jeruk...)"
         foodType="drink"
         onAdd={onAddFood}
+        onAddMissing={onAddMissing}
       />
 
       {/* Added Items */}

@@ -7,7 +7,7 @@ import { Button } from "@/internal/pkg/components/Button";
 import { Input } from "@/internal/pkg/components/Input";
 import { getAccessToken } from "@/internal/lib/cookies";
 import { getSurveyById, createSurvey, updateSurvey } from "../services/surveyService";
-import { surveyStatuses } from "../constants/surveyStatus";
+import { surveyStatuses, type SurveyStatus } from "../constants/surveyStatus";
 import { surveyValidation } from "../schemas/surveySchema";
 import type { MealConfig, CreateSurveyRequest, UpdateSurveyRequest } from "../types/survey";
 
@@ -28,7 +28,7 @@ export function SurveyForm() {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<string>(surveyStatuses.draft);
+  const [status, setStatus] = useState<SurveyStatus>(surveyStatuses.draft);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [meals, setMeals] = useState<MealConfig[]>(DEFAULT_MEALS);
@@ -244,7 +244,7 @@ export function SurveyForm() {
             <label className="block text-sm font-medium mb-1.5">Status</label>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              onChange={(e) => setStatus(e.target.value as SurveyStatus)}
               className="w-full border border-border rounded-xl px-4 py-3 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm"
             >
               {Object.values(surveyStatuses).map((s) => (

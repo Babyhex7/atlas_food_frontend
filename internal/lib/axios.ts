@@ -57,7 +57,8 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch {
         clearAuthCookies();
-        window.location.href = "/login";
+        const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `/login?redirect=${redirect}`;
       }
     }
 

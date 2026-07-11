@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, User, LogOut } from "lucide-react";
+import { Search, User, LogOut, ClipboardList } from "lucide-react";
 import { useAuth } from "@/internal/domain/auth/hooks/useAuth";
 import { useLogout } from "@/internal/domain/auth/hooks/useLogout";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
@@ -34,6 +34,12 @@ export function AppHeader() {
             <span className="inline-flex items-center gap-1.5">
               <Search className="w-4 h-4" />
               <span className="hidden sm:inline">Find Your Food</span>
+            </span>
+          </Link>
+          <Link href="/surveys" className={navLinkClass("/surveys")}>
+            <span className="inline-flex items-center gap-1.5">
+              <ClipboardList className="w-4 h-4" />
+              <span className="hidden sm:inline">Recall</span>
             </span>
           </Link>
           <Link href="/profile" className={navLinkClass("/profile")}>

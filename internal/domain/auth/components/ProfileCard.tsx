@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLogout } from "../hooks/useLogout";
 import { authRoles } from "../constants/authRoles";
-import { Settings, Search } from "lucide-react";
+import { Settings, Search, ClipboardList } from "lucide-react";
 import { Button } from "@/internal/pkg/components/Button";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
@@ -70,6 +70,13 @@ export function ProfileCard() {
               >
                 <Search className="w-5 h-5 text-accent-600" />
                 <span className="text-sm font-medium">Find Your Food</span>
+              </Link>
+              <Link
+                href="/surveys"
+                className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-primary/5 transition-colors"
+              >
+                <ClipboardList className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium">Survey Recall 24 Jam</span>
               </Link>
             </div>
 

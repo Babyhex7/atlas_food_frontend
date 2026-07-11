@@ -7,11 +7,6 @@ import { ReactNode } from 'react';
  * The done page has its own AppHeader.
  * We just pass children through so each page controls its own layout.
  */
-export default function SurveyLayout({
-  children,
-}: {
-  children: ReactNode;
-  params: { accessToken: string };
-}) {
+export default function SurveyLayout({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }

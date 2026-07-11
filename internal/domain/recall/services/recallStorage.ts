@@ -1,19 +1,42 @@
 import type { RecallSession, RecallMealOption } from "../types/recall";
 
 const storageKey = "atlas-food-recall-session";
+// Progress recall bisa diisi bertahap sepanjang hari (mis. di HP, antar tab/app
+// switch) — pakai localStorage (bukan sessionStorage) supaya tidak hilang saat
+// tab ditutup, tapi tetap dibatasi TTL agar sesi basi otomatis dianggap kadaluarsa.
+const TTL_MS = 24 * 60 * 60 * 1000; // 24 jam
+
+type StoredEnvelope = {
+  savedAt: number;
+  session: RecallSession;
+};
 
 function getStorage(): Storage | null {
   if (typeof window === "undefined") return null;
-  return window.sessionStorage;
+  return window.localStorage;
 }
 
 export function saveRecallSession(session: RecallSession) {
-  getStorage()?.setItem(storageKey, JSON.stringify(session));
+  const envelope: StoredEnvelope = { savedAt: Date.now(), session };
+  getStorage()?.setItem(storageKey, JSON.stringify(envelope));
 }
 
 export function getRecallSession() {
   const value = getStorage()?.getItem(storageKey);
-  return value ? (JSON.parse(value) as RecallSession) : null;
+  if (!value) return null;
+
+  try {
+    const envelope = JSON.parse(value) as StoredEnvelope;
+    if (!envelope?.session || typeof envelope.savedAt !== "number") return null;
+    if (Date.now() - envelope.savedAt > TTL_MS) {
+      clearRecallSession();
+      return null;
+    }
+    return envelope.session;
+  } catch {
+    clearRecallSession();
+    return null;
+  }
 }
 
 export function clearRecallSession() {
