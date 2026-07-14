@@ -4,3 +4,17 @@ out/
 tsconfig.tsbuildinfo
 .env*.local
 .env
+
+.haie
+
+.claude/skills/haie-*
+
+.claude/skills/pm-*
+
+.claude/skills/qa-*
+
+.claude/rules/haie.md
+
+playwright-report/
+
+test-results/

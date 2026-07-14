@@ -9,11 +9,10 @@ import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 
 export default function CategoryFoodsPage() {
-  const params = useParams();
-  const router = useRouter();
+  const params   = useParams();
+  const router   = useRouter();
   const categoryCode = params.code as string;
 
-  // Optimistic/Fallback category name lookup
   const { data: categories = [] } = useQuery({
     queryKey: ["public-categories"],
     queryFn: getCategoriesPublic,
@@ -24,77 +23,195 @@ export default function CategoryFoodsPage() {
     queryFn: () => getFoodsByCategoryPublic(categoryCode),
   });
 
-  const foods = foodsResponse?.foods || [];
-
+  const foods    = foodsResponse?.foods || [];
   const category = categories.find((c: any) => c.code === categoryCode);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)", display: "flex", flexDirection: "column" }}>
       <AppHeader />
-      <div className="bg-primary-900 text-white pt-8 pb-24 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(#C2E5CF 2px, transparent 2px)", backgroundSize: "30px 30px" }}></div>
-        <div className={`${CONTAINER_CLASS} relative z-10`}>
-          <button onClick={() => router.back()} className="inline-flex items-center text-primary-200 hover:text-white mb-6 transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Kembali
+
+      {/* ── Hero banner ── */}
+      <div
+        style={{
+          backgroundColor: "var(--color-primary)",
+          color: "white",
+          paddingTop: "var(--space-8)",
+          paddingBottom: "var(--space-16)",
+          paddingLeft: "var(--space-4)",
+          paddingRight: "var(--space-4)",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* dot pattern */}
+        <div
+          style={{
+            position: "absolute", inset: 0, opacity: 0.07,
+            backgroundImage: "radial-gradient(rgba(255,255,255,0.8) 1.5px, transparent 1.5px)",
+            backgroundSize: "24px 24px", pointerEvents: "none",
+          }}
+        />
+        <div className={CONTAINER_CLASS} style={{ position: "relative", zIndex: 1 }}>
+          {/* Back button */}
+          <button
+            type="button"
+            onClick={() => router.back()}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "var(--space-2)",
+              fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)",
+              color: "rgba(255,255,255,0.8)", background: "none", border: "none",
+              cursor: "pointer", marginBottom: "var(--space-6)", padding: 0,
+              transition: "var(--transition-fast)",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "white"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.8)"; }}
+          >
+            <ArrowLeft size={16} /> Kembali
           </button>
-          
-          <div className="flex items-center gap-4">
-            <div className="text-5xl">{category?.icon || "🍽️"}</div>
+
+          {/* Category info */}
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+            <div
+              style={{
+                width: 64, height: 64,
+                borderRadius: "var(--radius-xl)",
+                backgroundColor: "rgba(255,255,255,0.15)",
+                border: "1.5px solid rgba(255,255,255,0.25)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "2rem", flexShrink: 0,
+              }}
+            >
+              {category?.icon || "🍽️"}
+            </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-display font-bold">
+              <h1
+                style={{
+                  fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
+                  fontWeight: "var(--weight-bold)",
+                  color: "white",
+                  fontFamily: "var(--font-sans)",
+                  margin: "0 0 var(--space-1)",
+                  letterSpacing: "-0.02em",
+                }}
+              >
                 {category ? category.name : categoryCode}
               </h1>
-              <p className="text-primary-200 mt-2">Menampilkan semua makanan dalam kategori ini.</p>
+              <p style={{ fontSize: "var(--text-sm)", color: "rgba(255,255,255,0.75)", margin: 0 }}>
+                Menampilkan semua makanan dalam kategori ini.
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className={`${CONTAINER_CLASS} -mt-10 relative z-20 pb-20 flex-1`}>
-        <div className="bg-surface rounded-2xl shadow-sm border border-border p-6 md:p-8 animate-fade-in">
-          <h2 className="text-xl font-semibold mb-6 flex items-center justify-between">
-            <span>Daftar Makanan</span>
-            <span className="text-sm font-normal text-muted-foreground bg-muted-foreground/10 px-3 py-1 rounded-full">
-              {foods.length} hasil
-            </span>
-          </h2>
+      {/* ── Content (overlaps hero) ── */}
+      <div
+        className={CONTAINER_CLASS}
+        style={{ marginTop: "calc(-1 * var(--space-8))", position: "relative", zIndex: 10, paddingBottom: "var(--space-16)", flex: 1 }}
+      >
+        <div className="card animate-fade-in" style={{ padding: "var(--space-6)" }}>
+          {/* Header row */}
+          <div
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              marginBottom: "var(--space-5)", flexWrap: "wrap", gap: "var(--space-2)",
+            }}
+          >
+            <h2 style={{ fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: 0 }}>
+              Daftar Makanan
+            </h2>
+            <span className="badge badge-default">{foods.length} hasil</span>
+          </div>
 
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          {/* States */}
+          {isLoading && (
+            <div style={{ display: "flex", justifyContent: "center", padding: "var(--space-12)" }}>
+              <Loader2 size={28} className="animate-spin" style={{ color: "var(--color-primary)" }} />
             </div>
-          ) : foods.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-4">🍽️</div>
-              <p className="text-muted-foreground">Belum ada makanan di kategori ini.</p>
+          )}
+
+          {!isLoading && foods.length === 0 && (
+            <div style={{ textAlign: "center", padding: "var(--space-12)" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "var(--space-3)" }}>🍽️</div>
+              <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", margin: 0 }}>
+                Belum ada makanan di kategori ini.
+              </p>
             </div>
-          ) : (
-            <div className="grid md:grid-cols-2 gap-4">
+          )}
+
+          {!isLoading && foods.length > 0 && (
+            <div className="grid md:grid-cols-2" style={{ gap: "var(--space-3)" }}>
               {foods.map((food: any) => (
                 <Link
-                    key={food.id}
-                    href={`/find-food/${food.id}`}
-                    className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary/50 hover:shadow-md transition-all group bg-white"
+                  key={food.id}
+                  href={`/find-food/${food.id}`}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "var(--space-4)",
+                    padding: "var(--space-4)", borderRadius: "var(--radius-xl)",
+                    border: "1.5px solid var(--color-border)",
+                    backgroundColor: "var(--color-surface)",
+                    textDecoration: "none", transition: "var(--transition-base)",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderColor = "var(--color-primary-border)";
+                    el.style.boxShadow = "var(--shadow-md)";
+                    el.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderColor = "var(--color-border)";
+                    el.style.boxShadow = "none";
+                    el.style.transform = "none";
+                  }}
+                >
+                  {/* Icon */}
+                  <div
+                    style={{
+                      width: 48, height: 48, borderRadius: "var(--radius-lg)",
+                      backgroundColor: "var(--color-primary-light)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "1.5rem", flexShrink: 0,
+                    }}
                   >
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                      {food.category?.icon || category?.icon || "🍲"}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground truncate">{food.name}</h3>
-                      <p className="text-xs text-muted-foreground truncate flex items-center gap-2">
-                        <span className="bg-muted-foreground/10 px-2 py-0.5 rounded font-mono">
-                          {food.code}
+                    {food.category?.icon || category?.icon || "🍲"}
+                  </div>
+
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3
+                      style={{
+                        fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)",
+                        color: "var(--color-text-primary)", margin: "0 0 var(--space-1)",
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      }}
+                    >
+                      {food.name}
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                      <span
+                        style={{
+                          fontSize: "var(--text-xs)", fontFamily: "var(--font-mono)",
+                          fontWeight: "var(--weight-semibold)",
+                          backgroundColor: "var(--color-surface-alt)",
+                          color: "var(--color-text-muted)",
+                          padding: "1px var(--space-2)",
+                          borderRadius: "var(--radius-sm)",
+                          border: "1px solid var(--color-border)",
+                        }}
+                      >
+                        {food.code}
+                      </span>
+                      {food.photo_type && (
+                        <span style={{ fontSize: "var(--text-xs)", color: "var(--color-primary)" }}>
+                          · {food.photo_type === "series" ? "Porsi Ukuran" : "Porsi Komparasi"}
                         </span>
-                        {food.photo_type && (
-                          <span className="text-accent-600">
-                            • {food.photo_type === 'series' ? 'Porsi Ukuran' : 'Porsi Komparasi'}
-                          </span>
-                        )}
-                      </p>
+                      )}
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </Link>
+                  </div>
+
+                  <ChevronRight size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                </Link>
               ))}
             </div>
           )}

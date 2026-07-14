@@ -10,12 +10,33 @@ import { getSurveyById, createSurvey, updateSurvey } from "../services/surveySer
 import { surveyStatuses } from "../constants/surveyStatus";
 import { surveyValidation } from "../schemas/surveySchema";
 import type { MealConfig, CreateSurveyRequest, UpdateSurveyRequest } from "../types/survey";
+import { ArrowLeft, Plus, X, CheckCircle, AlertCircle, Link as LinkIcon } from "lucide-react";
 
 const DEFAULT_MEALS: MealConfig[] = [
   { name: "Breakfast", time: "07:00", order: 1 },
-  { name: "Lunch", time: "12:00", order: 2 },
-  { name: "Dinner", time: "19:00", order: 3 },
+  { name: "Lunch",     time: "12:00", order: 2 },
+  { name: "Dinner",    time: "19:00", order: 3 },
 ];
+
+/* Shared field container */
+function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+      <label style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--color-text-secondary)" }}>
+        {label}{required && <span style={{ color: "var(--color-danger)", marginLeft: 2 }}>*</span>}
+      </label>
+      {children}
+      {hint && <span style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)" }}>{hint}</span>}
+    </div>
+  );
+}
+
+const INPUT_STYLE: React.CSSProperties = {
+  width: "100%", padding: "0.625rem var(--space-3)", fontSize: "var(--text-sm)",
+  color: "var(--color-text-primary)", backgroundColor: "var(--color-surface)",
+  border: "1.5px solid var(--color-border)", borderRadius: "var(--radius-md)",
+  outline: "none", transition: "var(--transition-base)", fontFamily: "var(--font-sans)", boxSizing: "border-box",
+};
 
 export function SurveyForm() {
   const params = useParams();
@@ -25,17 +46,16 @@ export function SurveyForm() {
   const isEdit = params?.id && params.id !== "new";
   const surveyId = isEdit ? String(params.id) : null;
 
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
+  const [name,        setName]        = useState("");
+  const [slug,        setSlug]        = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<string>(surveyStatuses.draft);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [meals, setMeals] = useState<MealConfig[]>(DEFAULT_MEALS);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [status,      setStatus]      = useState<string>(surveyStatuses.draft);
+  const [startDate,   setStartDate]   = useState("");
+  const [endDate,     setEndDate]     = useState("");
+  const [meals,       setMeals]       = useState<MealConfig[]>(DEFAULT_MEALS);
+  const [error,       setError]       = useState<string | null>(null);
+  const [success,     setSuccess]     = useState<string | null>(null);
 
-  // Load existing survey for edit
   const { data: existing, isLoading } = useQuery({
     queryKey: ["admin-survey", surveyId],
     queryFn: () => getSurveyById(surveyId!, token),
@@ -50,68 +70,32 @@ export function SurveyForm() {
     setStatus(existing.status ?? surveyStatuses.draft);
     setStartDate(existing.start_date ?? "");
     setEndDate(existing.end_date ?? "");
-    // meals_config could be array or {meals:[...]}
     const mc = existing.meals_config;
-    if (Array.isArray(mc) && mc.length > 0) {
-      setMeals(mc);
-    } else if (mc && typeof mc === "object" && "meals" in (mc as object)) {
+    if (Array.isArray(mc) && mc.length > 0) setMeals(mc);
+    else if (mc && typeof mc === "object" && "meals" in (mc as object)) {
       const wrapped = mc as { meals: MealConfig[] };
       setMeals(wrapped.meals ?? DEFAULT_MEALS);
     }
   }, [existing]);
 
-  // Auto-generate slug from name
   const handleNameChange = (val: string) => {
     setName(val);
-    if (!isEdit) {
-      setSlug(
-        val.toLowerCase()
-          .replace(/[^a-z0-9\s-]/g, "")
-          .trim()
-          .replace(/\s+/g, "-")
-          .slice(0, 100)
-      );
-    }
+    if (!isEdit) setSlug(val.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 100));
   };
 
-  // Meal management
-  const addMeal = () => {
-    setMeals((prev) => [
-      ...prev,
-      { name: "", time: "12:00", order: prev.length + 1 },
-    ]);
-  };
+  const addMeal    = () => setMeals((p) => [...p, { name: "", time: "12:00", order: p.length + 1 }]);
+  const removeMeal = (i: number) => setMeals((p) => p.filter((_, idx) => idx !== i));
+  const updateMeal = (i: number, field: keyof MealConfig, value: string | number) =>
+    setMeals((p) => p.map((m, idx) => (idx === i ? { ...m, [field]: value } : m)));
 
-  const removeMeal = (index: number) => {
-    setMeals((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const updateMeal = (index: number, field: keyof MealConfig, value: string | number) => {
-    setMeals((prev) =>
-      prev.map((m, i) => (i === index ? { ...m, [field]: value } : m))
-    );
-  };
-
-  // Create
   const createMutation = useMutation({
     mutationFn: (payload: CreateSurveyRequest) => createSurvey(payload, token),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-surveys"] });
-      setSuccess("Survey berhasil dibuat!");
-      setTimeout(() => router.push("/admin/surveys"), 1200);
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-surveys"] }); setSuccess("Survey berhasil dibuat!"); setTimeout(() => router.push("/admin/surveys"), 1200); },
     onError: (err: Error) => setError(err.message),
   });
-
-  // Update
   const updateMutation = useMutation({
     mutationFn: (payload: UpdateSurveyRequest) => updateSurvey(surveyId!, payload, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-surveys"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-survey", surveyId] });
-      setSuccess("Survey berhasil diperbarui!");
-      setTimeout(() => setSuccess(null), 3000);
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-surveys"] }); queryClient.invalidateQueries({ queryKey: ["admin-survey", surveyId] }); setSuccess("Survey berhasil diperbarui!"); setTimeout(() => setSuccess(null), 3000); },
     onError: (err: Error) => setError(err.message),
   });
 
@@ -119,203 +103,150 @@ export function SurveyForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    if (!name.trim()) { setError("Nama survey wajib diisi"); return; }
-    if (!slug.trim()) { setError("Slug wajib diisi"); return; }
+    setError(null); setSuccess(null);
+    if (!name.trim())  { setError("Nama survey wajib diisi"); return; }
+    if (!slug.trim())  { setError("Slug wajib diisi"); return; }
     if (meals.length === 0) { setError("Minimal 1 waktu makan harus dikonfigurasi"); return; }
     if (meals.some((m) => !m.name.trim())) { setError("Semua waktu makan harus memiliki nama"); return; }
-
-    // Build meals_config as { meals: [...] } to match backend DTO
     const mealsConfig = { meals: meals.map((m, i) => ({ name: m.name, time: m.time, order: i + 1 })) };
-
     if (isEdit) {
-      const payload: UpdateSurveyRequest = {
-        name: name.trim(),
-        description: description.trim(),
-        meals_config: mealsConfig,
-        status,
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
-      };
-      updateMutation.mutate(payload);
+      updateMutation.mutate({ name: name.trim(), description: description.trim(), meals_config: mealsConfig, status, start_date: startDate || undefined, end_date: endDate || undefined });
     } else {
-      const payload: CreateSurveyRequest = {
-        name: name.trim(),
-        slug: slug.trim(),
-        description: description.trim(),
-        meals_config: mealsConfig,
-        status,
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
-      };
-      createMutation.mutate(payload);
+      createMutation.mutate({ name: name.trim(), slug: slug.trim(), description: description.trim(), meals_config: mealsConfig, status, start_date: startDate || undefined, end_date: endDate || undefined });
     }
   };
 
   if (isLoading) {
     return (
-      <div className="p-8">
-        <div className="animate-pulse space-y-4 max-w-2xl">
-          <div className="h-8 bg-gray-100 rounded w-1/3" />
-          <div className="h-12 bg-gray-100 rounded" />
-          <div className="h-12 bg-gray-100 rounded" />
-          <div className="h-32 bg-gray-100 rounded" />
+      <div style={{ padding: "var(--space-8)" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", maxWidth: 640 }}>
+          {[1, 2, 3, 4].map((i) => <div key={i} className="skeleton" style={{ height: i === 3 ? 80 : 44, borderRadius: "var(--radius-md)" }} />)}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 md:p-8">
-      <div className="max-w-2xl">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+    <div style={{ padding: "var(--space-6) var(--space-8)" }}>
+      <div style={{ maxWidth: 640 }}>
+        {/* Back + heading */}
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", marginBottom: "var(--space-8)" }}>
           <button
             type="button"
             onClick={() => router.push("/admin/surveys")}
-            className="text-muted hover:text-foreground transition-colors"
+            style={{ display: "flex", alignItems: "center", gap: "var(--space-1)", fontSize: "var(--text-sm)", color: "var(--color-text-muted)", background: "none", border: "none", cursor: "pointer", padding: "var(--space-2)", borderRadius: "var(--radius-md)", transition: "var(--transition-fast)", fontFamily: "var(--font-sans)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-text-primary)"; e.currentTarget.style.backgroundColor = "var(--color-surface-alt)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--color-text-muted)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
-            ← Kembali
+            <ArrowLeft size={15} /> Kembali
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">
+            <h1 style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--weight-bold)", color: "var(--color-text-primary)", margin: 0 }}>
               {isEdit ? "Edit Survey" : "Buat Survey Baru"}
             </h1>
-            <p className="text-sm text-muted mt-0.5">
+            <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", margin: "var(--space-1) 0 0" }}>
               {isEdit ? "Perbarui konfigurasi survey" : "Konfigurasi survey recall gizi baru"}
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium mb-1.5">
-              Nama Survey <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => handleNameChange(e.target.value)}
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+
+          <Field label="Nama Survey" required>
+            <input type="text" value={name} onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Contoh: Survey Gizi Harian Mahasiswa 2025"
-              minLength={surveyValidation.name.minLength}
-              maxLength={surveyValidation.name.maxLength}
-              required
-              className="w-full border border-border rounded-xl px-4 py-3 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm"
+              minLength={surveyValidation.name.minLength} maxLength={surveyValidation.name.maxLength} required
+              style={INPUT_STYLE}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
             />
-          </div>
+          </Field>
 
-          {/* Slug */}
-          <div>
-            <label className="block text-sm font-medium mb-1.5">
-              Slug <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
+          <Field label="Slug" required hint="Huruf kecil, angka, dan tanda hubung. Tidak bisa diubah setelah dibuat.">
+            <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)}
               placeholder="survey-gizi-harian-2025"
-              minLength={surveyValidation.slug.minLength}
-              maxLength={surveyValidation.slug.maxLength}
-              disabled={Boolean(isEdit)}
-              required
-              className="w-full border border-border rounded-xl px-4 py-3 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm font-mono disabled:bg-gray-50 disabled:text-muted"
+              minLength={surveyValidation.slug.minLength} maxLength={surveyValidation.slug.maxLength}
+              disabled={Boolean(isEdit)} required
+              style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", ...(isEdit ? { backgroundColor: "var(--color-surface-alt)", color: "var(--color-text-muted)", cursor: "not-allowed" } : {}) }}
+              onFocus={(e) => { if (!isEdit) { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
             />
-            <p className="text-xs text-muted mt-1">Huruf kecil, angka, dan tanda hubung saja. Tidak bisa diubah setelah dibuat.</p>
-          </div>
+          </Field>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Deskripsi</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Jelaskan tujuan dan instruksi singkat survey ini..."
-              maxLength={surveyValidation.description.maxLength}
-              rows={3}
-              className="w-full border border-border rounded-xl px-4 py-3 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm resize-none"
+          <Field label="Deskripsi">
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)}
+              placeholder="Jelaskan tujuan dan instruksi singkat survey ini…"
+              maxLength={surveyValidation.description.maxLength} rows={3}
+              style={{ ...INPUT_STYLE, resize: "vertical", minHeight: 88, lineHeight: "var(--leading-relaxed)" }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
             />
-          </div>
+          </Field>
 
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Status</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full border border-border rounded-xl px-4 py-3 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm"
+          <Field label="Status">
+            <select value={status} onChange={(e) => setStatus(e.target.value)}
+              style={{ ...INPUT_STYLE, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right var(--space-3) center", paddingRight: "var(--space-8)", cursor: "pointer" }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
             >
               {Object.values(surveyStatuses).map((s) => (
-                <option key={s} value={s}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                </option>
+                <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
               ))}
             </select>
+          </Field>
+
+          <div className="grid grid-cols-2" style={{ gap: "var(--space-4)" }}>
+            <Field label="Tanggal Mulai">
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={INPUT_STYLE}
+                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
+              />
+            </Field>
+            <Field label="Tanggal Selesai">
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={INPUT_STYLE}
+                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
+              />
+            </Field>
           </div>
 
-          {/* Dates */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Tanggal Mulai</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full border border-border rounded-xl px-4 py-3 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Tanggal Selesai</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full border border-border rounded-xl px-4 py-3 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Meals Config */}
+          {/* Meals config */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
               <div>
-                <label className="block text-sm font-medium">Konfigurasi Waktu Makan</label>
-                <p className="text-xs text-muted mt-0.5">Tentukan waktu makan yang akan direcord dalam survey ini</p>
+                <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--color-text-secondary)", margin: 0 }}>
+                  Konfigurasi Waktu Makan
+                </p>
+                <p style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", margin: "2px 0 0" }}>
+                  Tentukan waktu makan yang akan direcord dalam survey ini
+                </p>
               </div>
-              <button
-                type="button"
-                onClick={addMeal}
-                className="text-sm text-primary hover:text-primary-600 font-medium transition-colors"
-              >
-                + Tambah
+              <button type="button" onClick={addMeal}
+                style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-1)", fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)", color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)" }}>
+                <Plus size={14} /> Tambah
               </button>
             </div>
-            <div className="space-y-2">
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
               {meals.map((meal, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-border">
-                  <span className="text-muted text-xs w-5 text-center">{i + 1}</span>
-                  <input
-                    type="text"
-                    value={meal.name}
-                    onChange={(e) => updateMeal(i, "name", e.target.value)}
-                    placeholder="Breakfast"
-                    className="flex-1 border border-border rounded-lg px-3 py-2 text-sm bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", padding: "var(--space-3)", backgroundColor: "var(--color-surface-alt)", borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)" }}>
+                  <span style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", width: 20, textAlign: "center", flexShrink: 0 }}>{i + 1}</span>
+                  <input type="text" value={meal.name} onChange={(e) => updateMeal(i, "name", e.target.value)} placeholder="Breakfast"
+                    style={{ flex: 1, padding: "var(--space-2) var(--space-3)", fontSize: "var(--text-sm)", border: "1.5px solid var(--color-border)", borderRadius: "var(--radius-md)", outline: "none", backgroundColor: "var(--color-surface)", fontFamily: "var(--font-sans)", color: "var(--color-text-primary)" }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; }}
                   />
-                  <input
-                    type="time"
-                    value={meal.time}
-                    onChange={(e) => updateMeal(i, "time", e.target.value)}
-                    className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                  <input type="time" value={meal.time} onChange={(e) => updateMeal(i, "time", e.target.value)}
+                    style={{ padding: "var(--space-2) var(--space-3)", fontSize: "var(--text-sm)", border: "1.5px solid var(--color-border)", borderRadius: "var(--radius-md)", outline: "none", backgroundColor: "var(--color-surface)", fontFamily: "var(--font-sans)", color: "var(--color-text-primary)" }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; }}
                   />
                   {meals.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeMeal(i)}
-                      className="text-red-400 hover:text-red-600 transition-colors text-sm"
+                    <button type="button" onClick={() => removeMeal(i)}
+                      style={{ display: "flex", padding: 4, background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", borderRadius: "var(--radius-sm)", transition: "var(--transition-fast)" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-danger)"; e.currentTarget.style.backgroundColor = "var(--color-danger-light)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = "var(--color-text-muted)"; e.currentTarget.style.backgroundColor = "transparent"; }}
                     >
-                      ✕
+                      <X size={14} />
                     </button>
                   )}
                 </div>
@@ -325,37 +256,36 @@ export function SurveyForm() {
 
           {/* Feedback */}
           {error && (
-            <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-sm text-red-600">
-              {error}
+            <div className="alert alert-danger" style={{ fontSize: "var(--text-sm)" }}>
+              <AlertCircle size={15} style={{ flexShrink: 0 }} /> {error}
             </div>
           )}
           {success && (
-            <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-sm text-green-700">
-              {success}
+            <div className="alert alert-success" style={{ fontSize: "var(--text-sm)" }}>
+              <CheckCircle size={15} style={{ flexShrink: 0 }} /> {success}
             </div>
           )}
 
-          {/* Access token info for edit */}
+          {/* Access token info */}
           {isEdit && existing?.access_token && (
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-              <p className="text-xs font-medium text-blue-700 mb-1">Link Survei untuk Responden</p>
-              <p className="text-xs text-blue-600 font-mono break-all">
-                {typeof window !== "undefined" ? window.location.origin : ""}/surveys/{existing.access_token}/join
-              </p>
+            <div className="alert alert-info" style={{ fontSize: "var(--text-xs)" }}>
+              <LinkIcon size={14} style={{ flexShrink: 0 }} />
+              <div>
+                <span style={{ fontWeight: "var(--weight-semibold)", display: "block", marginBottom: 2 }}>Link Survey untuk Responden</span>
+                <span style={{ fontFamily: "var(--font-mono)", wordBreak: "break-all" }}>
+                  {typeof window !== "undefined" ? window.location.origin : ""}/surveys/{existing.access_token}/join
+                </span>
+              </div>
             </div>
           )}
 
-          {/* Submit */}
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => router.push("/admin/surveys")}
-              className="px-6 py-3 rounded-xl border border-border text-foreground hover:bg-gray-50 transition-colors text-sm font-medium"
-            >
+          {/* Submit row */}
+          <div style={{ display: "flex", gap: "var(--space-3)", paddingTop: "var(--space-2)" }}>
+            <Button type="button" variant="secondary" onClick={() => router.push("/admin/surveys")}>
               Batal
-            </button>
-            <Button type="submit" disabled={isPending} className="flex-1">
-              {isPending ? "Menyimpan..." : isEdit ? "Simpan Perubahan" : "Buat Survey"}
+            </Button>
+            <Button type="submit" isLoading={isPending} style={{ flex: 1 }}>
+              {isPending ? "Menyimpan…" : isEdit ? "Simpan Perubahan" : "Buat Survey"}
             </Button>
           </div>
         </form>

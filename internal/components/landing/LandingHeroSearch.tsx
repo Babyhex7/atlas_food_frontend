@@ -17,21 +17,75 @@ export function LandingHeroSearch() {
   };
 
   return (
-    <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto w-full">
-      <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-        <Search className="h-5 w-5 text-muted" />
+    <form onSubmit={handleSearch} style={{ position: "relative", maxWidth: 600, margin: "0 auto", width: "100%" }}>
+      {/* Search icon */}
+      <div
+        style={{
+          position: "absolute",
+          insetBlock: 0,
+          left: "var(--space-5)",
+          display: "flex",
+          alignItems: "center",
+          pointerEvents: "none",
+        }}
+      >
+        <Search size={18} style={{ color: "var(--color-text-muted)" }} />
       </div>
+
       <input
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Cari hidangan (nama / kode, misal: Nasi, MP-01...)"
-        className="block w-full pl-14 pr-32 py-4 rounded-2xl border border-border bg-white text-foreground text-base shadow-lg shadow-primary/5 focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary/40 transition-all"
+        placeholder="Cari hidangan (nama / kode, misal: Nasi, MP-01…)"
         aria-label="Cari makanan"
+        style={{
+          display: "block",
+          width: "100%",
+          paddingLeft: "3rem",
+          paddingRight: "7rem",
+          paddingTop: "var(--space-4)",
+          paddingBottom: "var(--space-4)",
+          borderRadius: "var(--radius-xl)",
+          border: "1.5px solid var(--color-border)",
+          backgroundColor: "var(--color-surface)",
+          color: "var(--color-text-primary)",
+          fontSize: "var(--text-base)",
+          boxShadow: "var(--shadow-lg)",
+          outline: "none",
+          transition: "var(--transition-base)",
+          fontFamily: "var(--font-sans)",
+          boxSizing: "border-box",
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = "var(--color-primary)";
+          e.currentTarget.style.boxShadow = "var(--shadow-lg), var(--focus-ring)";
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = "var(--color-border)";
+          e.currentTarget.style.boxShadow = "var(--shadow-lg)";
+        }}
       />
+
       <button
         type="submit"
-        className="absolute inset-y-2 right-2 px-5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-600 transition-colors"
+        style={{
+          position: "absolute",
+          insetBlock: "var(--space-2)",
+          right: "var(--space-2)",
+          paddingLeft: "var(--space-5)",
+          paddingRight: "var(--space-5)",
+          borderRadius: "var(--radius-lg)",
+          backgroundColor: "var(--color-primary)",
+          border: "none",
+          color: "white",
+          fontSize: "var(--text-sm)",
+          fontWeight: "var(--weight-semibold)",
+          cursor: "pointer",
+          transition: "var(--transition-base)",
+          fontFamily: "var(--font-sans)",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-primary-hover)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--color-primary)"; }}
       >
         Cari
       </button>

@@ -5,180 +5,218 @@ import { useRouter } from 'next/navigation';
 import { useSurveyStore } from '@/internal/domain/survey/store/useSurveyStore';
 import { Button } from '@/internal/pkg/components/Button';
 import { apiClient as api } from '@/internal/lib/axios';
+import { Utensils, Pencil, Plus, AlertCircle } from 'lucide-react';
+
+function ProgressBar({ label, pct }: { label: string; pct: number }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>{label}</span>
+      <div className="progress" style={{ flex: 1 }}><div className="progress-bar" style={{ width: `${pct}%` }} /></div>
+      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', flexShrink: 0 }}>{pct}% Complete</span>
+    </div>
+  );
+}
 
 export default function ReviewPage({ params }: { params: { accessToken: string } }) {
   const router = useRouter();
   const { meals, token, alias, reset } = useSurveyStore();
   const [submitting, setSubmitting] = useState(false);
-  
-  // Adds on logic (dynamic searching)
+  const [submitError, setSubmitError] = useState('');
+
   const [addsOnSearch, setAddsOnSearch] = useState('');
   const [addsOnResults, setAddsOnResults] = useState<any[]>([]);
   const [addedAddsOn, setAddedAddsOn] = useState<any[]>([]);
 
   useEffect(() => {
     if (addsOnSearch.length > 2) {
-      const delayFn = setTimeout(async () => {
+      const t = setTimeout(async () => {
         try {
           const res = await api.get(`/public/foods/search?q=${addsOnSearch}`);
           setAddsOnResults(res.data.data.foods || []);
-        } catch (e) {
-          console.error(e);
-        }
-      }, 500);
-      return () => clearTimeout(delayFn);
-    } else {
-      setAddsOnResults([]);
-    }
+        } catch { setAddsOnResults([]); }
+      }, 400);
+      return () => clearTimeout(t);
+    } else setAddsOnResults([]);
   }, [addsOnSearch]);
 
   const handleSubmit = async () => {
     setSubmitting(true);
+    setSubmitError('');
     try {
-      await api.post('/survey/submit', {
-        access_token: token,
-        alias: alias,
-        mealsData: meals,
-        addsOn: addedAddsOn
-      });
-      alert('Success');
+      await api.post('/survey/submit', { access_token: token, alias, mealsData: meals, addsOn: addedAddsOn });
       reset();
-      router.push('/profile');
+      router.push(`/surveys/${params.accessToken}/done`);
     } catch (e) {
-      console.error(e);
-      alert('Failed to submit');
+      setSubmitError('Gagal mengirim laporan. Silakan coba lagi.');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const allFoods = meals.flatMap((m) => m.foods);
+
   return (
-    <div className="p-10 max-w-5xl mx-auto flex flex-col h-full min-h-[80vh]">
-      
-      {/* Progress Bar Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <span className="text-xs font-bold text-primary tracking-widest uppercase">FINAL STEP</span>
-        <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
-          <div className="h-full bg-primary w-[100%]" />
-        </div>
-        <span className="text-xs text-gray-500 font-medium">100% Complete</span>
-      </div>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)' }}>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto', padding: 'var(--space-8) var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
 
-      <h1 className="text-3xl font-display font-bold text-gray-900 mb-2">Review your meal</h1>
-      <p className="text-gray-500 mb-8">A detailed breakdown of your meal's nutritional content based on Clinical Vitality standards.</p>
+          <ProgressBar label="Final Step" pct={100} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-        
-        {/* Main Review Section */}
-        <div className="lg:col-span-2 border border-border bg-white p-8 rounded-2xl shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <span className="text-primary">🍽️</span> Meal Items
-            </h2>
-            <button onClick={() => router.push(`/surveys/${params.accessToken}/add-food`)} className="text-primary font-bold text-sm">Edit List</button>
+          <div>
+            <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-bold)', color: 'var(--color-text-primary)', margin: '0 0 var(--space-2)' }}>
+              Review your meal
+            </h1>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', margin: 0 }}>
+              A detailed breakdown of your meal's nutritional content based on Clinical Vitality standards.
+            </p>
           </div>
 
-          <div className="space-y-4 mb-8">
-            {meals.flatMap(m => m.foods).map((food, idx) => (
-              <div key={idx} className="border border-border p-4 rounded-xl flex items-center gap-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">🍛</div>
-                <div className="flex-1">
-                  <h3 className="font-bold">{food.name}</h3>
-                  <p className="text-xs text-gray-500">with standard prep</p>
-                </div>
-                <div className="font-bold text-lg">{food.portionLabel || `${food.portionGram || 0}g`}</div>
+          <div className="grid grid-cols-1 lg:grid-cols-3" style={{ gap: 'var(--space-5)', alignItems: 'start' }}>
+
+            {/* Meal items card — col-span 2 */}
+            <div className="card" style={{ gridColumn: 'span 2 / span 2' }}>
+              <div className="card-header">
+                <Utensils size={18} style={{ color: 'var(--color-primary)' }} />
+                <h2 style={{ flex: 1, fontSize: 'var(--text-base)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-primary)', margin: 0 }}>
+                  Meal Items
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/surveys/${params.accessToken}/add-food`)}
+                  style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  Edit List
+                </button>
               </div>
-            ))}
-          </div>
 
-          {/* Dynamic Adds on */}
-          <div className="border-t border-border pt-6">
-            <h3 className="font-bold mb-4">+ Adds on (Condiments, Spices)</h3>
-            
-            <div className="relative mb-6">
-              <input 
-                type="text" 
-                placeholder="Search adds on (e.g. Sugar, Salt, Onion)..." 
-                className="w-full border p-3 rounded-xl focus:border-primary outline-none"
-                value={addsOnSearch}
-                onChange={(e) => setAddsOnSearch(e.target.value)}
-              />
-              {addsOnResults.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-border shadow-lg z-10 max-h-40 overflow-y-auto rounded-xl">
-                  {addsOnResults.map(item => (
-                    <div 
-                      key={item.id} 
-                      className="p-3 border-b hover:bg-gray-50 cursor-pointer flex justify-between"
-                      onClick={() => {
-                        setAddedAddsOn([...addedAddsOn, { ...item, portion: '5g' }]);
-                        setAddsOnSearch('');
-                      }}
+              {/* Food list */}
+              <div>
+                {allFoods.length === 0 && (
+                  <div style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+                    No foods added yet.
+                  </div>
+                )}
+                {allFoods.map((food, idx) => (
+                  <div
+                    key={idx}
+                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid var(--color-border)' }}
+                  >
+                    <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
+                      🍛
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-primary)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {food.name}
+                      </p>
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', margin: 0 }}>
+                        with standard prep
+                      </p>
+                    </div>
+                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-secondary)', flexShrink: 0 }}>
+                      {food.portionLabel || (food.portionGram ? `${food.portionGram}g` : '—')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Adds on section */}
+              <div style={{ padding: 'var(--space-5)', borderTop: '1px solid var(--color-border)' }}>
+                <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-primary)', margin: '0 0 var(--space-4)' }}>
+                  + Adds on
+                </h3>
+                <div style={{ position: 'relative', marginBottom: 'var(--space-4)' }}>
+                  <input
+                    type="text"
+                    placeholder="Search adds on (e.g. Sugar, Salt, Onion)…"
+                    value={addsOnSearch}
+                    onChange={(e) => setAddsOnSearch(e.target.value)}
+                    style={{
+                      width: '100%', padding: '0.625rem var(--space-3)',
+                      fontSize: 'var(--text-sm)', fontFamily: 'var(--font-sans)',
+                      color: 'var(--color-text-primary)', backgroundColor: 'var(--color-surface)',
+                      border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-md)',
+                      outline: 'none', transition: 'var(--transition-base)', boxSizing: 'border-box',
+                    }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                  {addsOnResults.length > 0 && (
+                    <div className="search-dropdown">
+                      {addsOnResults.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="search-result-item"
+                          onMouseDown={() => { setAddedAddsOn((prev) => [...prev, { ...item, portion: '5g' }]); setAddsOnSearch(''); setAddsOnResults([]); }}
+                        >
+                          <span className="result-name">{item.name}</span>
+                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-primary)', fontWeight: 'var(--weight-semibold)' }}>+ Add</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Addon tags */}
+                <div className="grid grid-cols-2 sm:grid-cols-4" style={{ gap: 'var(--space-3)' }}>
+                  {(addedAddsOn.length > 0 ? addedAddsOn : [
+                    { name: 'Onion', portion: '3g' }, { name: 'Sugar', portion: '12g' },
+                    { name: 'Salt',  portion: '84mg' }, { name: 'Water', portion: '210ml' },
+                  ]).map((item, i) => (
+                    <div
+                      key={i}
+                      style={{ backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-3)', display: 'flex', flexDirection: 'column', gap: 2 }}
                     >
-                      {item.name} <span>+ Add</span>
+                      <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{item.name}</span>
+                      <span style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--weight-bold)', color: 'var(--color-primary)' }}>{item.portion}</span>
                     </div>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {addedAddsOn.map((item, i) => (
-                <div key={i} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col justify-center">
-                  <span className="text-sm font-medium text-gray-600">{item.name}</span>
-                  <span className="text-lg font-bold text-primary">{item.portion}</span>
+            {/* Sidebar */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              {/* Quick actions */}
+              <div className="card" style={{ padding: 'var(--space-5)' }}>
+                <p style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-text-muted)', margin: '0 0 var(--space-3)' }}>
+                  Quick Actions
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                  <Button variant="outline" className="w-full" onClick={() => router.push(`/surveys/${params.accessToken}/portion`)}>
+                    <Pencil size={14} /> Edit Portions
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={() => router.push(`/surveys/${params.accessToken}/select-meal`)}>
+                    <Plus size={14} /> Add Meal Time
+                  </Button>
                 </div>
-              ))}
-              {/* Hardcoded placeholders to match screenshot look if empty */}
-              {addedAddsOn.length === 0 && (
-                <>
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <span className="text-sm font-medium text-gray-600">Onion</span>
-                    <span className="block text-lg font-bold text-primary mt-1">3g</span>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <span className="text-sm font-medium text-gray-600">Sugar</span>
-                    <span className="block text-lg font-bold text-primary mt-1">12g</span>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <span className="text-sm font-medium text-gray-600">Salt</span>
-                    <span className="block text-lg font-bold text-primary mt-1">84mg</span>
-                  </div>
-                </>
+              </div>
+
+              {/* Submit */}
+              {submitError && (
+                <div className="alert alert-danger" style={{ fontSize: 'var(--text-xs)' }}>
+                  <AlertCircle size={14} style={{ flexShrink: 0 }} />
+                  {submitError}
+                </div>
               )}
+              <Button size="lg" className="w-full" onClick={handleSubmit} isLoading={submitting} style={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Submit Meal Report ▷
+              </Button>
+              <p style={{ textAlign: 'center', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', margin: 0 }}>
+                By submitting, you agree to our Clinical Nutritional Data Policy.
+              </p>
             </div>
+
           </div>
         </div>
-
-        {/* Quick Actions & Submit Sidebar */}
-        <div className="flex flex-col gap-6">
-          <div className="bg-gray-50 p-6 rounded-2xl border border-border">
-            <h3 className="font-bold mb-4">Quick Actions</h3>
-            <div className="space-y-3">
-              <Button variant="outline" className="w-full bg-white justify-center" onClick={() => router.push(`/surveys/${params.accessToken}/portion`)}>
-                ✎ Edit Portions
-              </Button>
-              <Button variant="outline" className="w-full bg-white justify-center" onClick={() => router.push(`/surveys/${params.accessToken}/select-meal`)}>
-                + Add Meal Time
-              </Button>
-            </div>
-          </div>
-
-          <Button 
-            size="lg" 
-            className="w-full h-16 text-lg font-bold tracking-wider" 
-            onClick={handleSubmit} 
-            disabled={submitting}
-          >
-            {submitting ? 'Submitting...' : 'SUBMIT MEAL REPORT ▷'}
-          </Button>
-
-          <p className="text-center text-xs text-gray-400 mt-4">
-            By submitting, you agree to our Clinical Nutritional Data Policy.
-          </p>
-        </div>
-
       </div>
 
+      {/* Footer */}
+      <div style={{ backgroundColor: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: 'var(--space-4) var(--space-6)', display: 'flex', justifyContent: 'flex-start' }}>
+        <button type="button" onClick={() => router.back()} style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+          ‹ Back
+        </button>
+      </div>
     </div>
   );
 }

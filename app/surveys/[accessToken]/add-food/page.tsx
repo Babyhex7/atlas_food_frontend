@@ -1,155 +1,229 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSurveyStore } from '@/internal/domain/survey/store/useSurveyStore';
 import { Button } from '@/internal/pkg/components/Button';
-import { Search, Info, Plus } from 'lucide-react';
+import { Search, Info, X } from 'lucide-react';
 import { apiClient as api } from '@/internal/lib/axios';
 
-export default function AddFoodPage({ params }: { params: { accessToken: string } }) {
-  const router = useRouter();
-  const { meals, addFoodToMeal } = useSurveyStore();
-  
-  // Since we haven't selected which meal we are adding to, we default to the first one for this UI flow
-  // In a real flow, this state would come from Step 1.
-  const activeMealId = meals[0]?.id || 'meal-1';
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-
-  // Search API Call
-  useEffect(() => {
-    if (searchQuery.length > 2) {
-      const delayFn = setTimeout(async () => {
-        try {
-          const res = await api.get(`/public/foods/search?q=${searchQuery}`);
-          setSearchResults(res.data.data.foods || []);
-        } catch (e) {
-          console.error(e);
-        }
-      }, 500);
-      return () => clearTimeout(delayFn);
-    } else {
-      setSearchResults([]);
-    }
-  }, [searchQuery]);
-
-  const handleAdd = (food: any) => {
-    addFoodToMeal(activeMealId, { foodId: food.id, name: food.name });
-    setSearchQuery('');
-  };
-
-  const activeMeal = meals.find(m => m.id === activeMealId);
-
+/* ── Shared wizard helpers (duplicated for page isolation) ── */
+function ProgressBar({ label, pct }: { label: string; pct: number }) {
   return (
-    <div className="p-10 max-w-5xl mx-auto flex flex-col h-full min-h-[80vh]">
-      
-      {/* Progress Bar Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <span className="text-xs font-bold text-primary tracking-widest uppercase">Progress</span>
-        <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
-          <div className="h-full bg-primary w-[40%]" />
-        </div>
-        <span className="text-xs text-gray-500 font-medium">40% Complete</span>
-      </div>
-
-      <h1 className="text-3xl font-display font-bold text-gray-900 mb-2">What did you have for Breakfast?</h1>
-      <p className="text-gray-500 mb-6">Search and add everything you consumed this morning.</p>
-
-      <div className="bg-primary/10 border border-primary/20 p-4 rounded-xl flex gap-3 items-start mb-10">
-        <Info className="text-primary w-5 h-5 mt-0.5" />
-        <p className="text-primary text-sm font-medium">
-          Please record each food component separately (for example, if you had Fried Rice, also enter any toppings or side items such as egg, crackers, cucumber, etc.) to ensure more accurate nutrition calculations.
-        </p>
-      </div>
-
-      <div className="space-y-6 mb-12">
-        {/* Add Foods Search */}
-        <div>
-          <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">Add Foods</label>
-          <div className="flex gap-4 relative">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Search foods (e.g. Bubur Ayam)"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
-              />
-              {/* Search Dropdown */}
-              {searchResults.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-border rounded-xl shadow-lg z-10 max-h-60 overflow-y-auto">
-                  {searchResults.map(item => (
-                    <div key={item.id} className="flex justify-between items-center p-3 hover:bg-gray-50 border-b border-border">
-                      <span className="font-medium">{item.name}</span>
-                      <Button size="sm" onClick={() => handleAdd(item)}>ADD</Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <Button className="px-8 bg-primary hover:bg-primary-dark">ADD</Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Browse By Category Mockup */}
-      <div className="mb-12">
-        <div className="flex justify-between items-center mb-4">
-          <label className="text-sm font-bold text-gray-800">Browse by Category</label>
-          <button className="text-primary text-sm font-bold">Show All</button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {['Staple Food', 'Animal Protein', 'Plant-Based Protein', 'Vegetables', 'Fruits'].map(cat => (
-            <div key={cat} className="border border-border p-4 rounded-2xl flex flex-col items-center justify-center gap-3 text-center cursor-pointer hover:border-primary">
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-xl">🍽️</div>
-              <span className="text-xs font-medium text-gray-700">{cat}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Added Items */}
-      <div className="mt-auto border-t border-border pt-8">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-bold text-gray-800">Added Items</h3>
-          <span className="bg-gray-200 px-3 py-1 rounded-full text-xs font-bold text-gray-600">{activeMeal?.foods.length || 0} items</span>
-        </div>
-        
-        {activeMeal?.foods.length > 0 ? (
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {activeMeal.foods.map(f => (
-              <div key={f.id} className="min-w-[200px] border border-border rounded-xl p-4 flex justify-between items-center bg-white shadow-sm">
-                <span className="font-medium">{f.name}</span>
-                <Check className="text-green-500 w-5 h-5" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-gray-50 border border-border border-dashed p-4 rounded-xl flex gap-3 items-center text-gray-500 text-sm">
-            <Info className="w-4 h-4 text-primary" />
-            Portion sizes and specific ingredients for these items will be adjusted in the next step.
-          </div>
-        )}
-      </div>
-
-      <div className="fixed bottom-0 right-0 left-64 bg-white border-t border-border p-4 flex justify-between items-center px-10">
-        <button onClick={() => router.back()} className="text-gray-500 font-medium hover:text-gray-900">&lt; Back</button>
-        <Button onClick={() => router.push(`/surveys/${params.accessToken}/portion`)}>
-          Continue &gt;
-        </Button>
-      </div>
-
+    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>{label}</span>
+      <div className="progress" style={{ flex: 1 }}><div className="progress-bar" style={{ width: `${pct}%` }} /></div>
+      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', flexShrink: 0 }}>{pct}% Complete</span>
     </div>
   );
 }
 
-function Check(props: any) {
+const CATEGORIES = ['Staple Food', 'Animal Protein', 'Plant-Based Protein', 'Vegetables', 'Fruits'];
+const CATEGORY_ICONS: Record<string, string> = {
+  'Staple Food': '🍚', 'Animal Protein': '🍗', 'Plant-Based Protein': '🫘', 'Vegetables': '🥬', 'Fruits': '🍌',
+};
+
+export default function AddFoodPage({ params }: { params: { accessToken: string } }) {
+  const router = useRouter();
+  const { meals, addFoodToMeal } = useSurveyStore();
+  const activeMealId = meals[0]?.id || 'meal-1';
+
+  const [foodQuery, setFoodQuery] = useState('');
+  const [drinkQuery, setDrinkQuery] = useState('');
+  const [foodResults, setFoodResults] = useState<any[]>([]);
+  const [drinkResults, setDrinkResults] = useState<any[]>([]);
+  const [focusedField, setFocusedField] = useState<'food' | 'drink' | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const search = async (q: string, setter: (r: any[]) => void) => {
+    if (q.length > 2) {
+      try {
+        const res = await api.get(`/public/foods/search?q=${q}`);
+        setter(res.data.data.foods || []);
+      } catch { setter([]); }
+    } else setter([]);
+  };
+
+  useEffect(() => { const t = setTimeout(() => search(foodQuery, setFoodResults), 400); return () => clearTimeout(t); }, [foodQuery]);
+  useEffect(() => { const t = setTimeout(() => search(drinkQuery, setDrinkResults), 400); return () => clearTimeout(t); }, [drinkQuery]);
+
+  const handleAdd = (food: any) => {
+    addFoodToMeal(activeMealId, { foodId: food.id, name: food.name });
+    setFoodQuery(''); setDrinkQuery('');
+    setFoodResults([]); setDrinkResults([]);
+  };
+
+  const activeMeal = meals.find((m) => m.id === activeMealId);
+
   return (
-    <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)' }}>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--space-8) var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+
+          <ProgressBar label="Progress" pct={40} />
+
+          {/* Title */}
+          <div>
+            <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-bold)', color: 'var(--color-text-primary)', margin: '0 0 var(--space-2)' }}>
+              What did you have for Breakfast?
+            </h1>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', margin: 0 }}>
+              Search and add everything you consumed this morning.
+            </p>
+          </div>
+
+          {/* Info banner */}
+          <div className="alert alert-primary">
+            <Info size={16} style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 'var(--text-xs)', lineHeight: 'var(--leading-relaxed)' }}>
+              Please record each food component separately (for example, if you had Fried Rice, also enter any toppings or side items such as egg, crackers, cucumber, etc.) to ensure more accurate nutrition calculations.
+            </span>
+          </div>
+
+          {/* Search blocks */}
+          {[
+            { label: 'ADD FOODS', icon: <Search size={16} />, query: foodQuery, setQuery: setFoodQuery, results: foodResults, field: 'food' as const, placeholder: 'Search foods (e.g. Bubur Ayam)' },
+            { label: 'ADD DRINKS', icon: <span style={{ fontSize: '1rem' }}>🥤</span>, query: drinkQuery, setQuery: setDrinkQuery, results: drinkResults, field: 'drink' as const, placeholder: 'Search drinks (e.g. Kopi Susu)' },
+          ].map(({ label, icon, query, setQuery, results, field, placeholder }) => (
+            <div key={field} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-text-muted)' }}>{label}</span>
+              <div style={{ display: 'flex', gap: 'var(--space-2)', position: 'relative' }} ref={field === 'food' ? undefined : undefined}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <div style={{ position: 'absolute', left: 'var(--space-3)', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', display: 'flex', pointerEvents: 'none' }}>
+                    {icon}
+                  </div>
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onFocus={() => setFocusedField(field)}
+                    placeholder={placeholder}
+                    style={{
+                      width: '100%', paddingLeft: '2.5rem', paddingRight: 'var(--space-4)',
+                      paddingTop: '0.625rem', paddingBottom: '0.625rem',
+                      fontSize: 'var(--text-sm)', fontFamily: 'var(--font-sans)',
+                      color: 'var(--color-text-primary)', backgroundColor: 'var(--color-surface)',
+                      border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)',
+                      outline: 'none', transition: 'var(--transition-base)', boxSizing: 'border-box',
+                    }}
+                    onFocus2={(e: any) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; }}
+                    onBlur={(e) => { setTimeout(() => setFocusedField(null), 150); e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                  {/* Dropdown */}
+                  {results.length > 0 && focusedField === field && (
+                    <div className="search-dropdown">
+                      {results.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="search-result-item"
+                          onMouseDown={() => handleAdd(item)}
+                        >
+                          <span className="result-name">{item.name}</span>
+                          {item.category?.name && <span className="result-category">{item.category.name}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  style={{
+                    padding: '0 var(--space-5)', borderRadius: 'var(--radius-lg)',
+                    backgroundColor: 'var(--color-primary)', border: 'none',
+                    color: 'white', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)',
+                    cursor: 'pointer', transition: 'var(--transition-base)', fontFamily: 'var(--font-sans)',
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-primary)'; }}
+                >
+                  ADD
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {/* Browse by Category */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-primary)', margin: 0 }}>
+                Browse by Category
+              </h3>
+              <button type="button" style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                Show All
+              </button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5" style={{ gap: 'var(--space-3)' }}>
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-2)',
+                    padding: 'var(--space-4)', borderRadius: 'var(--radius-xl)',
+                    border: '1.5px solid var(--color-border)', backgroundColor: 'var(--color-surface)',
+                    cursor: 'pointer', transition: 'var(--transition-base)', fontFamily: 'var(--font-sans)',
+                    textAlign: 'center',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary-border)'; e.currentTarget.style.backgroundColor = 'var(--color-primary-light)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.backgroundColor = 'var(--color-surface)'; e.currentTarget.style.transform = 'none'; }}
+                >
+                  <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
+                    {CATEGORY_ICONS[cat] || '🍽️'}
+                  </div>
+                  <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-secondary)' }}>{cat}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Added Items */}
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-3) var(--space-4)', backgroundColor: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)' }}>
+              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-secondary)' }}>Added Items</span>
+              <span className="badge badge-default">{activeMeal?.foods.length || 0} items</span>
+            </div>
+            <div style={{ padding: 'var(--space-3) var(--space-4)', backgroundColor: 'var(--color-primary-light)', borderBottom: '1px solid var(--color-primary-border)', display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-start' }}>
+              <Info size={14} style={{ color: 'var(--color-primary)', flexShrink: 0, marginTop: 1 }} />
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-primary)' }}>
+                Portion sizes and specific ingredients for these items will be adjusted in the next step.
+              </span>
+            </div>
+            {activeMeal && activeMeal.foods.length > 0 ? (
+              <div>
+                {activeMeal.foods.map((f) => (
+                  <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>🍛</div>
+                    <span style={{ flex: 1, fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-primary)' }}>{f.name}</span>
+                    <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', display: 'flex', padding: 4, borderRadius: 'var(--radius-sm)', transition: 'var(--transition-fast)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.backgroundColor = 'var(--color-danger-light)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+                No items added yet
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ backgroundColor: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: 'var(--space-4) var(--space-6)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <button type="button" onClick={() => router.back()} style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+          ‹ Back
+        </button>
+        <Button onClick={() => router.push(`/surveys/${params.accessToken}/portion`)}>
+          Continue ›
+        </Button>
+      </div>
+    </div>
   );
 }
