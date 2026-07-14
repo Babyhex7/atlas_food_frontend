@@ -3,53 +3,56 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { ArrowLeft, Loader2, Info, Scale, Bookmark } from "lucide-react";
 import { getFoodDetailPublic } from "@/internal/services/food.service";
 import { isFoodBookmarked, toggleBookmarkedFood } from "@/internal/lib/cookies";
-import { PortionPhotoViewer } from "@/internal/components/PortionPhotoViewer";
+import { PortionGallery } from "@/internal/components/PortionGallery";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 
 export default function FoodDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const foodId = params.id as string;
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const params  = useParams();
+  const router  = useRouter();
+  const foodId  = params.id as string;
+
+  const [isBookmarked,    setIsBookmarked]    = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
-  useEffect(() => {
-    setIsBookmarked(isFoodBookmarked(foodId));
-  }, [foodId]);
-
-  const toggleBookmark = () => {
-    setIsBookmarked(toggleBookmarkedFood(foodId));
-  };
+  useEffect(() => { setIsBookmarked(isFoodBookmarked(foodId)); }, [foodId]);
+  const toggleBookmark = () => setIsBookmarked(toggleBookmarkedFood(foodId));
 
   const { data: food, isLoading, error } = useQuery({
     queryKey: ["public-food-detail", foodId],
     queryFn: () => getFoodDetailPublic(foodId),
   });
 
+  /* ── Loading ── */
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "var(--color-bg)" }}>
         <AppHeader />
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader2 size={36} className="animate-spin" style={{ color: "var(--color-primary)" }} />
         </div>
       </div>
     );
   }
 
+  /* ── Error ── */
   if (error || !food) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "var(--color-bg)" }}>
         <AppHeader />
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <h2 className="text-2xl font-bold text-foreground">Makanan tidak ditemukan</h2>
-          <button onClick={() => router.back()} className="mt-4 text-primary hover:underline">
-            Kembali ke pencarian
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "var(--space-4)" }}>
+          <p style={{ fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)" }}>
+            Makanan tidak ditemukan
+          </p>
+          <button
+            type="button"
+            onClick={() => router.back()}
+            style={{ fontSize: "var(--text-sm)", color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)" }}
+          >
+            ← Kembali ke pencarian
           </button>
         </div>
       </div>
@@ -57,135 +60,231 @@ export default function FoodDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-20">
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)", display: "flex", flexDirection: "column", paddingBottom: "var(--space-10)" }}>
       <AppHeader />
-      <div className="bg-primary-900 text-white pt-8 pb-20 px-4 relative">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(#C2E5CF 2px, transparent 2px)", backgroundSize: "30px 30px" }}></div>
-        <div className={`${CONTAINER_CLASS} relative z-10`}>
-          <div className="flex justify-between items-center mb-6">
-            <button onClick={() => router.back()} className="inline-flex items-center text-primary-200 hover:text-white transition-colors">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Kembali
-            </button>
-            <button 
-              onClick={toggleBookmark}
-              className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
-                isBookmarked 
-                  ? "bg-accent text-accent-900 border-accent hover:bg-accent-600 hover:text-white" 
-                  : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-              }`}
+
+      {/* ── Hero banner ── */}
+      <div
+        style={{
+          backgroundColor: "var(--color-primary)",
+          color: "white",
+          paddingTop: "var(--space-8)",
+          paddingBottom: "var(--space-16)",
+          paddingLeft: "var(--space-4)",
+          paddingRight: "var(--space-4)",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* dot pattern */}
+        <div
+          style={{
+            position: "absolute", inset: 0, opacity: 0.07,
+            backgroundImage: "radial-gradient(rgba(255,255,255,0.8) 1.5px, transparent 1.5px)",
+            backgroundSize: "24px 24px", pointerEvents: "none",
+          }}
+        />
+
+        <div className={CONTAINER_CLASS} style={{ position: "relative", zIndex: 1 }}>
+          {/* Top row: back + bookmark */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-6)" }}>
+            <button
+              type="button"
+              onClick={() => router.back()}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "var(--space-2)",
+                fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)",
+                color: "rgba(255,255,255,0.8)", background: "none", border: "none",
+                cursor: "pointer", padding: 0, transition: "var(--transition-fast)",
+                fontFamily: "var(--font-sans)",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "white"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.8)"; }}
             >
-              <Bookmark className={`w-4 h-4 mr-2 ${isBookmarked ? "fill-current" : ""}`} />
+              <ArrowLeft size={16} /> Kembali
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleBookmark}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "var(--space-2)",
+                padding: "var(--space-2) var(--space-4)",
+                borderRadius: "var(--radius-full)",
+                border: isBookmarked ? "1.5px solid rgba(255,255,255,0.6)" : "1.5px solid rgba(255,255,255,0.3)",
+                backgroundColor: isBookmarked ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)",
+                color: "white",
+                fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)",
+                cursor: "pointer", transition: "var(--transition-base)",
+                fontFamily: "var(--font-sans)",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.25)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isBookmarked ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)"; }}
+            >
+              <Bookmark size={15} style={{ fill: isBookmarked ? "white" : "none" }} />
               {isBookmarked ? "Tersimpan" : "Simpan"}
             </button>
           </div>
-          
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-4xl shadow-inner border border-white/20">
+
+          {/* Food info */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-4)" }}>
+            {/* Icon */}
+            <div
+              style={{
+                width: 64, height: 64, borderRadius: "var(--radius-xl)",
+                backgroundColor: "rgba(255,255,255,0.15)",
+                border: "1.5px solid rgba(255,255,255,0.25)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "2rem", flexShrink: 0,
+              }}
+            >
               {food.category?.icon || "🍽️"}
             </div>
-            <div className="flex-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-medium text-primary-100 mb-3 font-mono">
-                {food.code}
+
+            <div style={{ flex: 1 }}>
+              {/* Badges */}
+              <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", marginBottom: "var(--space-3)" }}>
+                <span
+                  style={{
+                    display: "inline-flex", alignItems: "center",
+                    padding: "2px 10px", borderRadius: "var(--radius-full)",
+                    backgroundColor: "rgba(255,255,255,0.15)",
+                    border: "1px solid rgba(255,255,255,0.25)",
+                    color: "white",
+                    fontSize: "var(--text-xs)", fontWeight: "var(--weight-semibold)",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  {food.code}
+                </span>
+                <span
+                  style={{
+                    display: "inline-flex", alignItems: "center",
+                    padding: "2px 10px", borderRadius: "var(--radius-full)",
+                    backgroundColor: "rgba(255,255,255,0.15)",
+                    border: "1px solid rgba(255,255,255,0.25)",
+                    color: "white",
+                    fontSize: "var(--text-xs)", fontWeight: "var(--weight-medium)",
+                  }}
+                >
+                  {food.category?.name} · {food.photo_type === "series" ? "Foto Series" : "Foto Range"}
+                </span>
               </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-medium text-primary-100 mb-3 ml-2">
-                {food.category?.name} · {food.photo_type === "series" ? "Foto Series" : "Foto Range"}
-              </div>
-              <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
+
+              <h1
+                style={{
+                  fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
+                  fontWeight: "var(--weight-bold)",
+                  color: "white",
+                  fontFamily: "var(--font-sans)",
+                  margin: "0 0 var(--space-1)",
+                  letterSpacing: "-0.02em",
+                  lineHeight: "var(--leading-tight)",
+                }}
+              >
                 {food.name}
               </h1>
               {food.local_name && (
-                <p className="text-primary-200 italic">{food.local_name}</p>
+                <p style={{ fontSize: "var(--text-sm)", color: "rgba(255,255,255,0.75)", margin: 0, fontStyle: "italic" }}>
+                  {food.local_name}
+                </p>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className={`${CONTAINER_CLASS} -mt-10 relative z-20 space-y-6 flex-1`}>
-        
-        {/* Main Focus: Portion Guide */}
-        <div className="bg-surface rounded-2xl shadow-sm border border-border p-6 md:p-8 animate-slide-in">
-          <div className="flex items-center gap-2 mb-6">
-            <Scale className="w-6 h-6 text-accent-600" />
-            <h2 className="text-2xl font-semibold">Album Foto Porsi</h2>
-          </div>
-          
-          <div className="lg:flex lg:gap-8 lg:items-start">
-            {/* Kiri: Interactive Photo Viewer */}
-            <div className="lg:w-3/5 lg:flex-shrink-0">
-              <PortionPhotoViewer 
-                photos={food.portion_photos || []} 
-                photoType={food.photo_type || 'series'}
-                activeIndex={activePhotoIndex}
-                onSelect={setActivePhotoIndex}
-              />
-            </div>
+      {/* ── Content (overlaps hero) ── */}
+      <div
+        className={CONTAINER_CLASS}
+        style={{ marginTop: "calc(-1 * var(--space-8))", position: "relative", zIndex: 10, flex: 1, display: "flex", flexDirection: "column", gap: "var(--space-5)" }}
+      >
 
-            {/* Kanan: Tabel Ukuran Porsi (desktop) / bawah (mobile) */}
+        {/* Album foto porsi */}
+        <div className="card animate-slide-up" style={{ padding: "var(--space-6)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-5)" }}>
+            <Scale size={22} style={{ color: "var(--color-primary)" }} />
+            <h2 style={{ fontSize: "var(--text-xl)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: 0 }}>
+              Album Foto Porsi
+            </h2>
             {food.portion_photos && food.portion_photos.length > 0 && (
-              <div className="lg:w-2/5 lg:flex-shrink-0 mt-8 lg:mt-0">
-                <h3 className="text-lg font-medium text-foreground mb-4 lg:mb-3">Tabel Ukuran Porsi</h3>
-                <div className="overflow-x-auto rounded-xl border border-border">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-muted text-muted-foreground font-medium">
-                      <tr>
-                        <th className="px-4 py-3 border-b border-border">Kode</th>
-                        <th className="px-4 py-3 border-b border-border text-right">Berat (g)</th>
-                        <th className="px-4 py-3 border-b border-border hidden sm:table-cell">Keterangan</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {food.portion_photos.map((photo, idx) => (
-                        <tr
-                          key={photo.id}
-                          onClick={() => setActivePhotoIndex(idx)}
-                          className={`cursor-pointer transition-colors ${
-                            idx === activePhotoIndex
-                              ? "bg-primary/10 border-l-[3px] border-l-primary"
-                              : "hover:bg-muted/50 border-l-[3px] border-l-transparent"
-                          }`}
-                        >
-                          <td className="px-4 py-3 font-semibold text-foreground">{photo.label}</td>
-                          <td className="px-4 py-3 text-right font-mono text-primary">{photo.weight_gram} g</td>
-                          <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{photo.description || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <span className="badge badge-default" style={{ marginLeft: "auto" }}>
+                {food.portion_photos.length} foto
+              </span>
             )}
           </div>
+
+          <PortionGallery
+            photos={food.portion_photos || []}
+            photoType={food.photo_type}
+            activeIndex={activePhotoIndex}
+            onSelect={setActivePhotoIndex}
+            showSummary={true}
+          />
         </div>
 
-        {/* Nutrition Info */}
-        <div className="bg-surface rounded-2xl shadow-sm border border-border p-6 md:p-8 animate-slide-in" style={{ animationDelay: '100ms' }}>
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Info className="w-5 h-5 text-primary" />
-            Kandungan Gizi <span className="text-sm font-normal text-muted-foreground ml-auto">(per 100 gram)</span>
-          </h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(food.nutrients || {}).map(([key, nutrient]) => {
-              // Highlight calories/energy
+        {/* Kandungan gizi */}
+        <div className="card animate-slide-up" style={{ padding: "var(--space-6)", animationDelay: "80ms" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-5)", flexWrap: "wrap", gap: "var(--space-2)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+              <Info size={18} style={{ color: "var(--color-primary)" }} />
+              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: 0 }}>
+                Kandungan Gizi
+              </h2>
+            </div>
+            <span style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)" }}>per 100 gram</span>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: "var(--space-3)" }}>
+            {Object.entries(food.nutrients || {}).map(([key, nutrient]: [string, any]) => {
               const isEnergy = key === "energy";
               return (
-                <div key={key} className={`p-4 rounded-xl border ${isEnergy ? 'bg-primary/5 border-primary/20' : 'bg-background border-border'} text-center`}>
-                  <div className={`text-2xl font-bold ${isEnergy ? 'text-primary' : 'text-foreground'} font-mono`}>
+                <div
+                  key={key}
+                  style={{
+                    padding: "var(--space-4)",
+                    borderRadius: "var(--radius-xl)",
+                    border: `1px solid ${isEnergy ? "var(--color-primary-border)" : "var(--color-border)"}`,
+                    backgroundColor: isEnergy ? "var(--color-primary-light)" : "var(--color-surface-alt)",
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "var(--text-2xl)",
+                      fontWeight: "var(--weight-bold)",
+                      fontFamily: "var(--font-mono)",
+                      color: isEnergy ? "var(--color-primary)" : "var(--color-text-primary)",
+                      lineHeight: 1,
+                      marginBottom: "var(--space-1)",
+                    }}
+                  >
                     {nutrient.value}
-                    <span className="text-sm ml-1 text-muted-foreground font-sans">{nutrient.unit}</span>
+                    <span style={{ fontSize: "var(--text-sm)", fontFamily: "var(--font-sans)", color: "var(--color-text-muted)", marginLeft: 3 }}>
+                      {nutrient.unit}
+                    </span>
                   </div>
-                  <div className="text-sm font-medium text-muted-foreground mt-1 capitalize">
+                  <div style={{ fontSize: "var(--text-xs)", fontWeight: "var(--weight-medium)", color: "var(--color-text-muted)", textTransform: "capitalize" }}>
                     {key === "energy" ? "Kalori" : key}
                   </div>
                 </div>
               );
             })}
           </div>
-          
+
           {food.description && (
-            <div className="mt-6 p-4 bg-muted/30 rounded-xl text-sm text-foreground leading-relaxed">
+            <div
+              style={{
+                marginTop: "var(--space-5)",
+                padding: "var(--space-4)",
+                backgroundColor: "var(--color-surface-alt)",
+                borderRadius: "var(--radius-lg)",
+                fontSize: "var(--text-sm)",
+                color: "var(--color-text-secondary)",
+                lineHeight: "var(--leading-relaxed)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
               {food.description}
             </div>
           )}

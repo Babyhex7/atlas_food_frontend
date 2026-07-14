@@ -5,23 +5,83 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-surface flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary-200/50 blur-3xl mix-blend-multiply opacity-70 animate-blob"></div>
-      <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-accent-200/50 blur-3xl mix-blend-multiply opacity-70 animate-blob animation-delay-2000"></div>
-      
-      <div className="absolute top-4 left-4 z-10">
-        <Link href="/" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 shadow-sm">
-          <ArrowLeft className="w-4 h-4 mr-2" />
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "var(--color-bg)",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: "var(--space-12) var(--space-4)",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Background blobs */}
+      <div
+        style={{
+          position: "absolute",
+          top: "-15%",
+          left: "-10%",
+          width: 500,
+          height: 500,
+          borderRadius: "50%",
+          background: "var(--color-primary-light)",
+          filter: "blur(100px)",
+          opacity: 0.7,
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-15%",
+          right: "-10%",
+          width: 400,
+          height: 400,
+          borderRadius: "50%",
+          background: "var(--color-primary-muted)",
+          filter: "blur(100px)",
+          opacity: 0.5,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Back link */}
+      <div style={{ position: "absolute", top: "var(--space-5)", left: "var(--space-5)", zIndex: 10 }}>
+        <Link
+          href="/"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+            fontSize: "var(--text-sm)",
+            fontWeight: "var(--weight-medium)",
+            color: "var(--color-text-muted)",
+            textDecoration: "none",
+            backgroundColor: "var(--color-surface)",
+            padding: "var(--space-2) var(--space-4)",
+            borderRadius: "var(--radius-full)",
+            border: "1px solid var(--color-border)",
+            boxShadow: "var(--shadow-xs)",
+            transition: "var(--transition-fast)",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--color-text-primary)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border-strong)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border)"; }}
+        >
+          <ArrowLeft size={15} />
           Kembali ke Beranda
         </Link>
       </div>
 
-      <div className="relative z-10">
-        <Suspense fallback={
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        }>
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Suspense
+          fallback={
+            <div style={{ display: "flex", justifyContent: "center", padding: "var(--space-16)" }}>
+              <Loader2 size={32} className="animate-spin" style={{ color: "var(--color-primary)" }} />
+            </div>
+          }
+        >
           <LoginForm />
         </Suspense>
       </div>

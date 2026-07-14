@@ -35,113 +35,316 @@ export function FindFoodContent() {
   });
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "var(--color-bg)" }}>
       <AppHeader />
-      <div className="bg-primary-900 text-white pt-10 pb-24 px-4 relative overflow-hidden">
+
+      {/* ── Hero banner ── */}
+      <div
+        style={{
+          backgroundColor: "var(--color-primary)",
+          color: "white",
+          paddingTop: "var(--space-10)",
+          paddingBottom: "var(--space-16)",
+          paddingLeft: "var(--space-4)",
+          paddingRight: "var(--space-4)",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Subtle dot pattern */}
         <div
-          className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage: "radial-gradient(#C2E5CF 2px, transparent 2px)",
-            backgroundSize: "30px 30px",
+            position: "absolute",
+            inset: 0,
+            opacity: 0.07,
+            backgroundImage: "radial-gradient(rgba(255,255,255,0.8) 1.5px, transparent 1.5px)",
+            backgroundSize: "24px 24px",
+            pointerEvents: "none",
           }}
         />
-        <div className={`${CONTAINER_CLASS} relative z-10 text-center space-y-6`}>
-          <h1 className="text-4xl md:text-5xl font-display font-bold">Find Your Food</h1>
-          <p className="text-primary-100 max-w-2xl mx-auto text-lg">
+
+        <div className={CONTAINER_CLASS} style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+          <h1
+            style={{
+              fontSize: "clamp(1.875rem, 5vw, 2.75rem)",
+              fontWeight: "var(--weight-bold)",
+              fontFamily: "var(--font-sans)",
+              color: "white",
+              margin: "0 0 var(--space-3)",
+              letterSpacing: "-0.025em",
+            }}
+          >
+            Find Your Food
+          </h1>
+          <p
+            style={{
+              color: "rgba(255,255,255,0.85)",
+              fontSize: "var(--text-base)",
+              margin: "0 auto var(--space-8)",
+              maxWidth: 480,
+              lineHeight: "var(--leading-relaxed)",
+            }}
+          >
             Temukan estimasi ukuran porsi dan kandungan gizi lengkap dari makanan Indonesia.
           </p>
-          <div className="relative max-w-2xl mx-auto mt-8">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-muted" />
+
+          {/* Search bar */}
+          <div style={{ position: "relative", maxWidth: 600, margin: "0 auto" }}>
+            <div
+              style={{
+                position: "absolute",
+                left: "var(--space-4)",
+                top: "50%",
+                transform: "translateY(-50%)",
+                pointerEvents: "none",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Search size={18} style={{ color: "var(--color-text-muted)" }} />
             </div>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-12 pr-4 py-4 rounded-2xl border-0 ring-4 ring-primary-800 focus:ring-primary-400 bg-white text-primary-900 text-lg placeholder:text-muted focus:outline-none transition-all shadow-lg"
-              placeholder="Cari makanan (nama / kode, misal: Nasi, MP-01...)"
+              placeholder="Cari makanan (nama / kode, misal: Nasi, MP-01…)"
+              style={{
+                display: "block",
+                width: "100%",
+                paddingLeft: "3rem",
+                paddingRight: "3rem",
+                paddingTop: "var(--space-4)",
+                paddingBottom: "var(--space-4)",
+                borderRadius: "var(--radius-xl)",
+                border: "none",
+                backgroundColor: "var(--color-surface)",
+                color: "var(--color-text-primary)",
+                fontSize: "var(--text-base)",
+                outline: "none",
+                boxShadow: "var(--shadow-xl)",
+                transition: "var(--transition-base)",
+                fontFamily: "var(--font-sans)",
+                boxSizing: "border-box",
+              }}
+              onFocus={(e) => { e.currentTarget.style.boxShadow = "var(--shadow-xl), var(--focus-ring)"; }}
+              onBlur={(e) => { e.currentTarget.style.boxShadow = "var(--shadow-xl)"; }}
             />
             {isSearching && (
-              <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <div
+                style={{
+                  position: "absolute",
+                  right: "var(--space-4)",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Loader2 size={18} className="animate-spin" style={{ color: "var(--color-primary)" }} />
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className={`${CONTAINER_CLASS} -mt-10 relative z-20 pb-20 flex-1`}>
+      {/* ── Content (overlaps hero) ── */}
+      <div
+        className={CONTAINER_CLASS}
+        style={{ marginTop: "calc(-1 * var(--space-8))", position: "relative", zIndex: 10, paddingBottom: "var(--space-16)", flex: 1 }}
+      >
+
+        {/* Minimum chars hint */}
         {debouncedSearch.trim().length > 0 && debouncedSearch.trim().length < 2 && (
-          <div className="bg-surface rounded-2xl shadow-sm border border-border p-6 text-center text-muted-foreground">
-            Ketik minimal 2 karakter untuk mencari...
+          <div
+            className="card"
+            style={{ padding: "var(--space-6)", textAlign: "center", color: "var(--color-text-muted)", fontSize: "var(--text-sm)" }}
+          >
+            Ketik minimal 2 karakter untuk mencari…
           </div>
         )}
 
+        {/* Category browse */}
         {debouncedSearch.trim().length === 0 && (
-          <div className="bg-surface rounded-2xl shadow-sm border border-border p-6 md:p-8 animate-fade-in">
-            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-              <UtensilsCrossed className="w-5 h-5 text-primary" />
+          <div className="card animate-fade-in" style={{ padding: "var(--space-6)" }}>
+            <h2
+              style={{
+                fontSize: "var(--text-lg)",
+                fontWeight: "var(--weight-semibold)",
+                color: "var(--color-text-primary)",
+                margin: "0 0 var(--space-5)",
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+              }}
+            >
+              <UtensilsCrossed size={20} style={{ color: "var(--color-primary)" }} />
               Kategori Makanan
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style={{ gap: "var(--space-3)" }}>
               {categories.map((cat: { id: string; code: string; name: string; icon?: string }) => (
                 <Link
                   key={cat.id}
                   href={`/find-food/category/${cat.code}`}
-                  className="p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-center group"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
+                    padding: "var(--space-4)",
+                    borderRadius: "var(--radius-xl)",
+                    border: "1.5px solid var(--color-border)",
+                    textDecoration: "none",
+                    textAlign: "center",
+                    transition: "var(--transition-base)",
+                    backgroundColor: "var(--color-surface)",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderColor = "var(--color-primary-border)";
+                    el.style.backgroundColor = "var(--color-primary-light)";
+                    el.style.transform = "translateY(-2px)";
+                    el.style.boxShadow = "var(--shadow-sm)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderColor = "var(--color-border)";
+                    el.style.backgroundColor = "var(--color-surface)";
+                    el.style.transform = "none";
+                    el.style.boxShadow = "none";
+                  }}
                 >
-                  <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">
-                    {cat.icon || "🍽️"}
-                  </div>
-                  <h3 className="font-medium text-sm text-foreground">{cat.name}</h3>
+                  <span style={{ fontSize: "2rem", lineHeight: 1 }}>{cat.icon || "🍽️"}</span>
+                  <span style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--color-text-primary)" }}>
+                    {cat.name}
+                  </span>
                 </Link>
               ))}
             </div>
           </div>
         )}
 
+        {/* Search results */}
         {canSearch && (
-          <div className="bg-surface rounded-2xl shadow-sm border border-border p-6 md:p-8 animate-fade-in">
-            <h2 className="text-xl font-semibold mb-6 flex items-center justify-between">
-              <span>Hasil Pencarian: &quot;{debouncedSearch}&quot;</span>
-              <span className="text-sm font-normal text-muted-foreground bg-muted-foreground/10 px-3 py-1 rounded-full">
+          <div className="card animate-fade-in" style={{ padding: "var(--space-6)" }}>
+            {/* Results header */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "var(--space-5)",
+                flexWrap: "wrap",
+                gap: "var(--space-2)",
+              }}
+            >
+              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: 0 }}>
+                Hasil: &ldquo;{debouncedSearch}&rdquo;
+              </h2>
+              <span className="badge badge-default">
                 {searchResults.length} hasil
               </span>
-            </h2>
-            {searchResults.length === 0 && !isSearching ? (
-              <div className="text-center py-12">
-                <div className="text-5xl mb-4">🔍</div>
-                <h3 className="text-lg font-medium text-foreground">Makanan tidak ditemukan</h3>
-                <p className="text-muted-foreground mt-1">Coba gunakan kata kunci lain.</p>
+            </div>
+
+            {/* Empty */}
+            {searchResults.length === 0 && !isSearching && (
+              <div style={{ textAlign: "center", padding: "var(--space-12) var(--space-4)" }}>
+                <div style={{ fontSize: "3rem", marginBottom: "var(--space-4)" }}>🔍</div>
+                <h3 style={{ fontSize: "var(--text-base)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: "0 0 var(--space-2)" }}>
+                  Makanan tidak ditemukan
+                </h3>
+                <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", margin: 0 }}>
+                  Coba gunakan kata kunci lain.
+                </p>
               </div>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-4">
+            )}
+
+            {/* Results grid */}
+            {searchResults.length > 0 && (
+              <div className="grid md:grid-cols-2" style={{ gap: "var(--space-3)" }}>
                 {searchResults.map((food: FoodSearchResult) => (
                   <Link
                     key={food.id}
                     href={`/find-food/${food.id}`}
-                    className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary/50 hover:shadow-md transition-all group bg-white"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "var(--space-4)",
+                      padding: "var(--space-4)",
+                      borderRadius: "var(--radius-xl)",
+                      border: "1.5px solid var(--color-border)",
+                      textDecoration: "none",
+                      backgroundColor: "var(--color-surface)",
+                      transition: "var(--transition-base)",
+                    }}
+                    onMouseEnter={(e) => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.borderColor = "var(--color-primary-border)";
+                      el.style.boxShadow = "var(--shadow-md)";
+                      el.style.transform = "translateY(-1px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.borderColor = "var(--color-border)";
+                      el.style.boxShadow = "none";
+                      el.style.transform = "none";
+                    }}
                   >
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    {/* Icon */}
+                    <div
+                      style={{
+                        width: 48, height: 48,
+                        borderRadius: "var(--radius-lg)",
+                        backgroundColor: "var(--color-primary-light)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "1.5rem",
+                        flexShrink: 0,
+                      }}
+                    >
                       {food.category?.icon || "🍲"}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground truncate">{food.name}</h3>
-                      <p className="text-xs text-muted-foreground truncate flex items-center gap-2">
-                        <span className="bg-muted-foreground/10 px-2 py-0.5 rounded font-mono">
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h3
+                        style={{
+                          fontSize: "var(--text-sm)",
+                          fontWeight: "var(--weight-semibold)",
+                          color: "var(--color-text-primary)",
+                          margin: "0 0 var(--space-1)",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {food.name}
+                      </h3>
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
+                        <span
+                          style={{
+                            fontSize: "var(--text-xs)",
+                            fontFamily: "var(--font-mono)",
+                            fontWeight: "var(--weight-semibold)",
+                            backgroundColor: "var(--color-surface-alt)",
+                            color: "var(--color-text-muted)",
+                            padding: "1px var(--space-2)",
+                            borderRadius: "var(--radius-sm)",
+                            border: "1px solid var(--color-border)",
+                          }}
+                        >
                           {food.code}
                         </span>
-                        <span className="bg-muted-foreground/10 px-2 py-0.5 rounded">
-                          {food.category?.name}
-                        </span>
+                        {food.category?.name && (
+                          <span className="badge badge-default">{food.category.name}</span>
+                        )}
                         {food.photo_type && (
-                          <span className="text-accent-600">
-                            • {food.photo_type === "series" ? "Foto Series" : "Foto Range"}
+                          <span style={{ fontSize: "var(--text-xs)", color: "var(--color-primary)" }}>
+                            · {food.photo_type === "series" ? "Foto Series" : "Foto Range"}
                           </span>
                         )}
-                      </p>
+                      </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+
+                    <ChevronRight size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                   </Link>
                 ))}
               </div>

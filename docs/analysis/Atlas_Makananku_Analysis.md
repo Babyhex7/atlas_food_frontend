@@ -66,7 +66,6 @@ Ini bukan buku resep dan bukan ensiklopedia gizi. Ini adalah **instrumen riset b
 
 **SECONDARY — Pendukung fungsi**
 - Pedoman penggunaan (cara pakai foto series, guide, range)
-- Prosedur wawancara estimasi porsi
 - Panduan untuk hidangan yang tidak ada di atlas (alternatif estimasi)
 - Daftar hidangan per kategori (indeks cepat)
 
@@ -76,6 +75,7 @@ Ini bukan buku resep dan bukan ensiklopedia gizi. Ini adalah **instrumen riset b
 - Tim penyusun
 - Ucapan terima kasih
 - Referensi/daftar pustaka
+- Prosedur wawancara estimasi porsi
 
 ---
 

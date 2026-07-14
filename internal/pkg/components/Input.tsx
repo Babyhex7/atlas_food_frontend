@@ -3,26 +3,58 @@ import React, { forwardRef, type InputHTMLAttributes } from "react";
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  helper?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, id, error, className = "", ...props }, ref) => {
+  ({ label, id, error, helper, className = "", ...props }, ref) => {
     return (
-      <div className="flex flex-col space-y-1.5 w-full">
+      <div className="flex flex-col w-full" style={{ gap: "var(--space-2)" }}>
         {label && (
-          <label htmlFor={id} className="text-sm font-medium text-slate-700">
+          <label
+            htmlFor={id}
+            className="form-label"
+            style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--color-text-secondary)" }}
+          >
             {label}
           </label>
         )}
         <input
           ref={ref}
           id={id}
-          className={`flex h-11 w-full rounded-xl border bg-white px-3 py-2 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 ${
-            error ? "border-red-500 focus-visible:ring-red-500" : "border-slate-200"
-          } ${className}`}
+          className={`${className}`}
+          style={{
+            width: "100%",
+            padding: "0.625rem var(--space-3)",
+            fontSize: "var(--text-sm)",
+            color: "var(--color-text-primary)",
+            backgroundColor: "var(--color-surface)",
+            border: `1.5px solid ${error ? "var(--color-danger)" : "var(--color-border)"}`,
+            borderRadius: "var(--radius-md)",
+            outline: "none",
+            transition: "var(--transition-base)",
+            fontFamily: "var(--font-sans)",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = error ? "var(--color-danger)" : "var(--color-primary)";
+            e.currentTarget.style.boxShadow = error
+              ? "0 0 0 3px rgba(220,38,38,0.15)"
+              : "var(--focus-ring)";
+            props.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = error ? "var(--color-danger)" : "var(--color-border)";
+            e.currentTarget.style.boxShadow = "none";
+            props.onBlur?.(e);
+          }}
           {...props}
         />
-        {error && <span className="text-xs text-red-500">{error}</span>}
+        {error && (
+          <span style={{ fontSize: "var(--text-xs)", color: "var(--color-danger)" }}>{error}</span>
+        )}
+        {helper && !error && (
+          <span style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)" }}>{helper}</span>
+        )}
       </div>
     );
   }
