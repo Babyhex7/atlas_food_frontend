@@ -5,80 +5,27 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 
 export default function RegisterPage() {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--color-bg)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        padding: "var(--space-12) var(--space-4)",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
+    <div className="min-h-screen bg-background flex flex-col justify-center py-12 px-4 relative overflow-hidden">
       {/* Background blobs */}
-      <div
-        style={{
-          position: "absolute",
-          top: "-15%",
-          right: "-10%",
-          width: 500,
-          height: 500,
-          borderRadius: "50%",
-          background: "var(--color-primary-light)",
-          filter: "blur(100px)",
-          opacity: 0.7,
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: "-15%",
-          left: "-10%",
-          width: 400,
-          height: 400,
-          borderRadius: "50%",
-          background: "var(--color-primary-muted)",
-          filter: "blur(100px)",
-          opacity: 0.5,
-          pointerEvents: "none",
-        }}
-      />
+      <div className="absolute top-[-15%] right-[-10%] w-[500px] h-[500px] rounded-full bg-primary-light blur-[100px] opacity-70 pointer-events-none" />
+      <div className="absolute bottom-[-15%] left-[-10%] w-[400px] h-[400px] rounded-full bg-primary-muted blur-[100px] opacity-50 pointer-events-none" />
 
       {/* Back link */}
-      <div style={{ position: "absolute", top: "var(--space-5)", left: "var(--space-5)", zIndex: 10 }}>
+      <div className="absolute top-5 left-5 z-10">
         <Link
           href="/"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "var(--space-2)",
-            fontSize: "var(--text-sm)",
-            fontWeight: "var(--weight-medium)",
-            color: "var(--color-text-muted)",
-            textDecoration: "none",
-            backgroundColor: "var(--color-surface)",
-            padding: "var(--space-2) var(--space-4)",
-            borderRadius: "var(--radius-full)",
-            border: "1px solid var(--color-border)",
-            boxShadow: "var(--shadow-xs)",
-            transition: "var(--transition-fast)",
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--color-text-primary)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border-strong)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border)"; }}
+          className="link-muted-hover inline-flex items-center gap-2 bg-surface py-2 px-4 rounded-full border border-border shadow-xs"
         >
           <ArrowLeft size={15} />
           Kembali ke Beranda
         </Link>
       </div>
 
-      <div style={{ position: "relative", zIndex: 1 }}>
+      <div className="relative z-1">
         <Suspense
           fallback={
-            <div style={{ display: "flex", justifyContent: "center", padding: "var(--space-16)" }}>
-              <Loader2 size={32} className="animate-spin" style={{ color: "var(--color-primary)" }} />
+            <div className="flex justify-center py-16">
+              <Loader2 size={32} className="animate-spin text-primary" />
             </div>
           }
         >

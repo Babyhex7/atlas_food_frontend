@@ -17,19 +17,10 @@ export function LandingHeroSearch() {
   };
 
   return (
-    <form onSubmit={handleSearch} style={{ position: "relative", maxWidth: 600, margin: "0 auto", width: "100%" }}>
+    <form onSubmit={handleSearch} className="relative max-w-[600px] mx-auto w-full">
       {/* Search icon */}
-      <div
-        style={{
-          position: "absolute",
-          insetBlock: 0,
-          left: "var(--space-5)",
-          display: "flex",
-          alignItems: "center",
-          pointerEvents: "none",
-        }}
-      >
-        <Search size={18} style={{ color: "var(--color-text-muted)" }} />
+      <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+        <Search size={18} className="text-text-muted" />
       </div>
 
       <input
@@ -38,54 +29,12 @@ export function LandingHeroSearch() {
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Cari hidangan (nama / kode, misal: Nasi, MP-01…)"
         aria-label="Cari makanan"
-        style={{
-          display: "block",
-          width: "100%",
-          paddingLeft: "3rem",
-          paddingRight: "7rem",
-          paddingTop: "var(--space-4)",
-          paddingBottom: "var(--space-4)",
-          borderRadius: "var(--radius-xl)",
-          border: "1.5px solid var(--color-border)",
-          backgroundColor: "var(--color-surface)",
-          color: "var(--color-text-primary)",
-          fontSize: "var(--text-base)",
-          boxShadow: "var(--shadow-lg)",
-          outline: "none",
-          transition: "var(--transition-base)",
-          fontFamily: "var(--font-sans)",
-          boxSizing: "border-box",
-        }}
-        onFocus={(e) => {
-          e.currentTarget.style.borderColor = "var(--color-primary)";
-          e.currentTarget.style.boxShadow = "var(--shadow-lg), var(--focus-ring)";
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.borderColor = "var(--color-border)";
-          e.currentTarget.style.boxShadow = "var(--shadow-lg)";
-        }}
+        className="shadow-lg-focus-ring block w-full pl-12 pr-28 py-4 rounded-xl border-[1.5px] border-border bg-surface text-text-primary text-base shadow-lg outline-none transition-base font-sans box-border focus:border-primary"
       />
 
       <button
         type="submit"
-        style={{
-          position: "absolute",
-          insetBlock: "var(--space-2)",
-          right: "var(--space-2)",
-          paddingLeft: "var(--space-5)",
-          paddingRight: "var(--space-5)",
-          borderRadius: "var(--radius-lg)",
-          backgroundColor: "var(--color-primary)",
-          border: "none",
-          color: "white",
-          fontSize: "var(--text-sm)",
-          fontWeight: "var(--weight-semibold)",
-          cursor: "pointer",
-          transition: "var(--transition-base)",
-          fontFamily: "var(--font-sans)",
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-primary-hover)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--color-primary)"; }}
+        className="absolute inset-y-2 right-2 px-5 rounded-lg bg-primary border-none text-white text-sm font-semibold cursor-pointer transition-base font-sans hover:bg-primary-hover"
       >
         Cari
       </button>

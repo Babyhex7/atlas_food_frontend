@@ -10,10 +10,10 @@ import { apiClient as api } from '@/internal/lib/axios';
 /* ── Shared wizard helpers (duplicated for page isolation) ── */
 function ProgressBar({ label, pct }: { label: string; pct: number }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>{label}</span>
-      <div className="progress" style={{ flex: 1 }}><div className="progress-bar" style={{ width: `${pct}%` }} /></div>
-      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', flexShrink: 0 }}>{pct}% Complete</span>
+    <div className="flex items-center gap-4">
+      <span className="text-xs font-semibold text-text-muted uppercase tracking-[0.08em] shrink-0">{label}</span>
+      <div className="progress flex-1"><div className="progress-bar" style={{ width: `${pct}%` }} /></div>
+      <span className="text-xs font-medium text-text-muted shrink-0">{pct}% Complete</span>
     </div>
   );
 }
@@ -56,26 +56,26 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
   const activeMeal = meals.find((m) => m.id === activeMealId);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)' }}>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--space-8) var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-[820px] mx-auto p-8 px-6 flex flex-col gap-6">
 
           <ProgressBar label="Progress" pct={40} />
 
           {/* Title */}
           <div>
-            <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-bold)', color: 'var(--color-text-primary)', margin: '0 0 var(--space-2)' }}>
+            <h1 className="text-2xl font-bold text-text-primary mb-2 mt-0">
               What did you have for Breakfast?
             </h1>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', margin: 0 }}>
+            <p className="text-sm text-text-muted m-0">
               Search and add everything you consumed this morning.
             </p>
           </div>
 
           {/* Info banner */}
           <div className="alert alert-primary">
-            <Info size={16} style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: 'var(--text-xs)', lineHeight: 'var(--leading-relaxed)' }}>
+            <Info size={16} className="shrink-0" />
+            <span className="text-xs leading-relaxed">
               Please record each food component separately (for example, if you had Fried Rice, also enter any toppings or side items such as egg, crackers, cucumber, etc.) to ensure more accurate nutrition calculations.
             </span>
           </div>
@@ -83,13 +83,13 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
           {/* Search blocks */}
           {[
             { label: 'ADD FOODS', icon: <Search size={16} />, query: foodQuery, setQuery: setFoodQuery, results: foodResults, field: 'food' as const, placeholder: 'Search foods (e.g. Bubur Ayam)' },
-            { label: 'ADD DRINKS', icon: <span style={{ fontSize: '1rem' }}>🥤</span>, query: drinkQuery, setQuery: setDrinkQuery, results: drinkResults, field: 'drink' as const, placeholder: 'Search drinks (e.g. Kopi Susu)' },
+            { label: 'ADD DRINKS', icon: <span className="text-base">🥤</span>, query: drinkQuery, setQuery: setDrinkQuery, results: drinkResults, field: 'drink' as const, placeholder: 'Search drinks (e.g. Kopi Susu)' },
           ].map(({ label, icon, query, setQuery, results, field, placeholder }) => (
-            <div key={field} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-text-muted)' }}>{label}</span>
-              <div style={{ display: 'flex', gap: 'var(--space-2)', position: 'relative' }} ref={field === 'food' ? undefined : undefined}>
-                <div style={{ position: 'relative', flex: 1 }}>
-                  <div style={{ position: 'absolute', left: 'var(--space-3)', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', display: 'flex', pointerEvents: 'none' }}>
+            <div key={field} className="flex flex-col gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">{label}</span>
+              <div className="flex gap-2 relative" ref={field === 'food' ? undefined : undefined}>
+                <div className="relative flex-1">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted flex pointer-events-none">
                     {icon}
                   </div>
                   <input
@@ -98,16 +98,8 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => setFocusedField(field)}
                     placeholder={placeholder}
-                    style={{
-                      width: '100%', paddingLeft: '2.5rem', paddingRight: 'var(--space-4)',
-                      paddingTop: '0.625rem', paddingBottom: '0.625rem',
-                      fontSize: 'var(--text-sm)', fontFamily: 'var(--font-sans)',
-                      color: 'var(--color-text-primary)', backgroundColor: 'var(--color-surface)',
-                      border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)',
-                      outline: 'none', transition: 'var(--transition-base)', boxSizing: 'border-box',
-                    }}
-                    onFocus2={(e: any) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; }}
-                    onBlur={(e) => { setTimeout(() => setFocusedField(null), 150); e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
+                    className="w-full pl-10 pr-4 py-2.5 text-sm font-sans text-text-primary bg-surface border-[1.5px] border-border rounded-lg outline-none transition-base box-border focus:border-primary focus:shadow-focus"
+                    onBlur={() => { setTimeout(() => setFocusedField(null), 150); }}
                   />
                   {/* Dropdown */}
                   {results.length > 0 && focusedField === field && (
@@ -128,15 +120,7 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
                 </div>
                 <button
                   type="button"
-                  style={{
-                    padding: '0 var(--space-5)', borderRadius: 'var(--radius-lg)',
-                    backgroundColor: 'var(--color-primary)', border: 'none',
-                    color: 'white', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)',
-                    cursor: 'pointer', transition: 'var(--transition-base)', fontFamily: 'var(--font-sans)',
-                    flexShrink: 0,
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-primary)'; }}
+                  className="px-5 rounded-lg bg-primary border-none text-white text-sm font-bold cursor-pointer transition-base font-sans shrink-0 hover:bg-primary-hover"
                 >
                   ADD
                 </button>
@@ -146,59 +130,51 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
 
           {/* Browse by Category */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
-              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-primary)', margin: 0 }}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-semibold text-text-primary m-0">
                 Browse by Category
               </h3>
-              <button type="button" style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button type="button" className="text-sm font-semibold text-primary bg-transparent border-none cursor-pointer">
                 Show All
               </button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5" style={{ gap: 'var(--space-3)' }}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
                   type="button"
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-2)',
-                    padding: 'var(--space-4)', borderRadius: 'var(--radius-xl)',
-                    border: '1.5px solid var(--color-border)', backgroundColor: 'var(--color-surface)',
-                    cursor: 'pointer', transition: 'var(--transition-base)', fontFamily: 'var(--font-sans)',
-                    textAlign: 'center',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary-border)'; e.currentTarget.style.backgroundColor = 'var(--color-primary-light)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.backgroundColor = 'var(--color-surface)'; e.currentTarget.style.transform = 'none'; }}
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl border-[1.5px] border-border bg-surface cursor-pointer transition-base font-sans text-center hover:border-primary-border hover:bg-primary-light hover:-translate-y-0.5"
                 >
-                  <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
+                  <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center text-xl">
                     {CATEGORY_ICONS[cat] || '🍽️'}
                   </div>
-                  <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-secondary)' }}>{cat}</span>
+                  <span className="text-xs font-medium text-text-secondary">{cat}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Added Items */}
-          <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-3) var(--space-4)', backgroundColor: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)' }}>
-              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-secondary)' }}>Added Items</span>
+          <div className="border border-border rounded-xl overflow-hidden">
+            <div className="flex justify-between items-center py-3 px-4 bg-surface-alt border-b border-border">
+              <span className="text-sm font-semibold text-text-secondary">Added Items</span>
               <span className="badge badge-default">{activeMeal?.foods.length || 0} items</span>
             </div>
-            <div style={{ padding: 'var(--space-3) var(--space-4)', backgroundColor: 'var(--color-primary-light)', borderBottom: '1px solid var(--color-primary-border)', display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-start' }}>
-              <Info size={14} style={{ color: 'var(--color-primary)', flexShrink: 0, marginTop: 1 }} />
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-primary)' }}>
+            <div className="py-3 px-4 bg-primary-light border-b border-primary-border flex gap-2 items-start">
+              <Info size={14} className="text-primary shrink-0 mt-px" />
+              <span className="text-xs text-primary">
                 Portion sizes and specific ingredients for these items will be adjusted in the next step.
               </span>
             </div>
             {activeMeal && activeMeal.foods.length > 0 ? (
               <div>
                 {activeMeal.foods.map((f) => (
-                  <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid var(--color-border)' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>🍛</div>
-                    <span style={{ flex: 1, fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-primary)' }}>{f.name}</span>
-                    <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', display: 'flex', padding: 4, borderRadius: 'var(--radius-sm)', transition: 'var(--transition-fast)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.backgroundColor = 'var(--color-danger-light)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                  <div key={f.id} className="flex items-center gap-3 py-3 px-4 border-b border-border">
+                    <div className="w-8 h-8 rounded-md bg-primary-light flex items-center justify-center text-base shrink-0">🍛</div>
+                    <span className="flex-1 text-sm font-medium text-text-primary">{f.name}</span>
+                    <button
+                      type="button"
+                      className="bg-transparent border-none cursor-pointer text-text-muted flex p-1 rounded-sm transition-fast hover:text-danger hover:bg-danger-light"
                     >
                       <X size={14} />
                     </button>
@@ -206,7 +182,7 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
                 ))}
               </div>
             ) : (
-              <div style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+              <div className="p-8 text-center text-text-muted text-sm">
                 No items added yet
               </div>
             )}
@@ -216,8 +192,8 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
       </div>
 
       {/* Footer */}
-      <div style={{ backgroundColor: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: 'var(--space-4) var(--space-6)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button type="button" onClick={() => router.back()} style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+      <div className="bg-surface border-t border-border py-4 px-6 flex justify-between items-center">
+        <button type="button" onClick={() => router.back()} className="text-sm font-medium text-text-muted bg-transparent border-none cursor-pointer">
           ‹ Back
         </button>
         <Button onClick={() => router.push(`/surveys/${params.accessToken}/portion`)}>

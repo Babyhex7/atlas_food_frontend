@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/internal/pkg/components/Button";
 import { Input } from "@/internal/pkg/components/Input";
+import { cn } from "@/internal/lib/cn";
 import { getAccessToken } from "@/internal/lib/cookies";
 import { getSurveyById, createSurvey, updateSurvey } from "../services/surveyService";
 import { surveyStatuses } from "../constants/surveyStatus";
@@ -21,22 +22,18 @@ const DEFAULT_MEALS: MealConfig[] = [
 /* Shared field container */
 function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-      <label style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--color-text-secondary)" }}>
-        {label}{required && <span style={{ color: "var(--color-danger)", marginLeft: 2 }}>*</span>}
+    <div className="flex flex-col gap-2">
+      <label className="text-sm font-medium text-text-secondary">
+        {label}{required && <span className="text-danger ml-0.5">*</span>}
       </label>
       {children}
-      {hint && <span style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)" }}>{hint}</span>}
+      {hint && <span className="text-xs text-text-muted">{hint}</span>}
     </div>
   );
 }
 
-const INPUT_STYLE: React.CSSProperties = {
-  width: "100%", padding: "0.625rem var(--space-3)", fontSize: "var(--text-sm)",
-  color: "var(--color-text-primary)", backgroundColor: "var(--color-surface)",
-  border: "1.5px solid var(--color-border)", borderRadius: "var(--radius-md)",
-  outline: "none", transition: "var(--transition-base)", fontFamily: "var(--font-sans)", boxSizing: "border-box",
-};
+const INPUT_CLASS =
+  "w-full py-2.5 px-3 text-sm text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none font-sans transition-base box-border focus:border-primary focus:shadow-focus";
 
 export function SurveyForm() {
   const params = useParams();
@@ -118,47 +115,43 @@ export function SurveyForm() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "var(--space-8)" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", maxWidth: 640 }}>
-          {[1, 2, 3, 4].map((i) => <div key={i} className="skeleton" style={{ height: i === 3 ? 80 : 44, borderRadius: "var(--radius-md)" }} />)}
+      <div className="p-8">
+        <div className="flex flex-col gap-4 max-w-[640px]">
+          {[1, 2, 3, 4].map((i) => <div key={i} className={cn("skeleton rounded-md", i === 3 ? "h-20" : "h-11")} />)}
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: "var(--space-6) var(--space-8)" }}>
-      <div style={{ maxWidth: 640 }}>
+    <div className="p-6 px-8">
+      <div className="max-w-[640px]">
         {/* Back + heading */}
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", marginBottom: "var(--space-8)" }}>
+        <div className="flex items-center gap-4 mb-8">
           <button
             type="button"
             onClick={() => router.push("/admin/surveys")}
-            style={{ display: "flex", alignItems: "center", gap: "var(--space-1)", fontSize: "var(--text-sm)", color: "var(--color-text-muted)", background: "none", border: "none", cursor: "pointer", padding: "var(--space-2)", borderRadius: "var(--radius-md)", transition: "var(--transition-fast)", fontFamily: "var(--font-sans)" }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-text-primary)"; e.currentTarget.style.backgroundColor = "var(--color-surface-alt)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--color-text-muted)"; e.currentTarget.style.backgroundColor = "transparent"; }}
+            className="flex items-center gap-1 text-sm text-text-muted bg-transparent border-none cursor-pointer p-2 rounded-md transition-fast font-sans hover:text-text-primary hover:bg-surface-alt"
           >
             <ArrowLeft size={15} /> Kembali
           </button>
           <div>
-            <h1 style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--weight-bold)", color: "var(--color-text-primary)", margin: 0 }}>
+            <h1 className="text-2xl font-bold text-text-primary m-0">
               {isEdit ? "Edit Survey" : "Buat Survey Baru"}
             </h1>
-            <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", margin: "var(--space-1) 0 0" }}>
+            <p className="text-sm text-text-muted mt-1 mb-0">
               {isEdit ? "Perbarui konfigurasi survey" : "Konfigurasi survey recall gizi baru"}
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
           <Field label="Nama Survey" required>
             <input type="text" value={name} onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Contoh: Survey Gizi Harian Mahasiswa 2025"
               minLength={surveyValidation.name.minLength} maxLength={surveyValidation.name.maxLength} required
-              style={INPUT_STYLE}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
+              className={INPUT_CLASS}
             />
           </Field>
 
@@ -167,9 +160,11 @@ export function SurveyForm() {
               placeholder="survey-gizi-harian-2025"
               minLength={surveyValidation.slug.minLength} maxLength={surveyValidation.slug.maxLength}
               disabled={Boolean(isEdit)} required
-              style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", ...(isEdit ? { backgroundColor: "var(--color-surface-alt)", color: "var(--color-text-muted)", cursor: "not-allowed" } : {}) }}
-              onFocus={(e) => { if (!isEdit) { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}}
-              onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
+              className={cn(
+                INPUT_CLASS,
+                "font-mono",
+                isEdit && "bg-surface-alt text-text-muted cursor-not-allowed focus:border-border focus:shadow-none"
+              )}
             />
           </Field>
 
@@ -177,17 +172,14 @@ export function SurveyForm() {
             <textarea value={description} onChange={(e) => setDescription(e.target.value)}
               placeholder="Jelaskan tujuan dan instruksi singkat survey ini…"
               maxLength={surveyValidation.description.maxLength} rows={3}
-              style={{ ...INPUT_STYLE, resize: "vertical", minHeight: 88, lineHeight: "var(--leading-relaxed)" }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
+              className={cn(INPUT_CLASS, "resize-y min-h-[88px] leading-relaxed")}
             />
           </Field>
 
           <Field label="Status">
             <select value={status} onChange={(e) => setStatus(e.target.value)}
-              style={{ ...INPUT_STYLE, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right var(--space-3) center", paddingRight: "var(--space-8)", cursor: "pointer" }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
+              className={cn(INPUT_CLASS, "bg-no-repeat bg-position-[right_var(--space-3)_center] pr-8 cursor-pointer")}
+              style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")" }}
             >
               {Object.values(surveyStatuses).map((s) => (
                 <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
@@ -195,56 +187,44 @@ export function SurveyForm() {
             </select>
           </Field>
 
-          <div className="grid grid-cols-2" style={{ gap: "var(--space-4)" }}>
+          <div className="grid grid-cols-2 gap-4">
             <Field label="Tanggal Mulai">
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={INPUT_STYLE}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
-              />
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={INPUT_CLASS} />
             </Field>
             <Field label="Tanggal Selesai">
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={INPUT_STYLE}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "var(--focus-ring)"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
-              />
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={INPUT_CLASS} />
             </Field>
           </div>
 
           {/* Meals config */}
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
+            <div className="flex justify-between items-center mb-3">
               <div>
-                <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--color-text-secondary)", margin: 0 }}>
+                <p className="text-sm font-medium text-text-secondary m-0">
                   Konfigurasi Waktu Makan
                 </p>
-                <p style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", margin: "2px 0 0" }}>
+                <p className="text-xs text-text-muted mt-0.5 mb-0">
                   Tentukan waktu makan yang akan direcord dalam survey ini
                 </p>
               </div>
               <button type="button" onClick={addMeal}
-                style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-1)", fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)", color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)" }}>
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary bg-transparent border-none cursor-pointer font-sans">
                 <Plus size={14} /> Tambah
               </button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+            <div className="flex flex-col gap-2">
               {meals.map((meal, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", padding: "var(--space-3)", backgroundColor: "var(--color-surface-alt)", borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)" }}>
-                  <span style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", width: 20, textAlign: "center", flexShrink: 0 }}>{i + 1}</span>
+                <div key={i} className="flex items-center gap-3 p-3 bg-surface-alt rounded-lg border border-border">
+                  <span className="text-xs text-text-muted w-5 text-center shrink-0">{i + 1}</span>
                   <input type="text" value={meal.name} onChange={(e) => updateMeal(i, "name", e.target.value)} placeholder="Breakfast"
-                    style={{ flex: 1, padding: "var(--space-2) var(--space-3)", fontSize: "var(--text-sm)", border: "1.5px solid var(--color-border)", borderRadius: "var(--radius-md)", outline: "none", backgroundColor: "var(--color-surface)", fontFamily: "var(--font-sans)", color: "var(--color-text-primary)" }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; }}
+                    className="flex-1 py-2 px-3 text-sm border-[1.5px] border-border rounded-md outline-none bg-surface font-sans text-text-primary focus:border-primary"
                   />
                   <input type="time" value={meal.time} onChange={(e) => updateMeal(i, "time", e.target.value)}
-                    style={{ padding: "var(--space-2) var(--space-3)", fontSize: "var(--text-sm)", border: "1.5px solid var(--color-border)", borderRadius: "var(--radius-md)", outline: "none", backgroundColor: "var(--color-surface)", fontFamily: "var(--font-sans)", color: "var(--color-text-primary)" }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; }}
+                    className="py-2 px-3 text-sm border-[1.5px] border-border rounded-md outline-none bg-surface font-sans text-text-primary focus:border-primary"
                   />
                   {meals.length > 1 && (
                     <button type="button" onClick={() => removeMeal(i)}
-                      style={{ display: "flex", padding: 4, background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", borderRadius: "var(--radius-sm)", transition: "var(--transition-fast)" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-danger)"; e.currentTarget.style.backgroundColor = "var(--color-danger-light)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = "var(--color-text-muted)"; e.currentTarget.style.backgroundColor = "transparent"; }}
+                      className="flex p-1 bg-transparent border-none cursor-pointer text-text-muted rounded-sm transition-fast hover:text-danger hover:bg-danger-light"
                     >
                       <X size={14} />
                     </button>
@@ -256,23 +236,23 @@ export function SurveyForm() {
 
           {/* Feedback */}
           {error && (
-            <div className="alert alert-danger" style={{ fontSize: "var(--text-sm)" }}>
-              <AlertCircle size={15} style={{ flexShrink: 0 }} /> {error}
+            <div className="alert alert-danger text-sm">
+              <AlertCircle size={15} className="shrink-0" /> {error}
             </div>
           )}
           {success && (
-            <div className="alert alert-success" style={{ fontSize: "var(--text-sm)" }}>
-              <CheckCircle size={15} style={{ flexShrink: 0 }} /> {success}
+            <div className="alert alert-success text-sm">
+              <CheckCircle size={15} className="shrink-0" /> {success}
             </div>
           )}
 
           {/* Access token info */}
           {isEdit && existing?.access_token && (
-            <div className="alert alert-info" style={{ fontSize: "var(--text-xs)" }}>
-              <LinkIcon size={14} style={{ flexShrink: 0 }} />
+            <div className="alert alert-info text-xs">
+              <LinkIcon size={14} className="shrink-0" />
               <div>
-                <span style={{ fontWeight: "var(--weight-semibold)", display: "block", marginBottom: 2 }}>Link Survey untuk Responden</span>
-                <span style={{ fontFamily: "var(--font-mono)", wordBreak: "break-all" }}>
+                <span className="font-semibold block mb-0.5">Link Survey untuk Responden</span>
+                <span className="font-mono break-all">
                   {typeof window !== "undefined" ? window.location.origin : ""}/surveys/{existing.access_token}/join
                 </span>
               </div>
@@ -280,11 +260,11 @@ export function SurveyForm() {
           )}
 
           {/* Submit row */}
-          <div style={{ display: "flex", gap: "var(--space-3)", paddingTop: "var(--space-2)" }}>
+          <div className="flex gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={() => router.push("/admin/surveys")}>
               Batal
             </Button>
-            <Button type="submit" isLoading={isPending} style={{ flex: 1 }}>
+            <Button type="submit" isLoading={isPending} className="flex-1">
               {isPending ? "Menyimpan…" : isEdit ? "Simpan Perubahan" : "Buat Survey"}
             </Button>
           </div>

@@ -44,6 +44,8 @@
   --color-warning-border: #FDE68A;
 
   --color-danger:         #DC2626;
+  --color-danger-hover:   #B91C1C;
+  --color-danger-active:  #991B1B;
   --color-danger-light:   #FEF2F2;
   --color-danger-border:  #FECACA;
 
@@ -130,6 +132,18 @@
   --icon-lg:  24px;
   --icon-xl:  32px;
 }
+
+/* Transition utilities — full shorthand (property+duration+easing), not expressible
+   via Tailwind's transitionProperty theme key (which only accepts property names). */
+.transition-fast   { transition: var(--transition-fast); }
+.transition-base   { transition: var(--transition-base); }
+.transition-slow   { transition: var(--transition-slow); }
+.transition-spring { transition: var(--transition-spring); }
+
+/* Multi-layer box-shadow (base shadow + focus ring stacked) — Tailwind's arbitrary-value
+   syntax does not reliably parse comma-separated shadow values inside brackets. */
+.shadow-lg-focus-ring:focus { box-shadow: var(--shadow-lg), var(--focus-ring); }
+.shadow-xl-focus-ring:focus { box-shadow: var(--shadow-xl), var(--focus-ring); }
 
 /* ============================================================
    2. TAILWIND BASE LAYER — tokens mapped for Tailwind usage

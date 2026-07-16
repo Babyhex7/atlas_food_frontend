@@ -9,10 +9,10 @@ import { Utensils, Pencil, Plus, AlertCircle } from 'lucide-react';
 
 function ProgressBar({ label, pct }: { label: string; pct: number }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>{label}</span>
-      <div className="progress" style={{ flex: 1 }}><div className="progress-bar" style={{ width: `${pct}%` }} /></div>
-      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', flexShrink: 0 }}>{pct}% Complete</span>
+    <div className="flex items-center gap-4">
+      <span className="text-xs font-semibold text-text-muted uppercase tracking-[0.08em] shrink-0">{label}</span>
+      <div className="progress flex-1"><div className="progress-bar" style={{ width: `${pct}%` }} /></div>
+      <span className="text-xs font-medium text-text-muted shrink-0">{pct}% Complete</span>
     </div>
   );
 }
@@ -56,34 +56,34 @@ export default function ReviewPage({ params }: { params: { accessToken: string }
   const allFoods = meals.flatMap((m) => m.foods);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)' }}>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 960, margin: '0 auto', padding: 'var(--space-8) var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-[960px] mx-auto p-8 px-6 flex flex-col gap-6">
 
           <ProgressBar label="Final Step" pct={100} />
 
           <div>
-            <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-bold)', color: 'var(--color-text-primary)', margin: '0 0 var(--space-2)' }}>
+            <h1 className="text-2xl font-bold text-text-primary mb-2 mt-0">
               Review your meal
             </h1>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', margin: 0 }}>
+            <p className="text-sm text-text-muted m-0">
               A detailed breakdown of your meal's nutritional content based on Clinical Vitality standards.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3" style={{ gap: 'var(--space-5)', alignItems: 'start' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
 
             {/* Meal items card — col-span 2 */}
-            <div className="card" style={{ gridColumn: 'span 2 / span 2' }}>
+            <div className="card col-span-2">
               <div className="card-header">
-                <Utensils size={18} style={{ color: 'var(--color-primary)' }} />
-                <h2 style={{ flex: 1, fontSize: 'var(--text-base)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-primary)', margin: 0 }}>
+                <Utensils size={18} className="text-primary" />
+                <h2 className="flex-1 text-base font-semibold text-text-primary m-0">
                   Meal Items
                 </h2>
                 <button
                   type="button"
                   onClick={() => router.push(`/surveys/${params.accessToken}/add-food`)}
-                  style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  className="text-xs font-semibold text-primary bg-transparent border-none cursor-pointer"
                 >
                   Edit List
                 </button>
@@ -92,27 +92,27 @@ export default function ReviewPage({ params }: { params: { accessToken: string }
               {/* Food list */}
               <div>
                 {allFoods.length === 0 && (
-                  <div style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+                  <div className="p-8 text-center text-text-muted text-sm">
                     No foods added yet.
                   </div>
                 )}
                 {allFoods.map((food, idx) => (
                   <div
                     key={idx}
-                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid var(--color-border)' }}
+                    className="flex items-center gap-4 py-4 px-5 border-b border-border"
                   >
-                    <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
+                    <div className="w-14 h-14 rounded-lg bg-surface-alt border border-border flex items-center justify-center text-2xl shrink-0">
                       🍛
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-primary)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-text-primary mb-0.5 mt-0 overflow-hidden text-ellipsis whitespace-nowrap">
                         {food.name}
                       </p>
-                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', margin: 0 }}>
+                      <p className="text-xs text-text-muted m-0">
                         with standard prep
                       </p>
                     </div>
-                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-secondary)', flexShrink: 0 }}>
+                    <span className="text-sm font-semibold text-text-secondary shrink-0">
                       {food.portionLabel || (food.portionGram ? `${food.portionGram}g` : '—')}
                     </span>
                   </div>
@@ -120,25 +120,17 @@ export default function ReviewPage({ params }: { params: { accessToken: string }
               </div>
 
               {/* Adds on section */}
-              <div style={{ padding: 'var(--space-5)', borderTop: '1px solid var(--color-border)' }}>
-                <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-primary)', margin: '0 0 var(--space-4)' }}>
+              <div className="p-5 border-t border-border">
+                <h3 className="text-sm font-semibold text-text-primary mb-4 mt-0">
                   + Adds on
                 </h3>
-                <div style={{ position: 'relative', marginBottom: 'var(--space-4)' }}>
+                <div className="relative mb-4">
                   <input
                     type="text"
                     placeholder="Search adds on (e.g. Sugar, Salt, Onion)…"
                     value={addsOnSearch}
                     onChange={(e) => setAddsOnSearch(e.target.value)}
-                    style={{
-                      width: '100%', padding: '0.625rem var(--space-3)',
-                      fontSize: 'var(--text-sm)', fontFamily: 'var(--font-sans)',
-                      color: 'var(--color-text-primary)', backgroundColor: 'var(--color-surface)',
-                      border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-md)',
-                      outline: 'none', transition: 'var(--transition-base)', boxSizing: 'border-box',
-                    }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
+                    className="w-full py-2.5 px-3 text-sm font-sans text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none transition-base box-border focus:border-primary focus:shadow-focus"
                   />
                   {addsOnResults.length > 0 && (
                     <div className="search-dropdown">
@@ -150,7 +142,7 @@ export default function ReviewPage({ params }: { params: { accessToken: string }
                           onMouseDown={() => { setAddedAddsOn((prev) => [...prev, { ...item, portion: '5g' }]); setAddsOnSearch(''); setAddsOnResults([]); }}
                         >
                           <span className="result-name">{item.name}</span>
-                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-primary)', fontWeight: 'var(--weight-semibold)' }}>+ Add</span>
+                          <span className="text-xs text-primary font-semibold">+ Add</span>
                         </button>
                       ))}
                     </div>
@@ -158,17 +150,17 @@ export default function ReviewPage({ params }: { params: { accessToken: string }
                 </div>
 
                 {/* Addon tags */}
-                <div className="grid grid-cols-2 sm:grid-cols-4" style={{ gap: 'var(--space-3)' }}>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {(addedAddsOn.length > 0 ? addedAddsOn : [
                     { name: 'Onion', portion: '3g' }, { name: 'Sugar', portion: '12g' },
                     { name: 'Salt',  portion: '84mg' }, { name: 'Water', portion: '210ml' },
                   ]).map((item, i) => (
                     <div
                       key={i}
-                      style={{ backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-3)', display: 'flex', flexDirection: 'column', gap: 2 }}
+                      className="bg-surface-alt border border-border rounded-lg p-3 flex flex-col gap-0.5"
                     >
-                      <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{item.name}</span>
-                      <span style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--weight-bold)', color: 'var(--color-primary)' }}>{item.portion}</span>
+                      <span className="text-xs text-text-muted">{item.name}</span>
+                      <span className="text-base font-bold text-primary">{item.portion}</span>
                     </div>
                   ))}
                 </div>
@@ -176,13 +168,13 @@ export default function ReviewPage({ params }: { params: { accessToken: string }
             </div>
 
             {/* Sidebar */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <div className="flex flex-col gap-4">
               {/* Quick actions */}
-              <div className="card" style={{ padding: 'var(--space-5)' }}>
-                <p style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-text-muted)', margin: '0 0 var(--space-3)' }}>
+              <div className="card p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-text-muted mb-3 mt-0">
                   Quick Actions
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                <div className="flex flex-col gap-2">
                   <Button variant="outline" className="w-full" onClick={() => router.push(`/surveys/${params.accessToken}/portion`)}>
                     <Pencil size={14} /> Edit Portions
                   </Button>
@@ -194,15 +186,15 @@ export default function ReviewPage({ params }: { params: { accessToken: string }
 
               {/* Submit */}
               {submitError && (
-                <div className="alert alert-danger" style={{ fontSize: 'var(--text-xs)' }}>
-                  <AlertCircle size={14} style={{ flexShrink: 0 }} />
+                <div className="alert alert-danger text-xs">
+                  <AlertCircle size={14} className="shrink-0" />
                   {submitError}
                 </div>
               )}
-              <Button size="lg" className="w-full" onClick={handleSubmit} isLoading={submitting} style={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <Button size="lg" className="w-full uppercase tracking-[0.08em]" onClick={handleSubmit} isLoading={submitting}>
                 Submit Meal Report ▷
               </Button>
-              <p style={{ textAlign: 'center', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', margin: 0 }}>
+              <p className="text-center text-xs text-text-muted m-0">
                 By submitting, you agree to our Clinical Nutritional Data Policy.
               </p>
             </div>
@@ -212,8 +204,8 @@ export default function ReviewPage({ params }: { params: { accessToken: string }
       </div>
 
       {/* Footer */}
-      <div style={{ backgroundColor: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: 'var(--space-4) var(--space-6)', display: 'flex', justifyContent: 'flex-start' }}>
-        <button type="button" onClick={() => router.back()} style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+      <div className="bg-surface border-t border-border py-4 px-6 flex justify-start">
+        <button type="button" onClick={() => router.back()} className="text-sm font-medium text-text-muted bg-transparent border-none cursor-pointer">
           ‹ Back
         </button>
       </div>
