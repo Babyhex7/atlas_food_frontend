@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/internal/pkg/components/Button';
+import { cn } from '@/internal/lib/cn';
 import { Utensils, Coffee, Croissant, Info, Clock } from 'lucide-react';
 
 const MEAL_TYPES = [
@@ -17,9 +18,9 @@ const MEAL_TYPES = [
 /* ── Shared wizard layout helpers ───────────────────── */
 function WizardShell({ children, footer }: { children: React.ReactNode; footer: React.ReactNode }) {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)' }}>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--space-8) var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-[820px] mx-auto p-8 px-6 flex flex-col gap-6">
           {children}
         </div>
       </div>
@@ -30,14 +31,14 @@ function WizardShell({ children, footer }: { children: React.ReactNode; footer: 
 
 function ProgressBar({ label, pct }: { label: string; pct: number }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>
+    <div className="flex items-center gap-4">
+      <span className="text-xs font-semibold text-text-muted uppercase tracking-[0.08em] shrink-0">
         {label}
       </span>
-      <div className="progress" style={{ flex: 1 }}>
+      <div className="progress flex-1">
         <div className="progress-bar" style={{ width: `${pct}%` }} />
       </div>
-      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', flexShrink: 0 }}>
+      <span className="text-xs font-medium text-text-muted shrink-0">
         {pct}% Complete
       </span>
     </div>
@@ -48,13 +49,11 @@ function WizardFooter({ onBack, onContinue, continueLabel = 'Continue ›', disa
   onBack?: () => void; onContinue?: () => void; continueLabel?: string; disabled?: boolean;
 }) {
   return (
-    <div style={{ backgroundColor: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: 'var(--space-4) var(--space-6)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="bg-surface border-t border-border py-4 px-6 flex justify-between items-center">
       <button
         type="button"
         onClick={onBack}
-        style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', transition: 'var(--transition-fast)' }}
-        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text-primary)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted)'; }}
+        className="text-sm font-medium text-text-muted bg-transparent border-none cursor-pointer transition-fast hover:text-text-primary"
       >
         ‹ Back
       </button>
@@ -85,22 +84,22 @@ export default function SelectMealPage({ params }: { params: { accessToken: stri
       <ProgressBar label="Progress" pct={20} />
 
       <div>
-        <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-bold)', color: 'var(--color-text-primary)', margin: '0 0 var(--space-2)' }}>
+        <h1 className="text-2xl font-bold text-text-primary mb-2 mt-0">
           Select Meal Time
         </h1>
-        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', margin: 0 }}>
+        <p className="text-sm text-text-muted m-0">
           Please identify which meal you are recording and the specific time it occurred.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 'var(--space-6)' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Meal type selector */}
-        <div className="card" style={{ padding: 'var(--space-5)' }}>
-          <p style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-text-muted)', margin: '0 0 var(--space-4)' }}>
+        <div className="card p-5">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-text-muted mb-4 mt-0">
             <Utensils size={14} /> Select Meal Type
           </p>
-          <div className="grid grid-cols-2" style={{ gap: 'var(--space-3)' }}>
+          <div className="grid grid-cols-2 gap-3">
             {MEAL_TYPES.map((type) => {
               const active = selectedType === type.id;
               return (
@@ -108,63 +107,56 @@ export default function SelectMealPage({ params }: { params: { accessToken: stri
                   key={type.id}
                   type="button"
                   onClick={() => setSelectedType(type.id)}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-2)',
-                    padding: 'var(--space-4) var(--space-3)',
-                    borderRadius: 'var(--radius-xl)',
-                    border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                    backgroundColor: active ? 'var(--color-primary-light)' : 'var(--color-surface)',
-                    color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                    cursor: 'pointer', transition: 'var(--transition-base)',
-                    fontFamily: 'var(--font-sans)',
-                  }}
-                  onMouseEnter={(e) => { if (!active) { e.currentTarget.style.borderColor = 'var(--color-primary-border)'; e.currentTarget.style.backgroundColor = 'var(--color-primary-light)'; }}}
-                  onMouseLeave={(e) => { if (!active) { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.backgroundColor = 'var(--color-surface)'; }}}
+                  className={cn(
+                    'flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 cursor-pointer transition-base font-sans',
+                    active
+                      ? 'border-primary bg-primary-light text-primary'
+                      : 'border-border bg-surface text-text-muted hover:border-primary-border hover:bg-primary-light'
+                  )}
                 >
                   {type.icon}
-                  <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)' }}>{type.label}</span>
+                  <span className="text-xs font-semibold">{type.label}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+        <div className="flex flex-col gap-4">
           {/* Time picker */}
-          <div className="card" style={{ padding: 'var(--space-5)', flex: 1 }}>
-            <p style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-text-muted)', margin: '0 0 var(--space-5)' }}>
+          <div className="card p-5 flex-1">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-text-muted mb-5 mt-0">
               <Clock size={14} /> Specific Time
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-4)', marginBottom: 'var(--space-5)' }}>
+            <div className="flex items-center justify-center gap-4 mb-5">
               {/* Hour */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-1)' }}>
-                <button type="button" onClick={() => setHour((h) => h === 12 ? 1 : h + 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1.2rem', lineHeight: 1 }}>▲</button>
-                <span style={{ fontSize: '2.5rem', fontWeight: 'var(--weight-bold)', color: 'var(--color-primary)', fontFamily: 'var(--font-mono)', lineHeight: 1 }}>
+              <div className="flex flex-col items-center gap-1">
+                <button type="button" onClick={() => setHour((h) => h === 12 ? 1 : h + 1)} className="bg-transparent border-none cursor-pointer text-text-muted text-[1.2rem] leading-none">▲</button>
+                <span className="text-[2.5rem] font-bold text-primary font-mono leading-none">
                   {String(hour).padStart(2, '0')}
                 </span>
-                <button type="button" onClick={() => setHour((h) => h === 1 ? 12 : h - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1.2rem', lineHeight: 1 }}>▼</button>
+                <button type="button" onClick={() => setHour((h) => h === 1 ? 12 : h - 1)} className="bg-transparent border-none cursor-pointer text-text-muted text-[1.2rem] leading-none">▼</button>
               </div>
-              <span style={{ fontSize: '2rem', fontWeight: 'var(--weight-bold)', color: 'var(--color-primary)', marginBottom: 4 }}>:</span>
+              <span className="text-[2rem] font-bold text-primary mb-1">:</span>
               {/* Minute */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-1)' }}>
-                <button type="button" onClick={() => setMinute((m) => (m + 5) % 60)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1.2rem', lineHeight: 1 }}>▲</button>
-                <span style={{ fontSize: '2.5rem', fontWeight: 'var(--weight-bold)', color: 'var(--color-primary)', fontFamily: 'var(--font-mono)', lineHeight: 1 }}>
+              <div className="flex flex-col items-center gap-1">
+                <button type="button" onClick={() => setMinute((m) => (m + 5) % 60)} className="bg-transparent border-none cursor-pointer text-text-muted text-[1.2rem] leading-none">▲</button>
+                <span className="text-[2.5rem] font-bold text-primary font-mono leading-none">
                   {String(minute).padStart(2, '0')}
                 </span>
-                <button type="button" onClick={() => setMinute((m) => (m - 5 + 60) % 60)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1.2rem', lineHeight: 1 }}>▼</button>
+                <button type="button" onClick={() => setMinute((m) => (m - 5 + 60) % 60)} className="bg-transparent border-none cursor-pointer text-text-muted text-[1.2rem] leading-none">▼</button>
               </div>
               {/* AM/PM */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+              <div className="flex flex-col gap-1 border-[1.5px] border-border rounded-lg overflow-hidden">
                 {(['AM', 'PM'] as const).map((p) => (
-                  <button key={p} type="button" onClick={() => setPeriod(p)}
-                    style={{
-                      padding: '6px 16px', border: 'none', cursor: 'pointer',
-                      fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-sm)',
-                      fontFamily: 'var(--font-sans)',
-                      backgroundColor: period === p ? 'var(--color-primary)' : 'var(--color-surface)',
-                      color: period === p ? 'white' : 'var(--color-text-muted)',
-                      transition: 'var(--transition-fast)',
-                    }}
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPeriod(p)}
+                    className={cn(
+                      'py-1.5 px-4 border-none cursor-pointer font-semibold text-sm font-sans transition-fast',
+                      period === p ? 'bg-primary text-white' : 'bg-surface text-text-muted'
+                    )}
                   >{p}</button>
                 ))}
               </div>
@@ -173,8 +165,8 @@ export default function SelectMealPage({ params }: { params: { accessToken: stri
 
           {/* Info tip */}
           <div className="alert alert-primary">
-            <Info size={16} style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: 'var(--text-xs)' }}>
+            <Info size={16} className="shrink-0" />
+            <span className="text-xs">
               Accurately recording your meal times helps us analyze your body's metabolic rhythm with greater precision.
             </span>
           </div>
@@ -182,16 +174,9 @@ export default function SelectMealPage({ params }: { params: { accessToken: stri
       </div>
 
       {/* Guided banner */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, var(--color-primary) 0%, #7B0011 100%)',
-          borderRadius: 'var(--radius-xl)',
-          padding: 'var(--space-6)',
-          color: 'white',
-        }}
-      >
-        <p style={{ fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-base)', margin: '0 0 var(--space-1)' }}>Guided Nutrition</p>
-        <p style={{ fontSize: 'var(--text-sm)', opacity: 0.85, margin: 0 }}>
+      <div className="bg-[linear-gradient(135deg,var(--color-primary)_0%,#7B0011_100%)] rounded-xl p-6 text-white">
+        <p className="font-bold text-base mb-1 mt-0">Guided Nutrition</p>
+        <p className="text-sm opacity-85 m-0">
           Each step in this survey has been designed by professional nutritionists to provide personalized recommendations.
         </p>
       </div>

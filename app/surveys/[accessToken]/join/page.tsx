@@ -9,6 +9,7 @@ import { Utensils, AlertCircle } from 'lucide-react';
 import { apiClient as api } from '@/internal/lib/axios';
 import { initRecallSession } from '@/internal/domain/recall/services/recallStorage';
 import { getAccessToken } from '@/internal/lib/cookies';
+import { cn } from '@/internal/lib/cn';
 
 type MealConfig = { name: string; time: string };
 
@@ -67,46 +68,32 @@ export default function JoinSurveyPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
+    <div className="min-h-screen bg-background flex flex-col">
       <AppHeader />
 
-      <div
-        className={CONTAINER_CLASS}
-        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-10) var(--space-4)' }}
-      >
-        <div
-          className="card"
-          style={{ width: '100%', maxWidth: 440, padding: 'var(--space-8)' }}
-        >
+      <div className={cn(CONTAINER_CLASS, 'flex-1 flex items-center justify-center py-10 px-4')}>
+        <div className="card w-full max-w-[440px] p-8">
           {/* Icon */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-6)' }}>
-            <div
-              style={{
-                width: 64, height: 64,
-                borderRadius: '50%',
-                backgroundColor: 'var(--color-primary-light)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--color-primary)',
-              }}
-            >
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 rounded-full bg-primary-light flex items-center justify-center text-primary">
               <Utensils size={28} />
             </div>
           </div>
 
           {/* Heading */}
-          <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-bold)', color: 'var(--color-text-primary)', textAlign: 'center', margin: '0 0 var(--space-2)' }}>
+          <h1 className="text-xl font-bold text-text-primary text-center mb-2 mt-0">
             Mulai Survey Konsumsi
           </h1>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', textAlign: 'center', margin: '0 0 var(--space-8)', lineHeight: 'var(--leading-relaxed)' }}>
+          <p className="text-sm text-text-muted text-center mb-8 leading-relaxed">
             Masukkan Alias atau Kode Responden yang diberikan oleh peneliti untuk memulai.
           </p>
 
           {/* Form */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               <label
                 htmlFor="alias"
-                style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-secondary)' }}
+                className="text-sm font-medium text-text-secondary"
               >
                 Kode Responden
               </label>
@@ -117,27 +104,13 @@ export default function JoinSurveyPage() {
                 onChange={(e) => setAlias(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleStart()}
                 placeholder="Misal: RESPONDENT-001"
-                style={{
-                  width: '100%',
-                  padding: '0.625rem var(--space-3)',
-                  fontSize: 'var(--text-sm)',
-                  color: 'var(--color-text-primary)',
-                  backgroundColor: 'var(--color-surface)',
-                  border: '1.5px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                  outline: 'none',
-                  transition: 'var(--transition-base)',
-                  fontFamily: 'var(--font-sans)',
-                  boxSizing: 'border-box',
-                }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
+                className="w-full py-2.5 px-3 text-sm text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none transition-base font-sans box-border focus:border-primary focus:shadow-focus"
               />
             </div>
 
             {error && (
-              <div className="alert alert-danger" style={{ fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-                <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+              <div className="alert alert-danger text-sm flex items-start gap-2">
+                <AlertCircle size={16} className="shrink-0 mt-px" />
                 {error}
               </div>
             )}

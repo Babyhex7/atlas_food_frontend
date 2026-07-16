@@ -12,6 +12,8 @@ import { getAccessToken } from "@/internal/lib/cookies";
 
 type ActiveSection = "personal" | "security";
 
+const FOOTER_LINKS = ["Privacy Policy", "Terms of Service", "Clinical Standards", "Contact"];
+
 export function ProfileCard() {
   const { user, isAuthenticated } = useAuth();
   const logout = useLogout();
@@ -20,50 +22,19 @@ export function ProfileCard() {
 
   if (isLoading) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "var(--color-bg)",
-        }}
-      >
-        <Loader2 size={36} className="animate-spin" style={{ color: "var(--color-primary)" }} />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 size={36} className="animate-spin text-primary" />
       </div>
     );
   }
 
   if (!isAuthenticated || !user) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          backgroundColor: "var(--color-bg)",
-        }}
-      >
+      <div className="min-h-screen flex flex-col bg-background">
         <AppHeader />
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "var(--space-4)",
-            padding: "var(--space-4)",
-          }}
-        >
-          <p style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)" }}>
-            Anda belum masuk.
-          </p>
-          <Link
-            href="/login"
-            className="link-primary-hover"
-            style={{ fontWeight: "var(--weight-medium)" }}
-          >
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 p-4">
+          <p className="text-text-muted text-sm">Anda belum masuk.</p>
+          <Link href="/login" className="link-primary-hover font-medium">
             Masuk ke akun →
           </Link>
         </div>
@@ -79,118 +50,51 @@ export function ProfileCard() {
     .slice(0, 2);
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: "var(--color-bg)",
-      }}
-    >
+    <div className="min-h-screen flex flex-col bg-background">
       <AppHeader />
 
       {/* Page header */}
-      <div className={CONTAINER_CLASS} style={{ paddingTop: "var(--space-8)", paddingBottom: "var(--space-2)" }}>
-        <h1 style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--weight-bold)", color: "var(--color-text-primary)", margin: "0 0 var(--space-1)" }}>
-          My Profile
-        </h1>
-        <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", margin: 0 }}>
+      <div className={`${CONTAINER_CLASS} pt-8 pb-2`}>
+        <h1 className="text-2xl font-bold text-text-primary mb-1">My Profile</h1>
+        <p className="text-sm text-text-muted m-0">
           Manage your account information and security preferences.
         </p>
       </div>
 
       {/* Two-column layout */}
-      <div
-        className={CONTAINER_CLASS}
-        style={{
-          flex: 1,
-          paddingTop: "var(--space-6)",
-          paddingBottom: "var(--space-10)",
-          display: "grid",
-          gridTemplateColumns: "280px 1fr",
-          gap: "var(--space-6)",
-          alignItems: "start",
-        }}
-      >
+      <div className={`${CONTAINER_CLASS} flex-1 pt-6 pb-10 grid grid-cols-[280px_1fr] gap-6 items-start`}>
         {/* ── Left sidebar ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+        <div className="flex flex-col gap-4">
 
           {/* Avatar card */}
-          <div
-            className="card"
-            style={{ padding: "var(--space-6)", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)" }}
-          >
+          <div className="card p-6 flex flex-col items-center gap-3">
             {/* Avatar with camera overlay */}
-            <div style={{ position: "relative", display: "inline-flex" }}>
-              <div
-                style={{
-                  width: 96,
-                  height: 96,
-                  borderRadius: "50%",
-                  backgroundColor: "var(--color-primary-light)",
-                  color: "var(--color-primary)",
-                  fontSize: "var(--text-2xl)",
-                  fontWeight: "var(--weight-bold)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "3px solid var(--color-white)",
-                  boxShadow: "var(--shadow-md)",
-                  overflow: "hidden",
-                }}
-              >
+            <div className="relative inline-flex">
+              <div className="w-24 h-24 rounded-full bg-primary-light text-primary text-2xl font-bold flex items-center justify-center border-[3px] border-white shadow-md overflow-hidden">
                 {initials}
               </div>
               {/* Camera badge */}
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 4,
-                  right: 4,
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  backgroundColor: "var(--color-primary)",
-                  color: "white",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "2px solid var(--color-white)",
-                  cursor: "pointer",
-                }}
-              >
+              <div className="absolute bottom-1 right-1 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center border-2 border-white cursor-pointer">
                 <Camera size={12} />
               </div>
             </div>
 
             {/* Name + role */}
-            <div style={{ textAlign: "center" }}>
-              <p
-                style={{
-                  fontSize: "var(--text-lg)",
-                  fontWeight: "var(--weight-bold)",
-                  color: "var(--color-text-primary)",
-                  margin: "0 0 var(--space-1)",
-                }}
-              >
-                {user.name}
-              </p>
-              <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", margin: 0, textTransform: "capitalize" }}>
+            <div className="text-center">
+              <p className="text-lg font-bold text-text-primary mb-1">{user.name}</p>
+              <p className="text-sm text-text-muted m-0 capitalize">
                 {user.role === authRoles.admin ? "Admin Member" : "Pro Plan Member"}
               </p>
             </div>
 
             {/* Change Photo button */}
-            <button
-              className="btn btn-outline btn-sm btn-full"
-              style={{ marginTop: "var(--space-1)" }}
-            >
+            <button className="btn btn-outline btn-sm btn-full mt-1">
               Change Photo
             </button>
           </div>
 
           {/* Navigation card */}
-          <div className="card" style={{ padding: "var(--space-2)", overflow: "visible" }}>
+          <div className="card p-2 overflow-visible">
             <button
               onClick={() => setActiveSection("personal")}
               className={`profile-nav-item${activeSection === "personal" ? " profile-nav-item--active" : ""}`}
@@ -209,7 +113,7 @@ export function ProfileCard() {
 
             {user.role === authRoles.admin && (
               <>
-                <div style={{ height: 1, backgroundColor: "var(--color-border)", margin: "var(--space-2) var(--space-3)" }} />
+                <div className="h-px bg-border my-2 mx-3" />
                 <Link href="/admin/surveys" className="profile-nav-item">
                   <Settings size={16} />
                   Panel Admin
@@ -217,7 +121,7 @@ export function ProfileCard() {
               </>
             )}
 
-            <div style={{ height: 1, backgroundColor: "var(--color-border)", margin: "var(--space-2) var(--space-3)" }} />
+            <div className="h-px bg-border my-2 mx-3" />
 
             <Link href="/find-food" className="profile-nav-item">
               <Search size={16} />
@@ -235,61 +139,25 @@ export function ProfileCard() {
         </div>
 
         {/* ── Right content ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+        <div className="flex flex-col gap-5">
 
           {/* Personal Information */}
           {activeSection === "personal" && (
             <div className="card">
               {/* Card header */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "var(--space-5) var(--space-6)",
-                  borderBottom: "1px solid var(--color-border)",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                  <div
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "var(--radius-md)",
-                      backgroundColor: "var(--color-primary-light)",
-                      color: "var(--color-primary)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+              <div className="flex items-center justify-between py-5 px-6 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-md bg-primary-light text-primary flex items-center justify-center">
                     <User size={18} />
                   </div>
-                  <h2
-                    style={{
-                      fontSize: "var(--text-lg)",
-                      fontWeight: "var(--weight-semibold)",
-                      color: "var(--color-text-primary)",
-                      margin: 0,
-                    }}
-                  >
-                    Personal Information
-                  </h2>
+                  <h2 className="text-lg font-semibold text-text-primary m-0">Personal Information</h2>
                 </div>
-                <button className="btn btn-link" style={{ fontSize: "var(--text-sm)" }}>
-                  Edit Profile
-                </button>
+                <button className="btn btn-link text-sm">Edit Profile</button>
               </div>
 
               {/* Form body */}
-              <div style={{ padding: "var(--space-6)" }}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "var(--space-4)",
-                  }}
-                >
+              <div className="p-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="form-group">
                     <label className="form-label">Full Name</label>
                     <input type="text" defaultValue={user.name} readOnly />
@@ -327,10 +195,10 @@ export function ProfileCard() {
                 </div>
 
                 {/* Divider */}
-                <div style={{ height: 1, backgroundColor: "var(--color-border)", margin: "var(--space-6) 0 var(--space-5)" }} />
+                <div className="h-px bg-border mt-6 mb-5" />
 
                 {/* Actions */}
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-3)" }}>
+                <div className="flex justify-end gap-3">
                   <button className="btn btn-secondary">Cancel</button>
                   <button className="btn btn-primary">Save Changes</button>
                 </div>
@@ -342,101 +210,33 @@ export function ProfileCard() {
           {activeSection === "security" && (
             <div className="card">
               {/* Card header */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-3)",
-                  padding: "var(--space-5) var(--space-6)",
-                  borderBottom: "1px solid var(--color-border)",
-                }}
-              >
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "var(--radius-md)",
-                    backgroundColor: "var(--color-primary-light)",
-                    color: "var(--color-primary)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+              <div className="flex items-center gap-3 py-5 px-6 border-b border-border">
+                <div className="w-9 h-9 rounded-md bg-primary-light text-primary flex items-center justify-center">
                   <Shield size={18} />
                 </div>
-                <h2
-                  style={{
-                    fontSize: "var(--text-lg)",
-                    fontWeight: "var(--weight-semibold)",
-                    color: "var(--color-text-primary)",
-                    margin: 0,
-                  }}
-                >
-                  Security
-                </h2>
+                <h2 className="text-lg font-semibold text-text-primary m-0">Security</h2>
               </div>
 
               {/* Security body */}
-              <div style={{ padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+              <div className="p-6 flex flex-col gap-4">
 
                 {/* Password row */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "var(--space-4) var(--space-5)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "var(--radius-lg)",
-                    backgroundColor: "var(--color-surface)",
-                  }}
-                >
+                <div className="flex items-center justify-between py-4 px-5 border border-border rounded-lg bg-surface">
                   <div>
-                    <p
-                      style={{
-                        fontSize: "var(--text-sm)",
-                        fontWeight: "var(--weight-semibold)",
-                        color: "var(--color-text-primary)",
-                        margin: "0 0 var(--space-1)",
-                      }}
-                    >
-                      Password
-                    </p>
-                    <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", margin: 0, letterSpacing: "0.15em" }}>
-                      ••••••••••••
-                    </p>
+                    <p className="text-sm font-semibold text-text-primary mb-1">Password</p>
+                    <p className="text-sm text-text-muted m-0 tracking-[0.15em]">••••••••••••</p>
                   </div>
                   <button className="btn btn-outline btn-sm">Change Password</button>
                 </div>
 
                 {/* Security tip */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: "var(--space-3)",
-                    padding: "var(--space-4) var(--space-5)",
-                    border: "1px solid var(--color-primary-border)",
-                    borderRadius: "var(--radius-lg)",
-                    backgroundColor: "var(--color-primary-light)",
-                  }}
-                >
-                  <div style={{ color: "var(--color-primary)", flexShrink: 0, marginTop: 1 }}>
+                <div className="flex items-start gap-3 py-4 px-5 border border-primary-border rounded-lg bg-primary-light">
+                  <div className="text-primary shrink-0 mt-px">
                     <Shield size={16} />
                   </div>
                   <div>
-                    <p
-                      style={{
-                        fontSize: "var(--text-sm)",
-                        fontWeight: "var(--weight-semibold)",
-                        color: "var(--color-primary)",
-                        margin: "0 0 var(--space-1)",
-                      }}
-                    >
-                      Security Tip
-                    </p>
-                    <p style={{ fontSize: "var(--text-sm)", color: "var(--color-primary)", margin: 0, opacity: 0.85 }}>
+                    <p className="text-sm font-semibold text-primary mb-1">Security Tip</p>
+                    <p className="text-sm text-primary m-0 opacity-85">
                       Enable Two-Factor Authentication (2FA) for an extra layer of security on your account.
                     </p>
                   </div>
@@ -450,48 +250,17 @@ export function ProfileCard() {
       </div>
 
       {/* Footer */}
-      <footer
-        style={{
-          backgroundColor: "var(--color-surface)",
-          borderTop: "1px solid var(--color-border)",
-          padding: "var(--space-6) 0",
-        }}
-      >
-        <div
-          className={CONTAINER_CLASS}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+      <footer className="bg-surface border-t border-border py-6">
+        <div className={`${CONTAINER_CLASS} flex items-center justify-between`}>
           <div>
-            <p
-              style={{
-                fontSize: "var(--text-base)",
-                fontWeight: "var(--weight-bold)",
-                color: "var(--color-text-primary)",
-                margin: "0 0 var(--space-1)",
-              }}
-            >
-              Atlas Food
-            </p>
-            <p style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", margin: 0 }}>
+            <p className="text-base font-bold text-text-primary mb-1">Atlas Food</p>
+            <p className="text-xs text-text-muted m-0">
               © {new Date().getFullYear()} Atlas Food Nutrition. All rights reserved.
             </p>
           </div>
-          <div style={{ display: "flex", gap: "var(--space-6)" }}>
-            {["Privacy Policy", "Terms of Service", "Clinical Standards", "Contact"].map((label) => (
-              <Link
-                key={label}
-                href="#"
-                style={{
-                  fontSize: "var(--text-sm)",
-                  color: "var(--color-text-muted)",
-                  textDecoration: "underline",
-                  textUnderlineOffset: 3,
-                }}
-              >
+          <div className="flex gap-6">
+            {FOOTER_LINKS.map((label) => (
+              <Link key={label} href="#" className="text-sm text-text-muted underline underline-offset-[3px]">
                 {label}
               </Link>
             ))}

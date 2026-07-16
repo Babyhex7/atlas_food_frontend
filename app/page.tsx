@@ -4,6 +4,7 @@ import { LandingHeroSearch } from "@/internal/components/landing/LandingHeroSear
 import { LandingPaths } from "@/internal/components/landing/LandingPaths";
 import { LandingFooter } from "@/internal/components/landing/LandingFooter";
 import { CONTAINER_CLASS, loginWithRedirect } from "@/internal/lib/layout";
+import { cn } from "@/internal/lib/cn";
 
 const ATLAS_CATEGORIES = [
   { code: "MP",  name: "Makanan Pokok",   icon: "🍚" },
@@ -22,95 +23,43 @@ const ATLAS_CATEGORIES = [
 
 export default function LandingPage() {
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "var(--color-bg)" }}>
+    <div className="min-h-screen flex flex-col bg-background">
       <LandingNavbar />
 
       {/* ── Hero ── */}
-      <section
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          backgroundColor: "var(--color-surface)",
-          borderBottom: "1px solid var(--color-border)",
-        }}
-      >
+      <section className="relative overflow-hidden bg-surface border-b border-border">
         {/* Dot pattern */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.035,
-            backgroundImage: "radial-gradient(var(--color-primary) 1.5px, transparent 1.5px)",
-            backgroundSize: "28px 28px",
-            pointerEvents: "none",
-          }}
-        />
+        <div className="absolute inset-0 opacity-[0.035] pointer-events-none bg-[radial-gradient(var(--color-primary)_1.5px,transparent_1.5px)] bg-[length:28px_28px]" />
         {/* Glow blobs */}
-        <div style={{ position: "absolute", top: "-10%", right: "-5%", width: 400, height: 400, borderRadius: "50%", background: "var(--color-primary-light)", filter: "blur(80px)", opacity: 0.6, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-10%", left: "-5%", width: 320, height: 320, borderRadius: "50%", background: "var(--color-primary-muted)", filter: "blur(80px)", opacity: 0.4, pointerEvents: "none" }} />
+        <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-primary-light blur-[80px] opacity-60 pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[320px] h-[320px] rounded-full bg-primary-muted blur-[80px] opacity-40 pointer-events-none" />
 
-        <div
-          className={CONTAINER_CLASS}
-          style={{ position: "relative", zIndex: 1, textAlign: "center", paddingTop: "var(--space-16)", paddingBottom: "5rem" }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "var(--space-2)",
-              padding: "var(--space-1) var(--space-4)",
-              borderRadius: "var(--radius-full)",
-              backgroundColor: "var(--color-primary-light)",
-              border: "1px solid var(--color-primary-border)",
-              color: "var(--color-primary)",
-              fontSize: "var(--text-xs)",
-              fontWeight: "var(--weight-semibold)",
-              marginBottom: "var(--space-6)",
-              letterSpacing: "0.05em",
-            }}
-          >
+        <div className={cn(CONTAINER_CLASS, "relative z-[1] text-center pt-16 pb-20")}>
+          <span className="inline-flex items-center gap-2 py-1 px-4 rounded-full bg-primary-light border border-primary-border text-primary text-xs font-semibold mb-6 tracking-[0.05em]">
             BRIN × UPI · Referensi Estimasi Porsi
           </span>
 
-          <h1
-            style={{
-              fontSize: "clamp(2.25rem, 6vw, 4rem)",
-              fontWeight: "var(--weight-bold)",
-              color: "var(--color-text-primary)",
-              letterSpacing: "-0.03em",
-              lineHeight: "var(--leading-tight)",
-              maxWidth: 760,
-              margin: "0 auto var(--space-6)",
-            }}
-          >
-            Atlas <span style={{ color: "var(--color-primary)" }}>Food</span>
+          <h1 className="text-[clamp(2.25rem,6vw,4rem)] font-bold text-text-primary tracking-[-0.03em] leading-tight max-w-[760px] mx-auto mb-6">
+            Atlas <span className="text-primary">Food</span>
           </h1>
 
-          <p
-            style={{
-              fontSize: "var(--text-lg)",
-              color: "var(--color-text-muted)",
-              maxWidth: 540,
-              margin: "0 auto var(--space-10)",
-              lineHeight: "var(--leading-relaxed)",
-            }}
-          >
+          <p className="text-lg text-text-muted max-w-[540px] mx-auto mb-10 leading-relaxed">
             Platform komprehensif untuk survei recall gizi 24 jam dan ensiklopedia estimasi porsi makanan Indonesia.
           </p>
 
           <LandingHeroSearch />
 
-          <p style={{ marginTop: "var(--space-5)", fontSize: "var(--text-xs)", color: "var(--color-text-muted)", fontFamily: "var(--font-mono)" }}>
+          <p className="mt-5 text-xs text-text-muted font-mono">
             262+ hidangan · 13 kategori · Foto series &amp; range
           </p>
         </div>
       </section>
 
       {/* ── Category quick-browse ── */}
-      <section className={CONTAINER_CLASS} style={{ paddingTop: "var(--space-8)", paddingBottom: "var(--space-4)" }}>
-        <div className="card" style={{ padding: "var(--space-6)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-5)" }}>
-            <h2 style={{ fontSize: "var(--text-base)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: 0 }}>
+      <section className={cn(CONTAINER_CLASS, "pt-8 pb-4")}>
+        <div className="card p-6">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-base font-semibold text-text-primary m-0">
               Jelajah Kategori
             </h2>
             {/* CSS-only hover — no event handlers needed */}
@@ -119,35 +68,18 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6" style={{ gap: "var(--space-3)" }}>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
             {ATLAS_CATEGORIES.map((cat) => (
               <Link
                 key={cat.code}
                 href={loginWithRedirect(`/find-food/category/${cat.code}`)}
                 className="landing-cat-link"
               >
-                <span style={{ fontSize: "1.5rem", lineHeight: 1 }}>{cat.icon}</span>
-                <span
-                  style={{
-                    fontSize: "var(--text-xs)",
-                    fontFamily: "var(--font-mono)",
-                    fontWeight: "var(--weight-semibold)",
-                    color: "var(--color-primary)",
-                  }}
-                >
+                <span className="text-xl leading-none">{cat.icon}</span>
+                <span className="text-xs font-mono font-semibold text-primary">
                   {cat.code}
                 </span>
-                <span
-                  style={{
-                    fontSize: "var(--text-xs)",
-                    color: "var(--color-text-muted)",
-                    lineHeight: "var(--leading-tight)",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                >
+                <span className="text-xs text-text-muted leading-tight line-clamp-2 [display:-webkit-box] [-webkit-box-orient:vertical] overflow-hidden">
                   {cat.name}
                 </span>
               </Link>

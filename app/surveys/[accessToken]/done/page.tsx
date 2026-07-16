@@ -7,6 +7,7 @@ import { getRecallSession, clearRecallSession } from "@/internal/domain/recall/s
 import type { RecallSession } from "@/internal/domain/recall/types/recall";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
+import { cn } from "@/internal/lib/cn";
 import { CheckCircle, RefreshCw, Search, User } from "lucide-react";
 
 /* ── Nutrient helpers ──────────────────────────────────── */
@@ -62,8 +63,8 @@ function generateRecs(session: RecallSession | null): Rec[] {
   return recs.sort((a, b) => ({ high: 0, medium: 1, low: 2 }[a.priority] - { high: 0, medium: 1, low: 2 }[b.priority]));
 }
 
-const PRIORITY_BORDER: Record<string, string> = { high: "var(--color-danger-border)", medium: "var(--color-warning-border)", low: "var(--color-info-border)" };
-const PRIORITY_BG:     Record<string, string> = { high: "var(--color-danger-light)",  medium: "var(--color-warning-light)",  low: "var(--color-info-light)"  };
+const PRIORITY_BORDER_CLASS: Record<string, string> = { high: "border-danger-border", medium: "border-warning-border", low: "border-info-border" };
+const PRIORITY_BG_CLASS:     Record<string, string> = { high: "bg-danger-light",  medium: "bg-warning-light",  low: "bg-info-light"  };
 const PRIORITY_BADGE:  Record<string, string> = { high: "badge-danger",               medium: "badge-warning",               low: "badge-info"               };
 const PRIORITY_LABEL:  Record<string, string> = { high: "Prioritas Tinggi",           medium: "Prioritas Sedang",            low: "Saran Tambahan"           };
 
@@ -90,42 +91,32 @@ export default function SurveyDonePage() {
   const foodCount = session?.meals.flatMap((m) => m.foods).length ?? 0;
 
   const NUTRIENT_TILES = [
-    { label: "Energi",      value: totals.energy,  unit: "kcal", icon: "⚡", borderColor: "var(--color-warning-border)", bgColor: "var(--color-warning-light)", textColor: "var(--color-warning)" },
-    { label: "Protein",     value: totals.protein, unit: "g",    icon: "🥩", borderColor: "var(--color-danger-border)",  bgColor: "var(--color-danger-light)",  textColor: "var(--color-danger)"  },
-    { label: "Karbohidrat", value: totals.carbs,   unit: "g",    icon: "🍚", borderColor: "var(--color-warning-border)", bgColor: "#fffbeb",                     textColor: "#b45309"              },
-    { label: "Lemak",       value: totals.fat,     unit: "g",    icon: "🫒", borderColor: "var(--color-info-border)",    bgColor: "var(--color-info-light)",    textColor: "var(--color-info)"    },
+    { label: "Energi",      value: totals.energy,  unit: "kcal", icon: "⚡", borderClass: "border-warning-border", bgClass: "bg-warning-light", textClass: "text-warning" },
+    { label: "Protein",     value: totals.protein, unit: "g",    icon: "🥩", borderClass: "border-danger-border",  bgClass: "bg-danger-light",  textClass: "text-danger"  },
+    { label: "Karbohidrat", value: totals.carbs,   unit: "g",    icon: "🍚", borderClass: "border-warning-border", bgClass: "bg-[#fffbeb]",     textClass: "text-[#b45309]" },
+    { label: "Lemak",       value: totals.fat,     unit: "g",    icon: "🫒", borderClass: "border-info-border",    bgClass: "bg-info-light",    textClass: "text-info"    },
   ];
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)", display: "flex", flexDirection: "column" }}>
+    <div className="min-h-screen bg-background flex flex-col">
       <AppHeader />
 
-      <div className={CONTAINER_CLASS} style={{ flex: 1, paddingTop: "var(--space-10)", paddingBottom: "var(--space-10)" }}>
+      <div className={cn(CONTAINER_CLASS, "flex-1 pt-10 pb-10")}>
 
         {/* ── Success banner ── */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
-            border: "1px solid #bbf7d0",
-            borderRadius: "var(--radius-2xl)",
-            padding: "var(--space-8)",
-            textAlign: "center",
-            marginBottom: "var(--space-6)",
-            boxShadow: "var(--shadow-sm)",
-          }}
-        >
-          <CheckCircle size={48} style={{ color: "#16a34a", margin: "0 auto var(--space-4)" }} />
-          <h1 style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--weight-bold)", color: "#15803d", margin: "0 0 var(--space-2)" }}>
+        <div className="bg-[linear-gradient(135deg,#f0fdf4_0%,#dcfce7_100%)] border border-[#bbf7d0] rounded-2xl p-8 text-center mb-6 shadow-sm">
+          <CheckCircle size={48} className="text-[#16a34a] mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-[#15803d] mb-2 mt-0">
             Survey Berhasil Dikumpulkan!
           </h1>
-          <p style={{ fontSize: "var(--text-sm)", color: "#166534", margin: "0 0 var(--space-6)", maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
+          <p className="text-sm text-[#166534] mb-6 mx-auto max-w-[480px]">
             Terima kasih{session?.respondent_name ? `, ${session.respondent_name}` : ""}! Data recall makanan Anda telah berhasil disimpan.
           </p>
-          <div style={{ display: "flex", justifyContent: "center", gap: "var(--space-8)", flexWrap: "wrap" }}>
+          <div className="flex justify-center gap-8 flex-wrap">
             {[{ label: "Waktu Makan", value: mealCount }, { label: "Item Makanan", value: foodCount }, ...(hasNutr ? [{ label: "Total Energi (kcal)", value: totals.energy }] : [])].map((stat) => (
-              <div key={stat.label} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--weight-bold)", color: "#15803d" }}>{stat.value}</div>
-                <div style={{ fontSize: "var(--text-xs)", color: "#166534" }}>{stat.label}</div>
+              <div key={stat.label} className="text-center">
+                <div className="text-2xl font-bold text-[#15803d]">{stat.value}</div>
+                <div className="text-xs text-[#166534]">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -133,20 +124,20 @@ export default function SurveyDonePage() {
 
         {/* ── Nutrition summary ── */}
         {hasNutr && (
-          <div className="card" style={{ padding: "var(--space-6)", marginBottom: "var(--space-6)" }}>
-            <h2 style={{ fontSize: "var(--text-base)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: "0 0 var(--space-4)" }}>
+          <div className="card p-6 mb-6">
+            <h2 className="text-base font-semibold text-text-primary mb-4 mt-0">
               📊 Ringkasan Gizi Hari Ini
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: "var(--space-3)" }}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {NUTRIENT_TILES.map((tile) => (
                 <div
                   key={tile.label}
-                  style={{ padding: "var(--space-4)", borderRadius: "var(--radius-xl)", border: `1px solid ${tile.borderColor}`, backgroundColor: tile.bgColor, textAlign: "center" }}
+                  className={cn("p-4 rounded-xl text-center border", tile.borderClass, tile.bgClass)}
                 >
-                  <div style={{ fontSize: "1.75rem", marginBottom: "var(--space-1)" }}>{tile.icon}</div>
-                  <div style={{ fontSize: "var(--text-xl)", fontWeight: "var(--weight-bold)", color: tile.textColor }}>{tile.value}</div>
-                  <div style={{ fontSize: "var(--text-xs)", fontWeight: "var(--weight-medium)", color: tile.textColor }}>{tile.unit}</div>
-                  <div style={{ fontSize: "var(--text-xs)", color: tile.textColor, opacity: 0.75, marginTop: 2 }}>{tile.label}</div>
+                  <div className="text-[1.75rem] mb-1">{tile.icon}</div>
+                  <div className={cn("text-xl font-bold", tile.textClass)}>{tile.value}</div>
+                  <div className={cn("text-xs font-medium", tile.textClass)}>{tile.unit}</div>
+                  <div className={cn("text-xs mt-0.5 opacity-75", tile.textClass)}>{tile.label}</div>
                 </div>
               ))}
             </div>
@@ -154,48 +145,40 @@ export default function SurveyDonePage() {
         )}
 
         {/* ── AI Recommendations ── */}
-        <div style={{ transition: "opacity 0.5s, transform 0.5s", opacity: showRecs ? 1 : 0, transform: showRecs ? "none" : "translateY(12px)", marginBottom: "var(--space-6)" }}>
+        <div className={cn("transition-[opacity,transform] duration-500 mb-6", showRecs ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3")}>
           {recs.length > 0 && (
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
-                <div style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: "var(--color-primary-light)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>💡</div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full bg-primary-light flex items-center justify-center text-base">💡</div>
                 <div>
-                  <h2 style={{ fontSize: "var(--text-base)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: 0 }}>
+                  <h2 className="text-base font-semibold text-text-primary m-0">
                     Rekomendasi Berdasarkan Data Anda
                   </h2>
-                  <p style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", margin: 0 }}>
+                  <p className="text-xs text-text-muted m-0">
                     Berdasarkan analisis pola makan Anda hari ini
                   </p>
                 </div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              <div className="flex flex-col gap-3">
                 {recs.map((rec, i) => (
                   <div
                     key={i}
-                    style={{ border: `1px solid ${PRIORITY_BORDER[rec.priority]}`, backgroundColor: PRIORITY_BG[rec.priority], borderRadius: "var(--radius-xl)", padding: "var(--space-5)", boxShadow: "var(--shadow-xs)" }}
+                    className={cn("border rounded-xl p-5 shadow-xs", PRIORITY_BORDER_CLASS[rec.priority], PRIORITY_BG_CLASS[rec.priority])}
                   >
-                    <div style={{ display: "flex", gap: "var(--space-4)", alignItems: "flex-start" }}>
-                      <span style={{ fontSize: "1.75rem", flexShrink: 0 }}>{rec.icon}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap", marginBottom: "var(--space-1)" }}>
-                          <h3 style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: 0 }}>{rec.title}</h3>
+                    <div className="flex gap-4 items-start">
+                      <span className="text-[1.75rem] shrink-0">{rec.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <h3 className="text-sm font-semibold text-text-primary m-0">{rec.title}</h3>
                           <span className={`badge ${PRIORITY_BADGE[rec.priority]}`}>{PRIORITY_LABEL[rec.priority]}</span>
                         </div>
-                        <p style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", margin: "0 0 var(--space-3)", lineHeight: "var(--leading-relaxed)" }}>{rec.reason}</p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
+                        <p className="text-xs text-text-muted mb-3 leading-relaxed">{rec.reason}</p>
+                        <div className="flex flex-wrap gap-2">
                           {rec.foods.map((food) => (
                             <Link
                               key={food}
                               href={`/find-food?q=${encodeURIComponent(food)}`}
-                              style={{
-                                fontSize: "var(--text-xs)", fontWeight: "var(--weight-medium)",
-                                padding: "3px 10px", borderRadius: "var(--radius-full)",
-                                border: "1px solid var(--color-border)",
-                                backgroundColor: "var(--color-surface)", color: "var(--color-text-secondary)",
-                                textDecoration: "none", transition: "var(--transition-fast)",
-                              }}
-                              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "var(--color-primary)"; el.style.color = "white"; el.style.borderColor = "var(--color-primary)"; }}
-                              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "var(--color-surface)"; el.style.color = "var(--color-text-secondary)"; el.style.borderColor = "var(--color-border)"; }}
+                              className="text-xs font-medium py-[3px] px-[10px] rounded-full border border-border bg-surface text-text-secondary no-underline transition-fast hover:bg-primary hover:text-white hover:border-primary"
                             >
                               {food} →
                             </Link>
@@ -209,28 +192,28 @@ export default function SurveyDonePage() {
             </div>
           )}
           {recs.length === 0 && session && (
-            <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "var(--radius-xl)", padding: "var(--space-6)", textAlign: "center" }}>
-              <div style={{ fontSize: "2rem", marginBottom: "var(--space-2)" }}>🎉</div>
-              <h3 style={{ fontSize: "var(--text-base)", fontWeight: "var(--weight-semibold)", color: "#15803d", margin: "0 0 var(--space-1)" }}>Pola Makan Anda Sudah Baik!</h3>
-              <p style={{ fontSize: "var(--text-sm)", color: "#166534", margin: 0 }}>Pertahankan pola makan seimbang Anda.</p>
+            <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl p-6 text-center">
+              <div className="text-[2rem] mb-2">🎉</div>
+              <h3 className="text-base font-semibold text-[#15803d] mb-1 mt-0">Pola Makan Anda Sudah Baik!</h3>
+              <p className="text-sm text-[#166534] m-0">Pertahankan pola makan seimbang Anda.</p>
             </div>
           )}
         </div>
 
         {/* ── Meal detail ── */}
         {session && session.meals.some((m) => m.foods.length > 0) && (
-          <div className="card" style={{ padding: "var(--space-6)", marginBottom: "var(--space-6)" }}>
-            <h2 style={{ fontSize: "var(--text-base)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: "0 0 var(--space-4)" }}>
+          <div className="card p-6 mb-6">
+            <h2 className="text-base font-semibold text-text-primary mb-4 mt-0">
               🍱 Detail Waktu Makan
             </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+            <div className="flex flex-col gap-3">
               {session.meals.filter((m) => m.foods.length > 0).map((meal) => (
-                <div key={meal.name} style={{ padding: "var(--space-4)", backgroundColor: "var(--color-surface-alt)", borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-2)" }}>
-                    <span style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)" }}>{meal.name}</span>
-                    <span style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)" }}>{meal.time} · {meal.foods.length} item</span>
+                <div key={meal.name} className="p-4 bg-surface-alt rounded-lg border border-border">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-semibold text-text-primary">{meal.name}</span>
+                    <span className="text-xs text-text-muted">{meal.time} · {meal.foods.length} item</span>
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
+                  <div className="flex flex-wrap gap-2">
                     {meal.foods.map((rf) => (
                       <span key={rf.food.id} className="badge badge-default">
                         {rf.food.name}{rf.portion ? ` (${rf.portion.portion_gram}g)` : ""}
@@ -244,22 +227,23 @@ export default function SurveyDonePage() {
         )}
 
         {/* ── Actions ── */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-3)", justifyContent: "center" }}>
-          <Link href="/find-food" style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-3) var(--space-5)", borderRadius: "var(--radius-lg)", backgroundColor: "var(--color-primary-light)", color: "var(--color-primary)", fontWeight: "var(--weight-medium)", fontSize: "var(--text-sm)", textDecoration: "none", border: "1.5px solid var(--color-primary-border)", transition: "var(--transition-fast)" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-primary-muted)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-primary-light)"; }}
+        <div className="flex flex-wrap gap-3 justify-center">
+          <Link
+            href="/find-food"
+            className="inline-flex items-center gap-2 py-3 px-5 rounded-lg bg-primary-light text-primary font-medium text-sm no-underline border-[1.5px] border-primary-border transition-fast hover:bg-primary-muted"
           >
             <Search size={15} /> Cari Info Makanan
           </Link>
-          <Link href="/profile" style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-3) var(--space-5)", borderRadius: "var(--radius-lg)", backgroundColor: "var(--color-surface)", color: "var(--color-text-secondary)", fontWeight: "var(--weight-medium)", fontSize: "var(--text-sm)", textDecoration: "none", border: "1.5px solid var(--color-border)", transition: "var(--transition-fast)" }}>
+          <Link
+            href="/profile"
+            className="inline-flex items-center gap-2 py-3 px-5 rounded-lg bg-surface text-text-secondary font-medium text-sm no-underline border-[1.5px] border-border"
+          >
             <User size={15} /> Lihat Profil
           </Link>
           <button
             type="button"
             onClick={() => { clearRecallSession(); router.push(`/surveys/${accessToken}/join`); }}
-            style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-3) var(--space-5)", borderRadius: "var(--radius-lg)", backgroundColor: "var(--color-primary)", color: "white", fontWeight: "var(--weight-semibold)", fontSize: "var(--text-sm)", border: "none", cursor: "pointer", transition: "var(--transition-base)" }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-primary-hover)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--color-primary)"; }}
+            className="inline-flex items-center gap-2 py-3 px-5 rounded-lg bg-primary text-white font-semibold text-sm border-none cursor-pointer transition-base hover:bg-primary-hover"
           >
             <RefreshCw size={15} /> Isi Survey Lagi
           </button>

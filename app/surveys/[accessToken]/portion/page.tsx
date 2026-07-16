@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSurveyStore } from '@/internal/domain/survey/store/useSurveyStore';
 import { Button } from '@/internal/pkg/components/Button';
+import { cn } from '@/internal/lib/cn';
 
 function ProgressBar({ label, pct }: { label: string; pct: number }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>{label}</span>
-      <div className="progress" style={{ flex: 1 }}><div className="progress-bar" style={{ width: `${pct}%` }} /></div>
-      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', flexShrink: 0 }}>{pct}% Complete</span>
+    <div className="flex items-center gap-4">
+      <span className="text-xs font-semibold text-text-muted uppercase tracking-[0.08em] shrink-0">{label}</span>
+      <div className="progress flex-1"><div className="progress-bar" style={{ width: `${pct}%` }} /></div>
+      <span className="text-xs font-medium text-text-muted shrink-0">{pct}% Complete</span>
     </div>
   );
 }
@@ -34,8 +35,8 @@ export default function PortionPage({ params }: { params: { accessToken: string 
 
   if (allFoods.length === 0) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 'var(--space-4)' }}>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>No foods added yet.</p>
+      <div className="min-h-screen bg-background flex items-center justify-center flex-col gap-4">
+        <p className="text-text-muted text-sm">No foods added yet.</p>
         <Button onClick={() => router.push(`/surveys/${params.accessToken}/add-food`)}>← Back to Add Food</Button>
       </div>
     );
@@ -54,38 +55,36 @@ export default function PortionPage({ params }: { params: { accessToken: string 
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)' }}>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--space-8) var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-[820px] mx-auto p-8 px-6 flex flex-col gap-6">
 
           <ProgressBar label="Progress" pct={60} />
 
           {/* Title */}
           <div>
-            <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-bold)', color: 'var(--color-text-primary)', margin: '0 0 var(--space-2)' }}>
+            <h1 className="text-2xl font-bold text-text-primary mb-2 mt-0">
               How much did you have?
             </h1>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', margin: 0 }}>
+            <p className="text-sm text-text-muted m-0">
               {currentFood.name} · {currentFood.mealName}
             </p>
           </div>
 
           {/* Food pill nav */}
           {allFoods.length > 1 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+            <div className="flex flex-wrap gap-2">
               {allFoods.map((f, i) => (
                 <button
                   key={f.id}
                   type="button"
                   onClick={() => setCurrentIndex(i)}
-                  style={{
-                    padding: '4px 14px', borderRadius: 'var(--radius-full)', border: '1.5px solid',
-                    borderColor: i === currentIndex ? 'var(--color-primary)' : 'var(--color-border)',
-                    backgroundColor: i === currentIndex ? 'var(--color-primary)' : 'var(--color-surface)',
-                    color: i === currentIndex ? 'white' : 'var(--color-text-muted)',
-                    fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-medium)',
-                    cursor: 'pointer', transition: 'var(--transition-fast)', fontFamily: 'var(--font-sans)',
-                  }}
+                  className={cn(
+                    'py-1 px-3.5 rounded-full border-[1.5px] text-xs font-medium cursor-pointer transition-fast font-sans',
+                    i === currentIndex
+                      ? 'border-primary bg-primary text-white'
+                      : 'border-border bg-surface text-text-muted'
+                  )}
                 >
                   {f.name}
                 </button>
@@ -94,7 +93,7 @@ export default function PortionPage({ params }: { params: { accessToken: string 
           )}
 
           {/* Portion grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4" style={{ gap: 'var(--space-4)' }}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {PORTION_OPTIONS.map((opt) => {
               const selected = currentFood.portionGram === opt.gram;
               return (
@@ -102,25 +101,21 @@ export default function PortionPage({ params }: { params: { accessToken: string 
                   key={opt.label}
                   type="button"
                   onClick={() => handleSelectPortion(opt.gram, opt.label)}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-2)',
-                    padding: 'var(--space-3)',
-                    borderRadius: 'var(--radius-xl)',
-                    border: `2px solid ${selected ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                    backgroundColor: selected ? 'var(--color-primary-light)' : 'var(--color-surface)',
-                    cursor: 'pointer', transition: 'var(--transition-base)', fontFamily: 'var(--font-sans)',
-                  }}
-                  onMouseEnter={(e) => { if (!selected) { e.currentTarget.style.borderColor = 'var(--color-primary-border)'; e.currentTarget.style.backgroundColor = 'var(--color-primary-light)'; }}}
-                  onMouseLeave={(e) => { if (!selected) { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.backgroundColor = 'var(--color-surface)'; }}}
+                  className={cn(
+                    'flex flex-col items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-base font-sans',
+                    selected
+                      ? 'border-primary bg-primary-light'
+                      : 'border-border bg-surface hover:border-primary-border hover:bg-primary-light'
+                  )}
                 >
                   {/* Image placeholder */}
-                  <div style={{ width: '100%', aspectRatio: '1', borderRadius: 'var(--radius-lg)', overflow: 'hidden', backgroundColor: 'var(--color-surface-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', position: 'relative' }}>
+                  <div className="w-full aspect-square rounded-lg overflow-hidden bg-surface-alt flex items-center justify-center text-[2rem] relative">
                     🍽️
-                    <span style={{ position: 'absolute', bottom: 4, right: 4, fontSize: '10px', fontWeight: 'var(--weight-bold)', color: 'white', backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 'var(--radius-sm)', padding: '1px 5px' }}>
+                    <span className="absolute bottom-1 right-1 text-[10px] font-bold text-white bg-black/55 rounded-sm py-px px-[5px]">
                       {opt.label}
                     </span>
                   </div>
-                  <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-bold)', color: selected ? 'var(--color-primary)' : 'var(--color-text-secondary)' }}>
+                  <span className={cn('text-xs font-bold', selected ? 'text-primary' : 'text-text-secondary')}>
                     {opt.label}
                   </span>
                 </button>
@@ -129,20 +124,11 @@ export default function PortionPage({ params }: { params: { accessToken: string 
           </div>
 
           {/* Total weight display */}
-          <div
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              border: '2px solid var(--color-primary-border)',
-              borderRadius: 'var(--radius-xl)',
-              padding: 'var(--space-5)',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-1)',
-              maxWidth: 280, margin: '0 auto', width: '100%',
-            }}
-          >
-            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-muted)' }}>
+          <div className="bg-surface border-2 border-primary-border rounded-xl p-5 flex flex-col items-center gap-1 max-w-[280px] mx-auto w-full">
+            <span className="text-xs font-semibold uppercase tracking-[0.1em] text-text-muted">
               Total Weight
             </span>
-            <span style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-bold)', color: 'var(--color-primary)', lineHeight: 1 }}>
+            <span className="text-3xl font-bold text-primary leading-none">
               {currentFood.portionGram || 0}g
             </span>
           </div>
@@ -151,13 +137,13 @@ export default function PortionPage({ params }: { params: { accessToken: string 
       </div>
 
       {/* Footer */}
-      <div style={{ backgroundColor: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: 'var(--space-4) var(--space-6)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button type="button" onClick={() => router.back()} style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+      <div className="bg-surface border-t border-border py-4 px-6 flex justify-between items-center">
+        <button type="button" onClick={() => router.back()} className="text-sm font-medium text-text-muted bg-transparent border-none cursor-pointer">
           ‹ Back
         </button>
-        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+        <div className="flex gap-3 items-center">
           {allFoods.length > 1 && (
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+            <span className="text-xs text-text-muted">
               {currentIndex + 1} / {allFoods.length}
             </span>
           )}

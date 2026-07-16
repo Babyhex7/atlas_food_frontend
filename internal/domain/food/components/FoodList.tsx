@@ -15,11 +15,11 @@ export function FoodList({ foods = [] }: { foods?: Food[] }) {
 
   if (foods.length === 0) {
     return (
-      <div style={{ padding: "var(--space-6) var(--space-8)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-8)" }}>
+      <div className="p-6 px-8">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--weight-bold)", color: "var(--color-text-primary)", margin: "0 0 var(--space-1)" }}>Makanan</h1>
-            <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", margin: 0 }}>0 makanan ditemukan</p>
+            <h1 className="text-2xl font-bold text-text-primary mb-1">Makanan</h1>
+            <p className="text-sm text-text-muted m-0">0 makanan ditemukan</p>
           </div>
           <Button onClick={() => router.push("/admin/foods/new")}><Plus size={15} /> Tambah Makanan</Button>
         </div>
@@ -29,42 +29,34 @@ export function FoodList({ foods = [] }: { foods?: Food[] }) {
   }
 
   return (
-    <div style={{ padding: "var(--space-6) var(--space-8)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-8)" }}>
+    <div className="p-6 px-8">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--weight-bold)", color: "var(--color-text-primary)", margin: "0 0 var(--space-1)" }}>Makanan</h1>
-          <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", margin: 0 }}>{foods.length} makanan ditemukan</p>
+          <h1 className="text-2xl font-bold text-text-primary mb-1">Makanan</h1>
+          <p className="text-sm text-text-muted m-0">{foods.length} makanan ditemukan</p>
         </div>
         <Button onClick={() => router.push("/admin/foods/new")}><Plus size={15} /> Tambah Makanan</Button>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+      <div className="flex flex-col gap-2">
         {foods.map((food) => (
           <Link
             key={food.id}
             href={`/admin/foods/${food.id}`}
-            style={{
-              display: "flex", alignItems: "center", gap: "var(--space-4)",
-              padding: "var(--space-4) var(--space-5)",
-              borderRadius: "var(--radius-xl)", border: "1.5px solid var(--color-border)",
-              backgroundColor: "var(--color-surface)", textDecoration: "none",
-              transition: "var(--transition-base)",
-            }}
-            onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "var(--color-primary-border)"; el.style.boxShadow = "var(--shadow-sm)"; el.style.transform = "translateY(-1px)"; }}
-            onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "var(--color-border)"; el.style.boxShadow = "none"; el.style.transform = "none"; }}
+            className="flex items-center gap-4 py-4 px-5 rounded-xl border-[1.5px] border-border bg-surface no-underline transition-base hover:border-primary-border hover:shadow-sm hover:-translate-y-px"
           >
-            <div style={{ width: 40, height: 40, borderRadius: "var(--radius-lg)", backgroundColor: "var(--color-primary-light)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.25rem", flexShrink: 0 }}>
+            <div className="w-10 h-10 rounded-lg bg-primary-light flex items-center justify-center text-xl shrink-0">
               {(food as any).category?.icon || "🍽️"}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-text-primary mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap">
                 {food.name}
               </p>
-              <p style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", margin: 0, fontFamily: "var(--font-mono)" }}>
+              <p className="text-xs text-text-muted m-0 font-mono">
                 {(food as any).code}
               </p>
             </div>
-            <ChevronRight size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+            <ChevronRight size={16} className="text-text-muted shrink-0" />
           </Link>
         ))}
       </div>

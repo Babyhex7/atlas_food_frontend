@@ -1,43 +1,35 @@
 import { Button } from "@/internal/pkg/components/Button";
 import { Input } from "@/internal/pkg/components/Input";
 
-const SECTION: React.CSSProperties = {
-  backgroundColor: "var(--color-surface)",
-  border: "1px solid var(--color-border)",
-  borderRadius: "var(--radius-xl)",
-  padding: "var(--space-6)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-5)",
-};
+const SECTION = "bg-surface border border-border rounded-xl p-6 flex flex-col gap-5";
 
 export function CategoryForm() {
   return (
-    <div style={{ padding: "var(--space-6) var(--space-8)" }}>
-      <div style={{ maxWidth: 640 }}>
-        <h1 style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--weight-bold)", color: "var(--color-text-primary)", margin: "0 0 var(--space-8)" }}>
+    <div className="p-6 px-8">
+      <div className="max-w-[640px]">
+        <h1 className="text-2xl font-bold text-text-primary mb-8">
           Tambah Kategori
         </h1>
 
-        <form style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
-          <div style={SECTION}>
-            <h2 style={{ fontSize: "var(--text-base)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)", margin: 0 }}>
+        <form className="flex flex-col gap-5">
+          <div className={SECTION}>
+            <h2 className="text-base font-semibold text-text-primary m-0">
               Detail Kategori
             </h2>
             <Input id="code" name="code" label="Kode" placeholder="MP" required />
             <Input id="name" name="name" label="Nama Kategori" placeholder="Makanan Pokok" required />
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-              <label style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--color-text-secondary)" }}>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-text-secondary">
                 Ikon (emoji)
               </label>
               <Input id="icon" name="icon" label="" placeholder="🍚" />
-              <span style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)" }}>
+              <span className="text-xs text-text-muted">
                 Gunakan emoji sebagai ikon kategori, misal: 🍚 🍗 🥬
               </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "var(--space-3)", justifyContent: "flex-end" }}>
+          <div className="flex gap-3 justify-end">
             <Button type="button" variant="secondary">Batal</Button>
             <Button type="submit">Simpan Kategori</Button>
           </div>

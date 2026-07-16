@@ -4,58 +4,37 @@ import { loginWithRedirect } from "@/internal/lib/layout";
 
 export function LandingPaths() {
   return (
-    <section style={{ maxWidth: 1200, margin: "0 auto", padding: "var(--space-16) var(--space-6)", width: "100%" }}>
+    <section className="max-w-[1200px] mx-auto py-16 px-6 w-full">
       {/* Heading */}
-      <div style={{ textAlign: "center", marginBottom: "var(--space-10)" }}>
-        <h2
-          style={{
-            fontSize: "var(--text-2xl)",
-            fontWeight: "var(--weight-bold)",
-            color: "var(--color-text-primary)",
-            margin: "0 0 var(--space-2)",
-          }}
-        >
-          Pilih Cara Menggunakan Atlas
-        </h2>
-        <p style={{ fontSize: "var(--text-base)", color: "var(--color-text-muted)", margin: 0 }}>
+      <div className="text-center mb-10">
+        <h2 className="text-2xl font-bold text-text-primary mb-2">Pilih Cara Menggunakan Atlas</h2>
+        <p className="text-base text-text-muted m-0">
           Kedua fitur memerlukan akun — masuk atau daftar terlebih dahulu untuk mulai.
         </p>
       </div>
 
       {/* Cards */}
-      <div className="grid md:grid-cols-2" style={{ gap: "var(--space-6)" }}>
+      <div className="grid md:grid-cols-2 gap-6">
 
         {/* Survey card */}
-        <div className="card card-hover" style={{ padding: "var(--space-8)", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: "var(--space-4)", right: "var(--space-4)" }}>
-            <span className="badge badge-primary" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+        <div className="card card-hover p-8 relative overflow-hidden">
+          <div className="absolute top-4 right-4">
+            <span className="badge badge-primary inline-flex items-center gap-1">
               <Lock size={10} />
               Login Diperlukan
             </span>
           </div>
-          <div style={{ position: "absolute", top: 0, right: 0, padding: "var(--space-8)", opacity: 0.04, pointerEvents: "none" }}>
-            <ClipboardList size={144} style={{ color: "var(--color-primary)" }} />
+          <div className="absolute top-0 right-0 p-8 opacity-[0.04] pointer-events-none">
+            <ClipboardList size={144} className="text-primary" />
           </div>
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <div
-              style={{
-                width: 56, height: 56,
-                backgroundColor: "var(--color-primary-light)",
-                borderRadius: "var(--radius-xl)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                marginBottom: "var(--space-5)",
-                color: "var(--color-primary)",
-              }}
-            >
+          <div className="relative z-10">
+            <div className="w-14 h-14 bg-primary-light rounded-xl flex items-center justify-center mb-5 text-primary">
               <ClipboardList size={28} />
             </div>
-            <h3 style={{ fontSize: "var(--text-xl)", fontWeight: "var(--weight-bold)", color: "var(--color-text-primary)", margin: "0 0 var(--space-3)" }}>
-              Survey Recall 24 Jam
-            </h3>
-            <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", lineHeight: "var(--leading-relaxed)", margin: "0 0 var(--space-8)" }}>
+            <h3 className="text-xl font-bold text-text-primary mb-3">Survey Recall 24 Jam</h3>
+            <p className="text-sm text-text-muted leading-relaxed mb-8">
               Ikuti survei asupan makanan harian Anda. Sistem membantu memperkirakan porsi dan menghitung nilai gizi secara akurat untuk keperluan riset gizi.
             </p>
-            {/* CSS-only hover via .btn-cta-primary — no event handlers */}
             <Link href={loginWithRedirect("/surveys")} className="btn-cta-primary">
               Mulai Survey
               <ArrowRight size={16} />
@@ -64,36 +43,24 @@ export function LandingPaths() {
         </div>
 
         {/* Find Food card */}
-        <div className="card card-hover" style={{ padding: "var(--space-8)", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: "var(--space-4)", right: "var(--space-4)" }}>
-            <span className="badge badge-primary" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+        <div className="card card-hover p-8 relative overflow-hidden">
+          <div className="absolute top-4 right-4">
+            <span className="badge badge-primary inline-flex items-center gap-1">
               <Lock size={10} />
               Login Diperlukan
             </span>
           </div>
-          <div style={{ position: "absolute", top: 0, right: 0, padding: "var(--space-8)", opacity: 0.04, pointerEvents: "none" }}>
-            <Search size={144} style={{ color: "var(--color-primary)" }} />
+          <div className="absolute top-0 right-0 p-8 opacity-[0.04] pointer-events-none">
+            <Search size={144} className="text-primary" />
           </div>
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <div
-              style={{
-                width: 56, height: 56,
-                backgroundColor: "var(--color-primary-light)",
-                borderRadius: "var(--radius-xl)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                marginBottom: "var(--space-5)",
-                color: "var(--color-primary)",
-              }}
-            >
+          <div className="relative z-10">
+            <div className="w-14 h-14 bg-primary-light rounded-xl flex items-center justify-center mb-5 text-primary">
               <Search size={28} />
             </div>
-            <h3 style={{ fontSize: "var(--text-xl)", fontWeight: "var(--weight-bold)", color: "var(--color-text-primary)", margin: "0 0 var(--space-3)" }}>
-              Find Your Food
-            </h3>
-            <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", lineHeight: "var(--leading-relaxed)", margin: "0 0 var(--space-8)" }}>
+            <h3 className="text-xl font-bold text-text-primary mb-3">Find Your Food</h3>
+            <p className="text-sm text-text-muted leading-relaxed mb-8">
               Cari estimasi ukuran porsi dan kandungan gizi dari ratusan jenis makanan khas Indonesia — referensi visual Atlas Food BRIN × UPI.
             </p>
-            {/* CSS-only hover via .btn-cta-primary — no event handlers */}
             <Link href={loginWithRedirect("/find-food")} className="btn-cta-primary">
               Cari Makanan
               <ArrowRight size={16} />
