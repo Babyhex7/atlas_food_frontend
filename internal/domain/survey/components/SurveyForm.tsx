@@ -46,7 +46,7 @@ export function SurveyForm() {
   const [name,        setName]        = useState("");
   const [slug,        setSlug]        = useState("");
   const [description, setDescription] = useState("");
-  const [status,      setStatus]      = useState<string>(surveyStatuses.draft);
+  const [status,      setStatus]      = useState<SurveyStatus>(surveyStatuses.draft);
   const [startDate,   setStartDate]   = useState("");
   const [endDate,     setEndDate]     = useState("");
   const [meals,       setMeals]       = useState<MealConfig[]>(DEFAULT_MEALS);
@@ -177,7 +177,7 @@ export function SurveyForm() {
           </Field>
 
           <Field label="Status">
-            <select value={status} onChange={(e) => setStatus(e.target.value)}
+            <select value={status} onChange={(e) => setStatus(e.target.value as SurveyStatus)}
               className={cn(INPUT_CLASS, "bg-no-repeat bg-position-[right_var(--space-3)_center] pr-8 cursor-pointer")}
               style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")" }}
             >
