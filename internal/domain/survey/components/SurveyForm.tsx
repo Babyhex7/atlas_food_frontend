@@ -8,7 +8,7 @@ import { Input } from "@/internal/pkg/components/Input";
 import { cn } from "@/internal/lib/cn";
 import { getAccessToken } from "@/internal/lib/cookies";
 import { getSurveyById, createSurvey, updateSurvey } from "../services/surveyService";
-import { surveyStatuses } from "../constants/surveyStatus";
+import { surveyStatuses, type SurveyStatus } from "../constants/surveyStatus";
 import { surveyValidation } from "../schemas/surveySchema";
 import type { MealConfig, CreateSurveyRequest, UpdateSurveyRequest } from "../types/survey";
 import { ArrowLeft, Plus, X, CheckCircle, AlertCircle, Link as LinkIcon } from "lucide-react";

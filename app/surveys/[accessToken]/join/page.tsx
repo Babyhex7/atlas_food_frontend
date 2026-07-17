@@ -10,6 +10,8 @@ import { apiClient as api } from '@/internal/lib/axios';
 import { initRecallSession } from '@/internal/domain/recall/services/recallStorage';
 import { getAccessToken } from '@/internal/lib/cookies';
 import { cn } from '@/internal/lib/cn';
+import { loginWithRedirect } from '@/internal/lib/layout';
+import { getApiErrorMessage } from '@/internal/pkg/utils/apiError';
 
 type MealConfig = { name: string; time: string };
 
@@ -30,7 +32,7 @@ export default function JoinSurveyPage() {
 
   const handleStart = async () => {
     if (!alias.trim()) { setError('Masukkan alias/nama peserta'); return; }
-    if (!getAccessToken()) { router.push('/login'); return; }
+    if (!getAccessToken()) { router.push(loginWithRedirect(`/surveys/${accessToken}/join`)); return; }
     setLoading(true);
     setError(null);
     try {
@@ -56,12 +58,7 @@ export default function JoinSurveyPage() {
       });
       router.push(`/surveys/${accessToken}/recall`);
     } catch (err: unknown) {
-      const message =
-        err && typeof err === 'object' && 'response' in err &&
-        (err as any).response?.data?.error?.message
-          ? String((err as any).response.data.error.message)
-          : 'Gagal masuk ke survey. Pastikan token & alias benar.';
-      setError(message);
+      setError(getApiErrorMessage(err, 'Gagal masuk ke survey. Pastikan token & alias benar.'));
     } finally {
       setLoading(false);
     }
