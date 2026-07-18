@@ -5,6 +5,7 @@ import { getFoodPublic } from "@/internal/services/food.service";
 import type { FoodDetail, PortionPhoto } from "@/internal/domain/food/types/food";
 import type { RecallFood } from "../types/recall";
 import type { SelectedPortion } from "@/internal/domain/portion/types/portion";
+import { useCollab } from "@/internal/domain/collab";
 
 interface Props {
   foods: RecallFood[];
@@ -41,6 +42,7 @@ export function Step3Portion({
     selectedPhoto: null,
     customGram: "",
   });
+  const { send, isConnected } = useCollab();
 
   const currentFood = foods[foodIndex];
 
@@ -81,6 +83,14 @@ export function Step3Portion({
       portion_gram: totalWeight,
     };
     onPortionSelected(currentFood.food.id, portion, portionState.detail ?? undefined);
+    if (isConnected) {
+      send("portion_set", {
+        food_id: currentFood.food.id,
+        food_name: currentFood.food.name,
+        portion_gram: totalWeight,
+        image_label: portionState.selectedPhoto?.label,
+      });
+    }
     // Move to next food
     if (foodIndex < foods.length - 1) {
       onFoodIndexChange(foodIndex + 1);

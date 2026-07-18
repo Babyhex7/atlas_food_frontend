@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -11,18 +11,21 @@ import type { FoodSearchResult } from "@/internal/types/food.types";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
+import { CollabSession, useCollab } from "@/internal/domain/collab";
 
-export function FindFoodContent() {
+function FindFoodBody() {
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("q") ?? "";
-  const [searchTerm, setSearchTerm] = useState(initialQuery);
+  const { send, isConnected } = useCollab();
+  const queryFromUrl = searchParams.get("q") ?? "";
+  const [searchTerm, setSearchTerm] = useState(queryFromUrl);
+  const [prevQuery, setPrevQuery] = useState(queryFromUrl);
+  if (queryFromUrl !== prevQuery) {
+    setPrevQuery(queryFromUrl);
+    setSearchTerm(queryFromUrl);
+  }
   const debouncedSearch = useDebounce(searchTerm, 300);
   const canSearch = debouncedSearch.trim().length >= 2;
-
-  useEffect(() => {
-    const q = searchParams.get("q");
-    if (q) setSearchTerm(q);
-  }, [searchParams]);
+  const roomParam = searchParams.get("room");
 
   const { data: categories = [] } = useQuery({
     queryKey: ["public-categories"],
@@ -35,9 +38,13 @@ export function FindFoodContent() {
     enabled: canSearch,
   });
 
+  useEffect(() => {
+    if (!isConnected || !canSearch) return;
+    send("food_search", { query: debouncedSearch.trim(), filters: {} });
+  }, [debouncedSearch, canSearch, isConnected, send]);
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader />
+    <>
 
       {/* ── Hero banner ── */}
       <div className="bg-primary text-white pt-10 pb-16 px-4 relative overflow-hidden">
@@ -139,7 +146,19 @@ export function FindFoodContent() {
                 {searchResults.map((food: FoodSearchResult) => (
                   <Link
                     key={food.id}
-                    href={`/find-food/${food.id}`}
+                    href={
+                      roomParam
+                        ? `/find-food/${food.id}?room=${encodeURIComponent(roomParam)}`
+                        : `/find-food/${food.id}`
+                    }
+                    onClick={() => {
+                      if (isConnected) {
+                        send("food_select", {
+                          food_id: food.id,
+                          food_name: food.name,
+                        });
+                      }
+                    }}
                     className="flex items-center gap-4 p-4 rounded-xl border-[1.5px] border-border no-underline bg-surface transition-base hover:border-primary-border hover:shadow-md hover:-translate-y-px"
                   >
                     {/* Icon */}
@@ -175,6 +194,19 @@ export function FindFoodContent() {
           </div>
         )}
       </div>
+    </>
+  );
+}
+
+export function FindFoodContent() {
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <AppHeader />
+      <Suspense fallback={null}>
+        <CollabSession roomPrefix="find-food" autoConnect={false}>
+          <FindFoodBody />
+        </CollabSession>
+      </Suspense>
     </div>
   );
 }

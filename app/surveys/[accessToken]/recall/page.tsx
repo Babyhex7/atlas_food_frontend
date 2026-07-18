@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { RecallWizard } from '@/internal/domain/recall/components/RecallWizard';
 import { getRecallSession } from '@/internal/domain/recall/services/recallStorage';
 import { getAccessToken } from '@/internal/lib/cookies';
+import { CollabSession } from '@/internal/domain/collab';
+
+type Gate = 'checking' | 'ready' | 'redirecting';
 
 export default function RecallPage() {
   const router = useRouter();
@@ -12,24 +15,37 @@ export default function RecallPage() {
   const accessToken = Array.isArray(params.accessToken)
     ? params.accessToken[0]
     : params.accessToken ?? '';
-  const [ready, setReady] = useState(false);
+  const [gate, setGate] = useState<Gate>('checking');
 
   useEffect(() => {
-    if (!getAccessToken()) {
-      router.replace('/login');
-      return;
-    }
+    let cancelled = false;
 
-    const session = getRecallSession();
-    if (!session?.survey_id || session.access_token !== accessToken) {
-      router.replace(`/surveys/${accessToken}/join`);
-      return;
-    }
+    const run = () => {
+      if (!getAccessToken()) {
+        if (!cancelled) setGate('redirecting');
+        router.replace('/login');
+        return;
+      }
 
-    setReady(true);
+      const session = getRecallSession();
+      if (!session?.survey_id || session.access_token !== accessToken) {
+        if (!cancelled) setGate('redirecting');
+        router.replace(`/surveys/${accessToken}/join`);
+        return;
+      }
+
+      if (!cancelled) setGate('ready');
+    };
+
+    // Defer to avoid sync setState-in-effect lint and let router settle
+    const t = window.setTimeout(run, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
   }, [accessToken, router]);
 
-  if (!ready) {
+  if (gate !== 'ready') {
     return (
       <div className="min-h-screen flex items-center justify-center text-muted">
         Memuat survey...
@@ -37,5 +53,15 @@ export default function RecallPage() {
     );
   }
 
-  return <RecallWizard />;
+  return (
+    <Suspense fallback={null}>
+      <CollabSession
+        roomPrefix="recall"
+        autoConnect
+        fixedRoomId={`recall-${accessToken}`}
+      >
+        <RecallWizard />
+      </CollabSession>
+    </Suspense>
+  );
 }

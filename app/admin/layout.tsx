@@ -1,11 +1,12 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLogout } from "@/internal/domain/auth/hooks/useLogout";
 import { ClipboardList, UtensilsCrossed, FolderOpen, Camera, Scale, LogOut } from "lucide-react";
 import { cn } from "@/internal/lib/cn";
+import { CollabSession } from "@/internal/domain/collab";
 
 const NAV_ITEMS = [
   { href: "/admin/surveys",        label: "Survey",        icon: ClipboardList  },
@@ -21,7 +22,6 @@ function AdminSidebar() {
 
   return (
     <aside className="w-60 bg-surface border-r border-border flex flex-col h-screen sticky top-0 shrink-0">
-      {/* Logo */}
       <div className="h-16 flex items-center px-5 border-b border-border gap-2">
         <Link href="/" className="text-lg font-bold text-primary no-underline tracking-tight">
           Atlas Food
@@ -31,7 +31,6 @@ function AdminSidebar() {
         </span>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
@@ -53,7 +52,6 @@ function AdminSidebar() {
         })}
       </nav>
 
-      {/* Footer */}
       <div className="p-4 border-t border-border">
         <button
           type="button"
@@ -68,12 +66,29 @@ function AdminSidebar() {
   );
 }
 
+function AdminMain({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isFoods = pathname.startsWith("/admin/foods");
+
+  if (!isFoods) {
+    return <>{children}</>;
+  }
+
+  return (
+    <Suspense fallback={children}>
+      <CollabSession roomPrefix="admin-food" autoConnect fixedRoomId="admin:food-db" syncUrl={false}>
+        {children}
+      </CollabSession>
+    </Suspense>
+  );
+}
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex bg-background">
       <AdminSidebar />
       <main className="flex-1 overflow-y-auto min-h-screen">
-        {children}
+        <AdminMain>{children}</AdminMain>
       </main>
     </div>
   );

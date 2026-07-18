@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { searchFoodsPublic } from "@/internal/services/food.service";
 import type { SearchFoodResult } from "@/internal/domain/food/types/food";
 import type { RecallFood, MissingFood } from "../types/recall";
+import { useCollab } from "@/internal/domain/collab";
 
 interface Props {
   mealType: string;
@@ -56,6 +57,7 @@ function SearchInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(state.query, 300);
+  const { send, isConnected } = useCollab();
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -74,28 +76,59 @@ function SearchInput({
 
   // Search API
   useEffect(() => {
+    let cancelled = false;
+
     if (debouncedQuery.length < 3) {
-      setState((s) => ({ ...s, results: [], open: false, loading: false }));
-      setMissingMode(false);
-      return;
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setState((s) => ({ ...s, results: [], open: false, loading: false }));
+        setMissingMode(false);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
-    setState((s) => ({ ...s, loading: true }));
+
+    queueMicrotask(() => {
+      if (!cancelled) setState((s) => ({ ...s, loading: true }));
+    });
+
+    if (isConnected) {
+      send("food_search", { query: debouncedQuery, filters: { food_type: foodType } });
+    }
+
     searchFoodsPublic(debouncedQuery, foodType, 10)
       .then((results) => {
+        if (cancelled) return;
         setState((s) => ({ ...s, results, open: true, loading: false }));
         setMissingMode(results.length === 0);
       })
-      .catch(() => setState((s) => ({ ...s, loading: false, open: false })));
-  }, [debouncedQuery, foodType]);
+      .catch(() => {
+        if (cancelled) return;
+        setState((s) => ({ ...s, loading: false, open: false }));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedQuery, foodType, isConnected, send]);
 
   const handleSelect = useCallback(
     (food: SearchFoodResult) => {
       onAdd(food, foodType);
+      if (isConnected) {
+        send("food_select", { food_id: food.id, food_name: food.name });
+        send("meal_add", {
+          meal_type: foodType,
+          food_id: food.id,
+          food_name: food.name,
+        });
+      }
       setState({ query: "", results: [], loading: false, open: false });
       setMissingMode(false);
       inputRef.current?.focus();
     },
-    [onAdd, foodType]
+    [onAdd, foodType, isConnected, send]
   );
 
   const handleAdd = useCallback(() => {

@@ -6,6 +6,7 @@ import type { CreateSubmissionRequest } from "@/internal/domain/submission/types
 import type { RecallSession, RecallFood, AdditionalItem } from "../types/recall";
 import { calcNutrientsForPortion } from "../utils/nutrients";
 import { getApiErrorMessage } from "@/internal/pkg/utils/apiError";
+import { useCollab } from "@/internal/domain/collab";
 
 interface Props {
   session: RecallSession;
@@ -115,6 +116,7 @@ export function Step5Review({
 }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { send, isConnected } = useCollab();
 
   const allFoods: RecallFood[] = session.meals.flatMap((m) => m.foods);
   const allAdditionals: AdditionalItem[] = allFoods.flatMap((f) => f.additionals ?? []);
@@ -132,6 +134,9 @@ export function Step5Review({
     setError(null);
     try {
       await submitSurvey(buildSubmitPayload(session));
+      if (isConnected) {
+        send("review_submit", { survey_id: session.survey_id });
+      }
       onSubmitSuccess();
     } catch (e) {
       setError(getApiErrorMessage(e, "Gagal submit. Silakan coba lagi."));
