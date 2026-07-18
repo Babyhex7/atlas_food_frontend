@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { EmptyState } from "@/internal/pkg/components/EmptyState";
 import { Button } from "@/internal/pkg/components/Button";
 import { getAccessToken } from "@/internal/lib/cookies";
-import { Plus, Pencil, ChevronRight, Search } from "lucide-react";
+import { Plus, Pencil, ChevronRight, Search, UtensilsCrossed } from "lucide-react";
 import type { Food } from "../types/food";
 
 // Fallback: if no query function is available, just render the passed foods prop
