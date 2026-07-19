@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { EmptyState } from "@/internal/pkg/components/EmptyState";
 import { Button } from "@/internal/pkg/components/Button";
 import { getAccessToken } from "@/internal/lib/cookies";
-import { Plus, Pencil, ChevronRight, Search } from "lucide-react";
+import { Plus, Pencil, ChevronRight, Search, UtensilsCrossed } from "lucide-react";
 import type { Food } from "../types/food";
 
 // Fallback: if no query function is available, just render the passed foods prop
@@ -23,7 +23,7 @@ export function FoodList({ foods = [] }: { foods?: Food[] }) {
           </div>
           <Button onClick={() => router.push("/admin/foods/new")}><Plus size={15} /> Tambah Makanan</Button>
         </div>
-        <EmptyState icon="🍽️" title="Belum ada makanan" description="Tambahkan makanan ke database Atlas Food." action={<Button onClick={() => router.push("/admin/foods/new")}><Plus size={14} /> Tambah Makanan</Button>} />
+        <EmptyState icon={<UtensilsCrossed size={40} className="text-text-muted" />} title="Belum ada makanan" description="Tambahkan makanan ke database Atlas Food." action={<Button onClick={() => router.push("/admin/foods/new")}><Plus size={14} /> Tambah Makanan</Button>} />
       </div>
     );
   }

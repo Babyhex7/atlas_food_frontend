@@ -104,7 +104,12 @@ function FindFoodBody() {
                   href={`/find-food/category/${cat.code}`}
                   className="flex flex-col items-center gap-2 p-4 rounded-xl border-[1.5px] border-border no-underline text-center transition-base bg-surface hover:border-primary-border hover:bg-primary-light hover:-translate-y-0.5 hover:shadow-sm"
                 >
-                  <span className="text-[2rem] leading-none">{cat.icon || "🍽️"}</span>
+                  <span className="text-[2rem] leading-none">
+                    {cat.icon
+                      ? <span>{cat.icon}</span>
+                      : <UtensilsCrossed size={30} className="text-primary" />
+                    }
+                  </span>
                   <span className="text-sm font-medium text-text-primary">
                     {cat.name}
                   </span>
@@ -130,7 +135,9 @@ function FindFoodBody() {
             {/* Empty */}
             {searchResults.length === 0 && !isSearching && (
               <div className="text-center py-12 px-4">
-                <div className="text-[3rem] mb-4">🔍</div>
+                <div className="flex justify-center mb-4">
+                  <Search size={48} className="text-text-muted" />
+                </div>
                 <h3 className="text-base font-semibold text-text-primary mb-2 mt-0">
                   Makanan tidak ditemukan
                 </h3>
@@ -162,8 +169,11 @@ function FindFoodBody() {
                     className="flex items-center gap-4 p-4 rounded-xl border-[1.5px] border-border no-underline bg-surface transition-base hover:border-primary-border hover:shadow-md hover:-translate-y-px"
                   >
                     {/* Icon */}
-                    <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center text-xl shrink-0">
-                      {food.category?.icon || "🍲"}
+                    <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center shrink-0">
+                      {food.category?.icon
+                        ? <span className="text-xl">{food.category.icon}</span>
+                        : <UtensilsCrossed size={20} className="text-primary" />
+                      }
                     </div>
 
                     {/* Info */}

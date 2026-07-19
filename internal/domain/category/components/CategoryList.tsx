@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EmptyState } from "@/internal/pkg/components/EmptyState";
 import { Button } from "@/internal/pkg/components/Button";
-import { Plus, ChevronRight } from "lucide-react";
+import { Plus, ChevronRight, FolderOpen } from "lucide-react";
 import type { Category } from "../types/category";
 
 export function CategoryList({ categories = [] }: { categories?: Category[] }) {
@@ -29,7 +29,7 @@ export function CategoryList({ categories = [] }: { categories?: Category[] }) {
 
       {categories.length === 0 ? (
         <EmptyState
-          icon="📂"
+          icon={<FolderOpen size={40} className="text-text-muted" />}
           title="Belum ada kategori"
           description="Tambahkan kategori untuk mengelompokkan makanan."
           action={<Button onClick={() => router.push("/admin/categories/new")}><Plus size={14} /> Tambah Kategori</Button>}
@@ -42,8 +42,11 @@ export function CategoryList({ categories = [] }: { categories?: Category[] }) {
               href={`/admin/categories/${cat.id}`}
               className="flex items-center gap-4 p-4 rounded-xl border-[1.5px] border-border bg-surface no-underline transition-base hover:border-primary-border hover:bg-primary-light hover:-translate-y-0.5 hover:shadow-sm"
             >
-              <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center text-2xl shrink-0">
-                {cat.icon || "📂"}
+              <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center shrink-0">
+                {cat.icon
+                  ? <span className="text-2xl">{cat.icon}</span>
+                  : <FolderOpen size={22} className="text-primary" />
+                }
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-text-primary mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap">

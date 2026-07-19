@@ -98,7 +98,7 @@ export default function SurveyDonePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)", display: "flex", flexDirection: "column" }}>
       <AppHeader />
 
       <div className={cn(CONTAINER_CLASS, "flex-1 pt-10 pb-10")}>

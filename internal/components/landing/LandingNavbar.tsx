@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogIn, UserPlus, Search } from "lucide-react";
+import { LogIn, UserPlus, Search, UtensilsCrossed } from "lucide-react";
 import { useAuth } from "@/internal/domain/auth/hooks/useAuth";
 import { useLogout } from "@/internal/domain/auth/hooks/useLogout";
 import { CONTAINER_CLASS, loginWithRedirect } from "@/internal/lib/layout";
@@ -17,7 +17,7 @@ export function LandingNavbar() {
       <div className={`${CONTAINER_CLASS} h-16 flex items-center justify-between gap-4`}>
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
-          <span className="text-2xl" aria-hidden>🍽️</span>
+          <UtensilsCrossed size={22} className="text-primary" aria-hidden />
           <span className="text-lg font-bold text-primary tracking-tight">Atlas Food</span>
         </Link>
 

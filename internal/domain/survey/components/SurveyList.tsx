@@ -10,7 +10,7 @@ import { cn } from "@/internal/lib/cn";
 import { getAccessToken } from "@/internal/lib/cookies";
 import { getSurveys, deleteSurvey } from "../services/surveyService";
 import type { Survey } from "../types/survey";
-import { Copy, Check, ExternalLink, Pencil, Trash2, FileText, Plus, AlertTriangle } from "lucide-react";
+import { Copy, Check, ExternalLink, Pencil, Trash2, FileText, Plus, AlertTriangle, ClipboardList, X } from "lucide-react";
 
 const STATUS_CLASS: Record<string, string> = {
   active: "badge-success",
@@ -71,7 +71,7 @@ export function SurveyList() {
   if (isError) {
     return (
       <div className="p-8">
-        <EmptyState icon="⚠️" title="Gagal memuat survey" description="Terjadi kesalahan. Pastikan Anda login sebagai admin." />
+        <EmptyState icon={<AlertTriangle size={40} className="text-warning" />} title="Gagal memuat survey" description="Terjadi kesalahan. Pastikan Anda login sebagai admin." />
       </div>
     );
   }
@@ -95,7 +95,7 @@ export function SurveyList() {
 
       {surveys.length === 0 ? (
         <EmptyState
-          icon="📋"
+          icon={<ClipboardList size={40} className="text-text-muted" />}
           title="Belum ada survey"
           description="Buat survey untuk mulai mengumpulkan data recall makanan."
           action={<Button onClick={() => router.push("/admin/surveys/new")}><Plus size={14} /> Buat Survey</Button>}
@@ -186,7 +186,7 @@ export function SurveyList() {
             <div className="modal-header">
               <AlertTriangle size={18} className="text-danger" />
               <h3 className="modal-title">Hapus Survey?</h3>
-              <button className="modal-close" onClick={() => setConfirmDeleteId(null)}>✕</button>
+              <button className="modal-close" onClick={() => setConfirmDeleteId(null)}><X size={14} /></button>
             </div>
             <div className="modal-body">
               <p className="text-sm text-text-muted m-0">

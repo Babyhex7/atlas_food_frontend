@@ -65,7 +65,7 @@ export default function JoinSurveyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
       <AppHeader />
 
       <div className={cn(CONTAINER_CLASS, 'flex-1 flex items-center justify-center py-10 px-4')}>

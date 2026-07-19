@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { UtensilsCrossed } from "lucide-react";
 import { CONTAINER_CLASS, loginWithRedirect } from "@/internal/lib/layout";
 
 const NAV_ITEMS = [
@@ -15,7 +16,9 @@ export function LandingFooter() {
 
           {/* Brand */}
           <div>
-            <p className="text-lg font-bold text-white mb-2">🍽️ Atlas Food</p>
+            <p className="flex items-center gap-2 text-lg font-bold text-white mb-2">
+              <UtensilsCrossed size={18} aria-hidden /> Atlas Food
+            </p>
             <p className="text-sm text-[#9ca3af] leading-relaxed m-0">
               Estimasi porsi makan orang dewasa Indonesia — dikembangkan oleh BRIN bersama UPI.
             </p>

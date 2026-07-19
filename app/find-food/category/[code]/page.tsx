@@ -28,7 +28,7 @@ export default function CategoryFoodsPage() {
   const category = categories.find((c: any) => c.code === categoryCode);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)", display: "flex", flexDirection: "column" }}>
       <AppHeader />
 
       {/* ── Hero banner ── */}

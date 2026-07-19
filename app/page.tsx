@@ -1,4 +1,9 @@
+import React from "react";
 import Link from "next/link";
+import {
+  Wheat, Drumstick, Leaf, Salad, Apple, Croissant,
+  ShoppingBag, Layers, FlaskConical, Box, Droplets, Candy,
+} from "lucide-react";
 import { LandingNavbar } from "@/internal/components/landing/LandingNavbar";
 import { LandingHeroSearch } from "@/internal/components/landing/LandingHeroSearch";
 import { LandingPaths } from "@/internal/components/landing/LandingPaths";
@@ -7,18 +12,18 @@ import { CONTAINER_CLASS, loginWithRedirect } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
 
 const ATLAS_CATEGORIES = [
-  { code: "MP",  name: "Makanan Pokok",   icon: "🍚" },
-  { code: "LH",  name: "Lauk Hewani",     icon: "🍗" },
-  { code: "LN",  name: "Lauk Nabati",     icon: "🫘" },
-  { code: "AS",  name: "Aneka Sayur",     icon: "🥬" },
-  { code: "AB",  name: "Aneka Buah",      icon: "🍌" },
-  { code: "AP",  name: "Roti & Kue",      icon: "🥐" },
-  { code: "AMK", name: "Makanan Kemasan", icon: "🥤" },
-  { code: "KK",  name: "Keripik",         icon: "🥔" },
-  { code: "ABK", name: "Bumbu",           icon: "🧂" },
-  { code: "AK",  name: "Siap Saji",       icon: "🍱" },
-  { code: "MDL", name: "Minyak & Lemak",  icon: "🫒" },
-  { code: "GK",  name: "Gula",            icon: "🍬" },
+  { code: "MP",  name: "Makanan Pokok",   icon: <Wheat size={20} /> },
+  { code: "LH",  name: "Lauk Hewani",     icon: <Drumstick size={20} /> },
+  { code: "LN",  name: "Lauk Nabati",     icon: <Leaf size={20} /> },
+  { code: "AS",  name: "Aneka Sayur",     icon: <Salad size={20} /> },
+  { code: "AB",  name: "Aneka Buah",      icon: <Apple size={20} /> },
+  { code: "AP",  name: "Roti & Kue",      icon: <Croissant size={20} /> },
+  { code: "AMK", name: "Makanan Kemasan", icon: <ShoppingBag size={20} /> },
+  { code: "KK",  name: "Keripik",         icon: <Layers size={20} /> },
+  { code: "ABK", name: "Bumbu",           icon: <FlaskConical size={20} /> },
+  { code: "AK",  name: "Siap Saji",       icon: <Box size={20} /> },
+  { code: "MDL", name: "Minyak & Lemak",  icon: <Droplets size={20} /> },
+  { code: "GK",  name: "Gula",            icon: <Candy size={20} /> },
 ];
 
 export default function LandingPage() {
@@ -75,7 +80,7 @@ export default function LandingPage() {
                 href={loginWithRedirect(`/find-food/category/${cat.code}`)}
                 className="landing-cat-link"
               >
-                <span className="text-xl leading-none">{cat.icon}</span>
+                <span className="leading-none text-primary">{cat.icon}</span>
                 <span className="text-xs font-mono font-semibold text-primary">
                   {cat.code}
                 </span>

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/internal/pkg/components/Button";
 import { Input } from "@/internal/pkg/components/Input";
 import { cn } from "@/internal/lib/cn";
@@ -49,8 +49,8 @@ export function LoginForm() {
     <div className="w-full max-w-[440px] mx-auto p-8 bg-surface border border-border rounded-2xl shadow-xl">
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="w-14 h-14 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-4 text-2xl">
-          🍽️
+        <div className="w-14 h-14 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-4">
+          <UtensilsCrossed size={26} className="text-primary" />
         </div>
         <h1 className="text-2xl font-bold text-text-primary mb-2 tracking-tight">Selamat Datang</h1>
         <p className="text-sm text-text-muted m-0">Masuk untuk melanjutkan ke Atlas Food</p>
