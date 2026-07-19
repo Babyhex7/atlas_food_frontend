@@ -51,23 +51,7 @@ export default function LoginPage() {
       <div style={{ position: "absolute", top: "var(--space-5)", left: "var(--space-5)", zIndex: 10 }}>
         <Link
           href="/"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "var(--space-2)",
-            fontSize: "var(--text-sm)",
-            fontWeight: "var(--weight-medium)",
-            color: "var(--color-text-muted)",
-            textDecoration: "none",
-            backgroundColor: "var(--color-surface)",
-            padding: "var(--space-2) var(--space-4)",
-            borderRadius: "var(--radius-full)",
-            border: "1px solid var(--color-border)",
-            boxShadow: "var(--shadow-xs)",
-            transition: "var(--transition-fast)",
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--color-text-primary)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border-strong)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border)"; }}
+          className="inline-flex items-center gap-2 text-sm font-medium text-text-muted no-underline bg-surface py-2 px-4 rounded-full border border-border shadow-xs transition-fast hover:text-text-primary hover:border-border-strong"
         >
           <ArrowLeft size={15} />
           Kembali ke Beranda

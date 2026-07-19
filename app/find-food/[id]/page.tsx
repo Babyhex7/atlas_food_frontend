@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, Info, Scale, Bookmark } from "lucide-react";
 import { getFoodDetailPublic } from "@/internal/services/food.service";
 import { isFoodBookmarked, toggleBookmarkedFood } from "@/internal/lib/cookies";
-import { PortionGallery } from "@/internal/components/PortionGallery";
+import { PortionPhotoViewer } from "@/internal/components/PortionPhotoViewer";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 
@@ -214,12 +214,11 @@ export default function FoodDetailPage() {
             )}
           </div>
 
-          <PortionGallery
+          <PortionPhotoViewer
             photos={food.portion_photos || []}
             photoType={food.photo_type}
             activeIndex={activePhotoIndex}
             onSelect={setActivePhotoIndex}
-            showSummary={true}
           />
         </div>
 
