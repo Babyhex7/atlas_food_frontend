@@ -4,6 +4,9 @@ export const apiEndpoints = {
     login: "/auth/login",
     refresh: "/auth/refresh",
     me: "/auth/me",
+    updateProfile: "/auth/me",
+    changePassword: "/auth/me/password",
+    uploadPhoto: "/auth/me/photo",
   },
   admin: {
     surveys: "/admin/surveys",

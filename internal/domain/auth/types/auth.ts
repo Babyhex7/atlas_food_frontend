@@ -4,6 +4,10 @@ export type User = {
   id: string;
   email: string;
   name: string;
+  phone?: string | null;
+  gender?: "male" | "female" | null;
+  birth_date?: string | null;
+  photo_url?: string | null;
   role: AuthRole;
   is_active: boolean;
   created_at: string;
@@ -36,6 +40,10 @@ export type UserInfo = {
   id: string;
   email: string;
   name: string;
+  phone?: string | null;
+  gender?: "male" | "female" | null;
+  birth_date?: string | null;
+  photo_url?: string | null;
   role: AuthRole;
   is_active: boolean;
 };
@@ -49,4 +57,16 @@ export type AuthResponse = {
 
 export type ProfileResponse = UserInfo & {
   created_at: string;
+};
+
+export type UpdateProfileRequest = {
+  name: string;
+  phone?: string | null;
+  gender?: "male" | "female" | "" | null;
+  birth_date?: string | null;
+};
+
+export type ChangePasswordRequest = {
+  current_password: string;
+  new_password: string;
 };
