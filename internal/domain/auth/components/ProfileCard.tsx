@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Loader2, User, Shield, Camera, LogOut, Settings, Search,
   X, Upload, Image as ImageIcon, Eye, EyeOff, Lock, CheckCircle2,
@@ -355,6 +355,22 @@ export function ProfileCard() {
   const [profileSubmitting, setProfileSubmitting] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSaved, setProfileSaved] = useState(false);
+  const profileHydrated = useRef(Boolean(user));
+
+  // On a hard refresh, `user` is still null on first render (session is being
+  // restored from /auth/me by AuthProvider) so the form above initializes
+  // empty. Sync it once the real user data arrives, without ever
+  // overwriting fields the user is actively editing.
+  useEffect(() => {
+    if (!user || profileHydrated.current) return;
+    profileHydrated.current = true;
+    setProfileForm({
+      name: user.name,
+      phone: user.phone ?? "",
+      gender: user.gender ?? "",
+      birth_date: user.birth_date ?? "",
+    });
+  }, [user]);
 
   const handleFileSelected = useCallback(async (file: File) => {
     setUploadFile(file);
