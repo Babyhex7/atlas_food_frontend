@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Loader2, User, Shield, Camera, LogOut, Settings, Search,
+  Loader2, User, Shield, Camera, LogOut, Settings, Search, ClipboardList,
   X, Upload, Image as ImageIcon, Eye, EyeOff, Lock, CheckCircle2,
   Info, ArrowRight, AlertCircle,
 } from "lucide-react";
@@ -22,7 +22,12 @@ type ActiveSection = "personal" | "security";
 type PhotoModal = "change" | "uploading" | null;
 type PasswordModal = "form" | "success" | null;
 
-const FOOTER_LINKS = ["Privacy Policy", "Terms of Service", "Clinical Standards", "Contact"];
+const FOOTER_LINKS = [
+  { label: "Privacy Policy",      href: "#" },
+  { label: "Terms of Service",    href: "#" },
+  { label: "Clinical Standards",  href: "#" },
+  { label: "Contact",             href: "#" },
+];
 
 function passwordStrength(pw: string): { score: number; label: string; color: string } {
   if (!pw) return { score: 0, label: "", color: "" };
@@ -57,6 +62,38 @@ function ErrorBanner({ message }: { message: string }) {
       <AlertCircle size={14} className="shrink-0 mt-px" />
       <span>{message}</span>
     </div>
+  );
+}
+
+function AgeDisplay({ birthDate }: { birthDate: string }) {
+  if (!birthDate) {
+    return (
+      <input
+        type="text"
+        readOnly
+        value=""
+        placeholder="0 year 0 month 0 day"
+        className="bg-surface-alt text-text-muted cursor-default"
+      />
+    );
+  }
+  const birth = new Date(birthDate);
+  const now = new Date();
+  let years = now.getFullYear() - birth.getFullYear();
+  let months = now.getMonth() - birth.getMonth();
+  let days = now.getDate() - birth.getDate();
+  if (days < 0) {
+    months -= 1;
+    days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+  }
+  if (months < 0) { years -= 1; months += 12; }
+  return (
+    <input
+      type="text"
+      readOnly
+      value={`${years} year ${months} month ${days} day`}
+      className="bg-surface-alt text-text-muted cursor-default"
+    />
   );
 }
 
@@ -579,6 +616,11 @@ export function ProfileCard() {
               Find Food
             </Link>
 
+            <Link href="/surveys" className="profile-nav-item">
+              <ClipboardList size={16} />
+              Survey Recall
+            </Link>
+
             <button
               onClick={() => logout()}
               className="profile-nav-item profile-nav-item--danger"
@@ -654,6 +696,10 @@ export function ProfileCard() {
                       max={new Date().toISOString().split("T")[0]}
                       onChange={(e) => setProfileForm((f) => ({ ...f, birth_date: e.target.value }))}
                     />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Age</label>
+                    <AgeDisplay birthDate={profileForm.birth_date} />
                   </div>
                 </div>
 
@@ -731,9 +777,9 @@ export function ProfileCard() {
             </p>
           </div>
           <div className="flex gap-6">
-            {FOOTER_LINKS.map((label) => (
-              <Link key={label} href="#" className="text-sm text-text-muted underline underline-offset-[3px]">
-                {label}
+            {FOOTER_LINKS.map((item) => (
+              <Link key={item.label} href={item.href} className="text-sm text-text-muted underline underline-offset-[3px]">
+                {item.label}
               </Link>
             ))}
           </div>

@@ -1,7 +1,7 @@
 import type { AuthRole } from "../constants/authRoles";
 
 export function getPostAuthPath(role: AuthRole): string {
-  return role === "admin" ? "/admin/surveys" : "/profile";
+  return role === "admin" ? "/admin/surveys" : "/find-food";
 }
 
 const BLOCKED_REDIRECT_PREFIXES = ["/login", "/register"];

@@ -11,6 +11,91 @@ import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
 import { CollabSession, useCollab } from "@/internal/domain/collab";
+import { CategoryIcon } from "@/internal/domain/category/utils/categoryIcon";
+
+// ── Nutrition card config ────────────────────────────────────────────────────
+type NutrientConfig = {
+  key: string;          // key di food.nutrients dari backend
+  label: string;        // nama yang tampil di card
+  unit: string;         // satuan fallback jika backend tidak mengirim unit
+  isEnergy?: boolean;   // highlight khusus untuk energi
+};
+
+const NUTRIENT_CONFIG: NutrientConfig[] = [
+  { key: "energy",           label: "Energi",         unit: "kkal", isEnergy: true },
+  { key: "carbs",            label: "Karbohidrat",    unit: "g" },
+  { key: "protein",          label: "Protein",        unit: "g" },
+  { key: "fat",              label: "Lemak Total",    unit: "g" },
+  { key: "saturated_fat",    label: "Lemak Jenuh",    unit: "g" },
+  { key: "dietary_fiber",    label: "Serat Pangan",   unit: "g" },
+  { key: "sugar",            label: "Gula",           unit: "g" },
+  { key: "sodium",           label: "Natrium",        unit: "mg" },
+  { key: "calcium",          label: "Kalsium",        unit: "mg" },
+  { key: "iron",             label: "Zat Besi",       unit: "mg" },
+  { key: "potassium",        label: "Kalium",         unit: "mg" },
+  { key: "vitamin_a",        label: "Vitamin A",      unit: "µg" },
+  { key: "vitamin_c",        label: "Vitamin C",      unit: "mg" },
+  { key: "vitamin_d",        label: "Vitamin D",      unit: "µg" },
+  { key: "cholesterol",      label: "Kolesterol",     unit: "mg" },
+];
+
+function NutritionCards({
+  nutrients,
+}: {
+  nutrients?: Record<string, { value: number | null; unit: string }> | null;
+}) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      {NUTRIENT_CONFIG.map((cfg) => {
+        const nutrient = nutrients?.[cfg.key];
+        const rawValue = nutrient?.value;
+        const hasValue = rawValue !== null && rawValue !== undefined;
+        const displayValue = hasValue ? String(rawValue) : "-";
+        const displayUnit = hasValue ? (nutrient?.unit || cfg.unit) : "";
+
+        return (
+          <div
+            key={cfg.key}
+            className={cn(
+              "flex flex-col justify-between p-4 rounded-xl border min-h-[88px]",
+              cfg.isEnergy
+                ? "border-primary-border bg-primary-light"
+                : "border-border bg-white shadow-sm"
+            )}
+          >
+            <p className="text-xs font-medium text-primary m-0 leading-snug">
+              {cfg.label}
+              {cfg.unit && (
+                <span className="text-text-muted font-normal ml-1">({cfg.unit})</span>
+              )}
+            </p>
+            <div className="mt-2">
+              {hasValue ? (
+                <span
+                  className={cn(
+                    "text-2xl font-bold font-mono leading-none",
+                    cfg.isEnergy ? "text-primary" : "text-text-primary"
+                  )}
+                >
+                  {displayValue}
+                  {displayUnit && (
+                    <span className="text-sm font-sans font-normal text-text-muted ml-[3px]">
+                      {displayUnit}
+                    </span>
+                  )}
+                </span>
+              ) : (
+                <span className="text-2xl font-normal font-mono leading-none text-text-muted">
+                  -
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function FoodDetailBody() {
   const params = useParams();
@@ -30,10 +115,33 @@ function FoodDetailBody() {
 
   const toggleBookmark = () => setIsBookmarked(toggleBookmarkedFood(foodId));
 
-  const { data: food, isLoading, error } = useQuery({
+  const { data: rawFood, isLoading, error } = useQuery({
     queryKey: ["public-food-detail", foodId],
     queryFn: () => getFoodDetailPublic(foodId),
   });
+
+  // ── MOCK: inject dummy portion_photos when backend returns empty ──────────
+  const MOCK_PORTION_PHOTOS = [
+    { id: "m1", label: "A", weight_gram: 50,  description: "1/4 porsi standar",  image_url: "https://placehold.co/300x300/f5f5f5/aaa?text=50g",  thumbnail_url: "https://placehold.co/150x150/f5f5f5/aaa?text=50g"  },
+    { id: "m2", label: "B", weight_gram: 80,  description: "1/2 porsi kecil",    image_url: "https://placehold.co/300x300/f5f5f5/aaa?text=80g",  thumbnail_url: "https://placehold.co/150x150/f5f5f5/aaa?text=80g"  },
+    { id: "m3", label: "C", weight_gram: 110, description: "Porsi anak",         image_url: "https://placehold.co/300x300/f5f5f5/aaa?text=110g", thumbnail_url: "https://placehold.co/150x150/f5f5f5/aaa?text=110g" },
+    { id: "m4", label: "D", weight_gram: 140, description: "1 porsi standar URT",image_url: "https://placehold.co/300x300/f5f5f5/aaa?text=140g", thumbnail_url: "https://placehold.co/150x150/f5f5f5/aaa?text=140g" },
+    { id: "m5", label: "E", weight_gram: 160, description: "Porsi sedang",       image_url: "https://placehold.co/300x300/f5f5f5/aaa?text=160g", thumbnail_url: "https://placehold.co/150x150/f5f5f5/aaa?text=160g" },
+    { id: "m6", label: "F", weight_gram: 200, description: "Porsi dewasa",       image_url: "https://placehold.co/300x300/f5f5f5/aaa?text=200g", thumbnail_url: "https://placehold.co/150x150/f5f5f5/aaa?text=200g" },
+    { id: "m7", label: "G", weight_gram: 230, description: "Porsi besar",        image_url: "https://placehold.co/300x300/f5f5f5/aaa?text=230g", thumbnail_url: "https://placehold.co/150x150/f5f5f5/aaa?text=230g" },
+    { id: "m8", label: "H", weight_gram: 250, description: "Porsi ekstra",       image_url: "https://placehold.co/300x300/f5f5f5/aaa?text=250g", thumbnail_url: "https://placehold.co/150x150/f5f5f5/aaa?text=250g" },
+  ];
+  const food = rawFood
+    ? {
+        ...rawFood,
+        photo_type: "series" as const,
+        portion_photos:
+          rawFood.portion_photos && rawFood.portion_photos.length > 0
+            ? rawFood.portion_photos
+            : MOCK_PORTION_PHOTOS,
+      }
+    : rawFood;
+  // ── END MOCK ──────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (!isConnected || !food) return;
@@ -110,8 +218,8 @@ function FoodDetailBody() {
           </div>
 
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-xl bg-white/15 border-[1.5px] border-white/25 flex items-center justify-center text-[2rem] shrink-0">
-              {food.category?.icon || "🍽️"}
+            <div className="w-16 h-16 rounded-xl bg-white/15 border-[1.5px] border-white/25 flex items-center justify-center shrink-0">
+              <CategoryIcon code={food.category?.code} name={food.category?.name} size={32} className="text-white" />
             </div>
 
             <div className="flex-1">
@@ -165,37 +273,7 @@ function FoodDetailBody() {
             <span className="text-xs text-text-muted">per 100 gram</span>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {Object.entries(food.nutrients || {}).map(([key, nutrient]: [string, any]) => {
-              const isEnergy = key === "energy";
-              return (
-                <div
-                  key={key}
-                  className={cn(
-                    "p-4 rounded-xl text-center border",
-                    isEnergy
-                      ? "border-primary-border bg-primary-light"
-                      : "border-border bg-surface-alt"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "text-2xl font-bold font-mono leading-none mb-1",
-                      isEnergy ? "text-primary" : "text-text-primary"
-                    )}
-                  >
-                    {nutrient.value}
-                    <span className="text-sm font-sans text-text-muted ml-[3px]">
-                      {nutrient.unit}
-                    </span>
-                  </div>
-                  <div className="text-xs font-medium text-text-muted capitalize">
-                    {key === "energy" ? "Kalori" : key}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <NutritionCards nutrients={food.nutrients} />
 
           {food.description && (
             <div className="mt-5 p-4 bg-surface-alt rounded-lg text-sm text-text-secondary leading-relaxed border border-border">
