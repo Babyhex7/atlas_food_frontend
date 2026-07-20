@@ -4,6 +4,13 @@ export const portionMethodTypes = {
   weight: "weight",
 } as const;
 
+/** Label bahasa Indonesia untuk ditampilkan di panel admin */
+export const PORTION_METHOD_TYPES = [
+  { value: portionMethodTypes.asServed, label: "Foto porsi (as served)" },
+  { value: portionMethodTypes.guideImage, label: "Gambar panduan" },
+  { value: portionMethodTypes.weight, label: "Berat manual" },
+] as const;
+
 export const portionSelectionTypes = {
   simpleGrid: "simple_grid",
   asServedQuantity: "as_served_quantity",

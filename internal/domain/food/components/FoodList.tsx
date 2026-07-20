@@ -2,16 +2,37 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { EmptyState } from "@/internal/pkg/components/EmptyState";
 import { Button } from "@/internal/pkg/components/Button";
-import { getAccessToken } from "@/internal/lib/cookies";
-import { Plus, Pencil, ChevronRight, Search, UtensilsCrossed } from "lucide-react";
-import type { Food } from "../types/food";
+import { Plus, ChevronRight, UtensilsCrossed } from "lucide-react";
+import { useAdminFoods } from "../hooks/useFoodQueries";
 
-// Fallback: if no query function is available, just render the passed foods prop
-export function FoodList({ foods = [] }: { foods?: Food[] }) {
+/**
+ * Daftar makanan admin.
+ *
+ * Mengambil datanya sendiri — sebelumnya menerima prop `foods` yang tidak
+ * pernah diisi oleh route, sehingga halaman selalu menampilkan empty state.
+ */
+export function FoodList() {
   const router = useRouter();
+  const { data, isLoading, error } = useAdminFoods({ limit: 100 });
+  const foods = data?.foods ?? [];
+
+  if (isLoading) {
+    return <div className="p-6 px-8 text-sm text-text-muted">Memuat makanan…</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 px-8">
+        <div className="alert alert-danger">
+          <span className="text-sm">
+            {error instanceof Error ? error.message : "Gagal memuat daftar makanan"}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (foods.length === 0) {
     return (
@@ -46,15 +67,13 @@ export function FoodList({ foods = [] }: { foods?: Food[] }) {
             className="flex items-center gap-4 py-4 px-5 rounded-xl border-[1.5px] border-border bg-surface no-underline transition-base hover:border-primary-border hover:shadow-sm hover:-translate-y-px"
           >
             <div className="w-10 h-10 rounded-lg bg-primary-light flex items-center justify-center text-xl shrink-0">
-              {(food as any).category?.icon || "🍽️"}
+              {food.category?.icon || "🍽️"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-text-primary mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap">
                 {food.name}
               </p>
-              <p className="text-xs text-text-muted m-0 font-mono">
-                {(food as any).code}
-              </p>
+              <p className="text-xs text-text-muted m-0 font-mono">{food.code}</p>
             </div>
             <ChevronRight size={16} className="text-text-muted shrink-0" />
           </Link>

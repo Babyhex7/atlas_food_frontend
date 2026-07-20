@@ -5,10 +5,34 @@ import { useRouter } from "next/navigation";
 import { EmptyState } from "@/internal/pkg/components/EmptyState";
 import { Button } from "@/internal/pkg/components/Button";
 import { Plus, ChevronRight, FolderOpen } from "lucide-react";
-import type { Category } from "../types/category";
+import { useAdminCategories } from "../hooks/useCategoryQueries";
 
-export function CategoryList({ categories = [] }: { categories?: Category[] }) {
+/**
+ * Daftar kategori admin.
+ *
+ * Mengambil datanya sendiri — sebelumnya menerima prop `categories` yang tidak
+ * pernah diisi oleh route, sehingga daftarnya selalu kosong.
+ */
+export function CategoryList() {
   const router = useRouter();
+  const { data, isLoading, error } = useAdminCategories();
+  const categories = data ?? [];
+
+  if (isLoading) {
+    return <div className="p-6 px-8 text-sm text-text-muted">Memuat kategori…</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 px-8">
+        <div className="alert alert-danger">
+          <span className="text-sm">
+            {error instanceof Error ? error.message : "Gagal memuat kategori"}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 px-8">
@@ -52,9 +76,7 @@ export function CategoryList({ categories = [] }: { categories?: Category[] }) {
                 <p className="text-sm font-semibold text-text-primary mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap">
                   {cat.name}
                 </p>
-                <p className="text-xs text-text-muted m-0 font-mono">
-                  {(cat as any).code}
-                </p>
+                <p className="text-xs text-text-muted m-0 font-mono">{cat.code}</p>
               </div>
               <ChevronRight size={16} className="text-text-muted shrink-0" />
             </Link>

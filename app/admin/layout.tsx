@@ -4,9 +4,10 @@ import { ReactNode, Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLogout } from "@/internal/domain/auth/hooks/useLogout";
-import { ClipboardList, UtensilsCrossed, FolderOpen, Camera, Scale, LogOut } from "lucide-react";
+import { ClipboardList, UtensilsCrossed, FolderOpen, Camera, Scale, Shapes, LogOut } from "lucide-react";
 import { cn } from "@/internal/lib/cn";
 import { CollabSession } from "@/internal/domain/collab";
+import { AdminGuard } from "@/internal/domain/auth/components/AdminGuard";
 
 const NAV_ITEMS = [
   { href: "/admin/surveys",        label: "Survey",        icon: ClipboardList  },
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { href: "/admin/categories",     label: "Kategori",      icon: FolderOpen     },
   { href: "/admin/as-served-sets", label: "Foto Porsi",    icon: Camera         },
   { href: "/admin/portion-methods",label: "Metode Porsi",  icon: Scale          },
+  { href: "/admin/annotations",    label: "Anotasi",       icon: Shapes         },
 ];
 
 function AdminSidebar() {
@@ -85,11 +87,13 @@ function AdminMain({ children }: { children: ReactNode }) {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex bg-background">
-      <AdminSidebar />
-      <main className="flex-1 overflow-y-auto min-h-screen">
-        <AdminMain>{children}</AdminMain>
-      </main>
-    </div>
+    <AdminGuard>
+      <div className="min-h-screen flex bg-background">
+        <AdminSidebar />
+        <main className="flex-1 overflow-y-auto min-h-screen">
+          <AdminMain>{children}</AdminMain>
+        </main>
+      </div>
+    </AdminGuard>
   );
 }
