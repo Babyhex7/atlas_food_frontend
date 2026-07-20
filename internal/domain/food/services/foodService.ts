@@ -34,18 +34,39 @@ export function getFoodById(id: string) {
   return apiClient<Food>(`/foods/${id}`);
 }
 
-export function getAdminFoods(token: string) {
-  return apiClient<Food[]>("/admin/foods", { token });
+/**
+ * Daftar makanan untuk panel admin.
+ *
+ * Backend membungkus hasilnya sebagai { foods, pagination } — bukan array
+ * telanjang. Mengetiknya sebagai Food[] membuat daftar selalu tampak kosong.
+ */
+export type AdminFoodListResponse = {
+  foods: Food[];
+  pagination: { page: number; limit: number; total: number };
+};
+
+export function getAdminFoods(params: { page?: number; limit?: number; category?: string } = {}) {
+  const query = new URLSearchParams();
+  if (params.page) query.set("page", String(params.page));
+  if (params.limit) query.set("limit", String(params.limit));
+  if (params.category) query.set("category", params.category);
+
+  const qs = query.toString();
+  return apiClient<AdminFoodListResponse>(qs ? `/admin/foods?${qs}` : "/admin/foods");
 }
 
-export function createFood(payload: CreateFoodRequest, token: string) {
+export function getAdminFoodById(id: string) {
+  return apiClient<Food>(`/admin/foods/${id}`);
+}
+
+export function createFood(payload: CreateFoodRequest, token?: string) {
   return apiClient<Food>("/admin/foods", { method: "POST", token, body: JSON.stringify(payload) });
 }
 
-export function updateFood(id: string, payload: UpdateFoodRequest, token: string) {
+export function updateFood(id: string, payload: UpdateFoodRequest, token?: string) {
   return apiClient<Food>(`/admin/foods/${id}`, { method: "PUT", token, body: JSON.stringify(payload) });
 }
 
-export function deleteFood(id: string, token: string) {
+export function deleteFood(id: string, token?: string) {
   return apiClient<{ message: string }>(`/admin/foods/${id}`, { method: "DELETE", token });
 }

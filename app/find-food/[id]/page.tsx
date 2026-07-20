@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, Info, Scale, Bookmark } from "lucide-react";
 import { getFoodDetailPublic } from "@/internal/services/food.service";
 import { isFoodBookmarked, toggleBookmarkedFood } from "@/internal/lib/cookies";
 import { PortionPhotoViewer } from "@/internal/components/PortionPhotoViewer";
+import { FoodAnnotationSection } from "@/internal/domain/annotation/components/FoodAnnotationSection";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
@@ -155,6 +156,10 @@ function FoodDetailBody() {
             onSelect={handleSelectPhoto}
           />
         </div>
+
+        {/* Area polygon dari Annotation CMS — kartu ini menghilang sendiri
+            bila food ini belum punya gambar published. */}
+        <FoodAnnotationSection foodId={foodId} />
 
         <div className="card animate-slide-up p-6 [animation-delay:80ms]">
           <div className="flex items-center justify-between mb-5 flex-wrap gap-2">

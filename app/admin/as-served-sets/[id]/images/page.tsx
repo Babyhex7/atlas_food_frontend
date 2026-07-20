@@ -1,5 +1,5 @@
-import { PortionSelector } from "@/internal/domain/portion/components/PortionSelector";
+import { AsServedImageManager } from "@/internal/domain/portion/components/AsServedImageManager";
 
 export default function AdminAsServedSetImagesPage() {
-  return <PortionSelector />;
+  return <AsServedImageManager />;
 }

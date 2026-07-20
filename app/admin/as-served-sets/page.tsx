@@ -1,5 +1,5 @@
-import { PortionMethodList } from "@/internal/domain/portion/components/PortionMethodList";
+import { AsServedSetList } from "@/internal/domain/portion/components/AsServedSetList";
 
 export default function AdminAsServedSetsPage() {
-  return <PortionMethodList />;
+  return <AsServedSetList />;
 }
