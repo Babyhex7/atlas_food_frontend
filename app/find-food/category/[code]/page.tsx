@@ -57,8 +57,8 @@ export default function CategoryFoodsPage() {
           </button>
 
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-xl bg-white/15 border-[1.5px] border-white/25 flex items-center justify-center text-[2rem] shrink-0">
-              {category?.icon || "🍽️"}
+            <div className="w-16 h-16 rounded-xl bg-white/15 border-[1.5px] border-white/25 flex items-center justify-center shrink-0">
+              <CategoryIcon code={category?.code} name={category?.name ?? categoryCode} size={32} className="text-white" />
             </div>
             <div>
               <h1 className="text-[clamp(1.5rem,4vw,2.5rem)] font-bold text-white font-sans m-0 mb-1 tracking-[-0.02em]">
@@ -142,7 +142,9 @@ export default function CategoryFoodsPage() {
           {/* Empty */}
           {!isLoading && foods.length === 0 && (
             <div className="text-center p-12">
-              <div className="text-[2.5rem] mb-3">🍽️</div>
+              <div className="flex justify-center mb-3">
+                <CategoryIcon code={categoryCode} name={category?.name} size={40} className="text-text-muted" />
+              </div>
               <p className="text-sm text-text-muted m-0">
                 Belum ada makanan di kategori ini.
               </p>

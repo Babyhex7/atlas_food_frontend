@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { Image as ImageIcon, Info } from "lucide-react";
+import { cn } from "@/internal/lib/cn";
 import type { PortionPhoto } from "@/internal/types/food.types";
 import { getImageUrl, isGuideType, PHOTO_PLACEHOLDER } from "@/internal/lib/image";
 import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
@@ -177,7 +179,11 @@ function SeriesPhotoView({
   };
 
   const activePhoto = photos[activeIndex];
-  const needsScroll = photos.length > 5;
+
+  const handleSelect = (index: number) => {
+    if (controlledIndex === undefined) setInternalIndex(index);
+    onSelect?.(index);
+  };
 
   return (
     <div className="space-y-6">
@@ -261,7 +267,23 @@ function SeriesPhotoView({
               className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow-md border border-border hover:bg-white transition-colors"
               aria-label="Scroll kanan"
             >
-              <ChevronRight className="w-4 h-4" />
+              {photo.thumbnail_url || photo.image_url ? (
+                <img
+                  src={photo.thumbnail_url || photo.image_url}
+                  alt={photo.label}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-surface-alt flex items-center justify-center text-xs text-text-muted font-bold">
+                  {photo.label}
+                </div>
+              )}
+              {isActive && <div className="absolute inset-0 bg-primary/10" />}
+              <div className="absolute bottom-0 inset-x-0 bg-black/60 p-1 text-center">
+                <span className="text-[10px] md:text-xs font-bold text-white leading-none">
+                  {photo.weight_gram}g
+                </span>
+              </div>
             </button>
           )}
 
