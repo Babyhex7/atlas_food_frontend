@@ -59,6 +59,8 @@ export function SurveyForm() {
     enabled: Boolean(surveyId && token),
   });
 
+  // Hidrasi form editor dari record yang dimuat server (sinkronisasi eksternal).
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!existing) return;
     setName(existing.name ?? "");
@@ -74,6 +76,7 @@ export function SurveyForm() {
       setMeals(wrapped.meals ?? DEFAULT_MEALS);
     }
   }, [existing]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleNameChange = (val: string) => {
     setName(val);

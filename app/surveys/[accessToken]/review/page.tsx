@@ -36,6 +36,8 @@ export default function ReviewPage({ params }: { params: { accessToken: string }
         } catch { setAddsOnResults([]); }
       }, 400);
       return () => clearTimeout(t);
+      // Kosongkan hasil bila query terlalu pendek — sinkron dengan input pencarian.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
     } else setAddsOnResults([]);
   }, [addsOnSearch]);
 
@@ -67,7 +69,7 @@ export default function ReviewPage({ params }: { params: { accessToken: string }
               Review your meal
             </h1>
             <p className="text-sm text-text-muted m-0">
-              A detailed breakdown of your meal's nutritional content based on Clinical Vitality standards.
+              A detailed breakdown of your meal&apos;s nutritional content based on Clinical Vitality standards.
             </p>
           </div>
 

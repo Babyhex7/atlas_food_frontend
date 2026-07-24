@@ -79,6 +79,8 @@ export default function SurveyDonePage() {
 
   useEffect(() => {
     const stored = getRecallSession();
+    // Hidrasi sekali dari localStorage saat mount — sinkronisasi dari sistem eksternal.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (stored) setSession(stored);
     const t = setTimeout(() => setShowRecs(true), 500);
     return () => clearTimeout(t);

@@ -167,7 +167,7 @@ export default function SelectMealPage({ params }: { params: { accessToken: stri
           <div className="alert alert-primary">
             <Info size={16} className="shrink-0" />
             <span className="text-xs">
-              Accurately recording your meal times helps us analyze your body's metabolic rhythm with greater precision.
+              Accurately recording your meal times helps us analyze your body&apos;s metabolic rhythm with greater precision.
             </span>
           </div>
         </div>

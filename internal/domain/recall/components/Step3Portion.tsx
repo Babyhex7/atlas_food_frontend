@@ -49,8 +49,9 @@ export function Step3Portion({
   // Load food detail saat food berubah
   useEffect(() => {
     if (!currentFood) return;
-    // Jika sudah punya detail, pakai langsung
+    // Jika sudah punya detail, pakai langsung — sinkron dari data food yang dimuat.
     if (currentFood.detail) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPortionState({
         detail: currentFood.detail,
         loading: false,
