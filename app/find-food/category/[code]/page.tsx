@@ -2,41 +2,52 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Loader2, ChevronRight } from "lucide-react";
+import { ArrowLeft, Loader2, LayoutGrid, List } from "lucide-react";
 import { getFoodsByCategoryPublic, getCategoriesPublic } from "@/internal/services/food.service";
+import { FoodPhotoCard } from "@/internal/components/FoodPhotoCard";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
+import { useState } from "react";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import type { FoodSearchResult } from "@/internal/types/food.types";
+import { isGuideType } from "@/internal/lib/image";
+
+type ViewMode = "grid" | "list";
 
 export default function CategoryFoodsPage() {
-  const params   = useParams();
-  const router   = useRouter();
+  const params = useParams();
+  const router = useRouter();
   const categoryCode = params.code as string;
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const { data: categories = [] } = useQuery({
     queryKey: ["public-categories"],
     queryFn: getCategoriesPublic,
   });
 
-  const { data: foodsResponse, isLoading } = useQuery({
+  // Backend GET /public/categories/:code/foods → {status, data: FoodSearchResult[], count}
+  // food.service.ts sudah return data.data → langsung array
+  const { data: foods = [], isLoading } = useQuery<FoodSearchResult[]>({
     queryKey: ["public-category-foods", categoryCode],
     queryFn: () => getFoodsByCategoryPublic(categoryCode),
   });
 
-  const foods    = foodsResponse?.foods || [];
-  const category = categories.find((c: any) => c.code === categoryCode);
+  const category = categories.find((c: { code: string }) => c.code === categoryCode);
+
+  // Hitung berapa series vs guide
+  const seriesCount = foods.filter((f) => !isGuideType(f.photo_type)).length;
+  const guideCount = foods.filter((f) => isGuideType(f.photo_type)).length;
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)", display: "flex", flexDirection: "column" }}>
+    <div className="min-h-screen bg-background flex flex-col">
       <AppHeader />
 
       {/* ── Hero banner ── */}
       <div className="bg-primary text-white pt-8 pb-16 px-4 relative overflow-hidden">
-        {/* dot pattern */}
         <div className="absolute inset-0 opacity-[0.07] pointer-events-none bg-[radial-gradient(rgba(255,255,255,0.8)_1.5px,transparent_1.5px)] bg-[length:24px_24px]" />
         <div className={cn(CONTAINER_CLASS, "relative z-[1]")}>
-          {/* Back button */}
           <button
             type="button"
             onClick={() => router.back()}
@@ -45,7 +56,6 @@ export default function CategoryFoodsPage() {
             <ArrowLeft size={16} /> Kembali
           </button>
 
-          {/* Category info */}
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-xl bg-white/15 border-[1.5px] border-white/25 flex items-center justify-center text-[2rem] shrink-0">
               {category?.icon || "🍽️"}
@@ -54,9 +64,25 @@ export default function CategoryFoodsPage() {
               <h1 className="text-[clamp(1.5rem,4vw,2.5rem)] font-bold text-white font-sans m-0 mb-1 tracking-[-0.02em]">
                 {category ? category.name : categoryCode}
               </h1>
-              <p className="text-sm text-white/75 m-0">
-                Menampilkan semua makanan dalam kategori ini.
-              </p>
+              <div className="flex items-center gap-3 flex-wrap">
+                <p className="text-sm text-white/75 m-0">
+                  Foto porsi makanan per kategori
+                </p>
+                {!isLoading && foods.length > 0 && (
+                  <div className="flex gap-2">
+                    {seriesCount > 0 && (
+                      <span className="text-[11px] font-semibold bg-white/15 border border-white/25 text-white px-2 py-[2px] rounded-full">
+                        {seriesCount} Series
+                      </span>
+                    )}
+                    {guideCount > 0 && (
+                      <span className="text-[11px] font-semibold bg-amber-400/30 border border-amber-300/40 text-white px-2 py-[2px] rounded-full">
+                        {guideCount} Guide
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -70,16 +96,50 @@ export default function CategoryFoodsPage() {
             <h2 className="text-lg font-semibold text-text-primary m-0">
               Daftar Makanan
             </h2>
-            <span className="badge badge-default">{foods.length} hasil</span>
+            <div className="flex items-center gap-3">
+              <span className="badge badge-default">{foods.length} makanan</span>
+              {/* Toggle tampilan grid/list */}
+              <div className="flex rounded-lg border border-border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid")}
+                  className={cn(
+                    "p-2 transition-colors",
+                    viewMode === "grid"
+                      ? "bg-primary text-white"
+                      : "bg-surface text-text-muted hover:bg-surface-alt"
+                  )}
+                  aria-label="Tampilan grid"
+                  aria-pressed={viewMode === "grid"}
+                >
+                  <LayoutGrid size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  className={cn(
+                    "p-2 transition-colors",
+                    viewMode === "list"
+                      ? "bg-primary text-white"
+                      : "bg-surface text-text-muted hover:bg-surface-alt"
+                  )}
+                  aria-label="Tampilan list"
+                  aria-pressed={viewMode === "list"}
+                >
+                  <List size={15} />
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* States */}
+          {/* Loading */}
           {isLoading && (
             <div className="flex justify-center p-12">
               <Loader2 size={28} className="animate-spin text-primary" />
             </div>
           )}
 
+          {/* Empty */}
           {!isLoading && foods.length === 0 && (
             <div className="text-center p-12">
               <div className="text-[2.5rem] mb-3">🍽️</div>
@@ -89,33 +149,49 @@ export default function CategoryFoodsPage() {
             </div>
           )}
 
-          {!isLoading && foods.length > 0 && (
-            <div className="grid md:grid-cols-2 gap-3">
-              {foods.map((food: any) => (
+          {/* Grid view — FoodPhotoCard */}
+          {!isLoading && foods.length > 0 && viewMode === "grid" && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {foods.map((food) => (
+                <FoodPhotoCard key={food.id} food={food} />
+              ))}
+            </div>
+          )}
+
+          {/* List view — compact row */}
+          {!isLoading && foods.length > 0 && viewMode === "list" && (
+            <div className="flex flex-col gap-2">
+              {foods.map((food) => (
                 <Link
                   key={food.id}
                   href={`/find-food/${food.id}`}
                   className="flex items-center gap-4 p-4 rounded-xl border-[1.5px] border-border bg-surface no-underline transition-base hover:border-primary-border hover:shadow-md hover:-translate-y-px"
                 >
-                  {/* Icon */}
-                  <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center text-xl shrink-0">
-                    {food.category?.icon || category?.icon || "🍲"}
+                  <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center text-xl shrink-0 overflow-hidden">
+                    {food.category?.icon
+                      ? <span>{food.category.icon}</span>
+                      : <span className="text-primary text-sm font-bold">{food.code.split("-")[0]}</span>
+                    }
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-semibold text-text-primary mb-1 mt-0 overflow-hidden text-ellipsis whitespace-nowrap">
                       {food.name}
                     </h3>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs font-mono font-semibold bg-surface-alt text-text-muted py-[1px] px-2 rounded-sm border border-border">
                         {food.code}
                       </span>
-                      {food.photo_type && (
-                        <span className="text-xs text-primary">
-                          · {food.photo_type === "series" ? "Porsi Ukuran" : "Porsi Komparasi"}
-                        </span>
-                      )}
+                      <span
+                        className={cn(
+                          "text-[10px] font-bold px-2 py-[2px] rounded-full uppercase tracking-wider",
+                          isGuideType(food.photo_type)
+                            ? "bg-amber-100 text-amber-700 border border-amber-200"
+                            : "bg-blue-50 text-blue-600 border border-blue-100"
+                        )}
+                      >
+                        {isGuideType(food.photo_type) ? "Guide" : "Series"}
+                      </span>
                     </div>
                   </div>
 
