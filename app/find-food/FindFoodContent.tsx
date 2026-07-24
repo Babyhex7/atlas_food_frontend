@@ -12,6 +12,7 @@ import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
 import { CollabSession, useCollab } from "@/internal/domain/collab";
+import { CategoryIcon } from "@/internal/domain/category/utils/categoryIcon";
 
 function FindFoodBody() {
   const searchParams = useSearchParams();
@@ -104,12 +105,9 @@ function FindFoodBody() {
                   href={`/find-food/category/${cat.code}`}
                   className="flex flex-col items-center gap-2 p-4 rounded-xl border-[1.5px] border-border no-underline text-center transition-base bg-surface hover:border-primary-border hover:bg-primary-light hover:-translate-y-0.5 hover:shadow-sm"
                 >
-                  <span className="text-[2rem] leading-none">
-                    {cat.icon
-                      ? <span>{cat.icon}</span>
-                      : <UtensilsCrossed size={30} className="text-primary" />
-                    }
-                  </span>
+                  <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center">
+                    <CategoryIcon code={cat.code} name={cat.name} size={26} className="text-primary" />
+                  </div>
                   <span className="text-sm font-medium text-text-primary">
                     {cat.name}
                   </span>
@@ -170,10 +168,12 @@ function FindFoodBody() {
                   >
                     {/* Icon */}
                     <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center shrink-0">
-                      {food.category?.icon
-                        ? <span className="text-xl">{food.category.icon}</span>
-                        : <UtensilsCrossed size={20} className="text-primary" />
-                      }
+                      <CategoryIcon
+                        code={food.category?.code}
+                        name={food.category?.name}
+                        size={22}
+                        className="text-primary"
+                      />
                     </div>
 
                     {/* Info */}

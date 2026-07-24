@@ -25,7 +25,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 export default function AddFoodPage({ params }: { params: { accessToken: string } }) {
   const router = useRouter();
-  const { meals, addFoodToMeal } = useSurveyStore();
+  const { meals, addFoodToMeal, removeFoodFromMeal } = useSurveyStore();
   const activeMealId = meals[0]?.id || 'meal-1';
 
   const [foodQuery, setFoodQuery] = useState('');
@@ -134,7 +134,7 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
               <h3 className="text-sm font-semibold text-text-primary m-0">
                 Browse by Category
               </h3>
-              <button type="button" className="text-sm font-semibold text-primary bg-transparent border-none cursor-pointer">
+              <button type="button" onClick={() => router.push('/find-food')} className="text-sm font-semibold text-primary bg-transparent border-none cursor-pointer">
                 Show All
               </button>
             </div>
@@ -143,6 +143,7 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
                 <button
                   key={cat}
                   type="button"
+                  onClick={() => router.push(`/find-food/category/${cat.toLowerCase().replace(/\s+/g, '-')}`)}
                   className="flex flex-col items-center gap-2 p-4 rounded-xl border-[1.5px] border-border bg-surface cursor-pointer transition-base font-sans text-center hover:border-primary-border hover:bg-primary-light hover:-translate-y-0.5"
                 >
                   <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center text-xl">
@@ -174,6 +175,7 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
                     <span className="flex-1 text-sm font-medium text-text-primary">{f.name}</span>
                     <button
                       type="button"
+                      onClick={() => removeFoodFromMeal(activeMealId, f.id)}
                       className="bg-transparent border-none cursor-pointer text-text-muted flex p-1 rounded-sm transition-fast hover:text-danger hover:bg-danger-light"
                     >
                       <X size={14} />
