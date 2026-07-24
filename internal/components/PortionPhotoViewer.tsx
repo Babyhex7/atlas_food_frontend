@@ -4,8 +4,6 @@ import { useState } from "react";
 import { Image as ImageIcon, Info } from "lucide-react";
 import { cn } from "@/internal/lib/cn";
 import type { PortionPhoto } from "@/internal/types/food.types";
-import { getImageUrl, isGuideType, PHOTO_PLACEHOLDER } from "@/internal/lib/image";
-import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 
 interface PortionPhotoViewerProps {
   photos: PortionPhoto[];
@@ -14,170 +12,168 @@ interface PortionPhotoViewerProps {
   onSelect?: (index: number) => void;
 }
 
-// ─── Foto tunggal dengan fallback ─────────────────────────────────────────────
-function PhotoImg({
-  src,
-  alt,
-  className,
+// ── Series layout ────────────────────────────────────────────────────────────
+function SeriesViewer({
+  photos,
+  activeIndex: controlledIndex,
+  onSelect,
 }: {
-  src: string | null | undefined;
-  alt: string;
-  className?: string;
+  photos: PortionPhoto[];
+  activeIndex?: number;
+  onSelect?: (index: number) => void;
 }) {
-  const [errored, setErrored] = useState(false);
-  const resolved = getImageUrl(src);
+  const [internalIndex, setInternalIndex] = useState(0);
+  const activeIndex = controlledIndex !== undefined ? controlledIndex : internalIndex;
 
-  if (!resolved || errored) {
-    return (
-      <div className={`flex flex-col items-center justify-center text-muted-foreground/30 bg-muted/20 ${className ?? ""}`}>
-        <ImageIcon className="w-12 h-12 mb-2" />
-        <span className="text-xs">{alt}</span>
-      </div>
-    );
-  }
+  const handleSelect = (index: number) => {
+    if (controlledIndex === undefined) setInternalIndex(index);
+    onSelect?.(index);
+  };
 
   return (
-    <img
-      src={resolved}
-      alt={alt}
-      className={className}
-      onError={() => setErrored(true)}
-    />
-  );
-}
+    <div className="flex flex-col lg:flex-row gap-5">
+      {/* Left — 2×4 photo grid */}
+      <div className="flex-1 min-w-0">
+        <div className="grid grid-cols-4 gap-3">
+          {photos.map((photo, index) => {
+            const isActive = index === activeIndex;
+            const imgSrc = photo.thumbnail_url || photo.image_url;
 
-// ─── Tampilan Guide (range) — 1 foto besar, semua label sebagai overlay pill ──
-function GuidePhotoView({ photos }: { photos: PortionPhoto[] }) {
-  // Foto guide: semua porsi ada dalam 1 gambar, image_url tiap label sama.
-  // Tampilkan foto pertama sebagai hero, lalu tabel semua porsi di bawah.
-  const guidePhoto = photos[0];
-
-  if (!guidePhoto) return null;
-
-  return (
-    <div className="space-y-5">
-      {/* Badge info */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <LayoutGrid className="w-4 h-4 text-primary" />
-        <span>
-          Foto <span className="font-semibold text-primary">Guide</span> — satu gambar
-          memuat semua <span className="font-semibold">{photos.length}</span> ukuran porsi
-        </span>
-      </div>
-
-      {/* Hero foto guide */}
-      <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
-        <div className="aspect-[4/3] md:aspect-[16/9] bg-muted/10 relative">
-          <PhotoImg
-            src={guidePhoto.image_url}
-            alt={`Guide foto — semua porsi`}
-            className="w-full h-full object-contain animate-fade-in"
-          />
-
-          {/* Overlay semua label porsi */}
-          <div className="absolute top-3 right-3 flex flex-wrap gap-1 justify-end max-w-[60%]">
-            {photos.map((p) => (
-              <span
-                key={p.id}
-                className="inline-flex items-center gap-1 bg-black/70 text-white text-[10px] font-bold px-2 py-[3px] rounded-full leading-none"
+            return (
+              <button
+                key={photo.id}
+                type="button"
+                onClick={() => handleSelect(index)}
+                className={cn(
+                  "relative rounded-xl border-2 overflow-hidden transition-all duration-200 outline-none group bg-surface-alt",
+                  "aspect-square w-full",
+                  isActive
+                    ? "border-primary bg-primary-light shadow-md"
+                    : "border-border hover:border-primary/50"
+                )}
               >
-                <span className="text-primary">{p.label}</span>
-                <span className="text-white/70">·</span>
-                <span>{p.weight_gram}g</span>
-              </span>
-            ))}
-          </div>
+                {imgSrc ? (
+                  <img
+                    src={imgSrc}
+                    alt={`Porsi ${photo.weight_gram}g`}
+                    className="w-full h-full object-contain p-1"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <ImageIcon className="w-6 h-6 text-text-muted/40" />
+                  </div>
+                )}
 
-          {/* Badge tipe */}
-          <div className="absolute bottom-3 left-3">
-            <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-              Guide
-            </span>
-          </div>
+                {/* Weight label */}
+                <div
+                  className={cn(
+                    "absolute bottom-0 inset-x-0 py-1 text-center text-xs font-semibold leading-none",
+                    isActive
+                      ? "bg-primary text-white"
+                      : "bg-black/50 text-white group-hover:bg-primary/80"
+                  )}
+                >
+                  {photo.weight_gram}g
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Tabel porsi */}
-      <div>
-        <p className="text-sm font-medium text-muted-foreground mb-3">
-          Semua ukuran porsi dalam foto ini:
-        </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-          {photos.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-center gap-3 p-3 rounded-xl border border-border bg-surface-alt"
-            >
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-                <span className="text-white text-xs font-bold">{p.label}</span>
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-text-primary m-0 leading-none mb-[3px]">
-                  {p.weight_gram}g
-                </p>
-                {p.description && (
-                  <p className="text-[11px] text-text-muted m-0 overflow-hidden text-ellipsis whitespace-nowrap">
-                    {p.description}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
+      {/* Right — portion data table + tip */}
+      <div className="lg:w-64 xl:w-72 flex flex-col gap-4 shrink-0">
+        {/* Portion table card */}
+        <div className="rounded-xl border border-border bg-white shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-border bg-surface-alt">
+            <h3 className="text-sm font-semibold text-text-primary m-0">Data Porsi</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-text-muted w-8">
+                    Kode
+                  </th>
+                  <th className="px-3 py-2 text-right text-xs font-semibold text-text-muted">
+                    Berat (g)
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-text-muted">
+                    Keterangan
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {photos.map((photo, index) => {
+                  const isActive = index === activeIndex;
+                  return (
+                    <tr
+                      key={photo.id}
+                      onClick={() => handleSelect(index)}
+                      className={cn(
+                        "cursor-pointer transition-colors border-b border-border last:border-0",
+                        isActive
+                          ? "bg-primary-light"
+                          : "hover:bg-surface-alt"
+                      )}
+                    >
+                      <td
+                        className={cn(
+                          "px-3 py-2 font-mono font-bold text-xs",
+                          isActive ? "text-primary" : "text-text-secondary"
+                        )}
+                      >
+                        {photo.label}
+                      </td>
+                      <td
+                        className={cn(
+                          "px-3 py-2 text-right font-semibold tabular-nums",
+                          isActive ? "text-primary" : "text-text-primary"
+                        )}
+                      >
+                        {photo.weight_gram}
+                      </td>
+                      <td className="px-3 py-2 text-text-secondary text-xs leading-snug">
+                        {photo.description || `Porsi ${photo.label}`}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Usage tip */}
+        <div className="rounded-xl border border-border bg-white shadow-sm p-4 flex gap-3">
+          <Info size={16} className="text-primary shrink-0 mt-[1px]" />
+          <div>
+            <p className="text-xs font-semibold text-text-primary mb-1">
+              Cara Menggunakan Foto Series
+            </p>
+            <p className="text-xs text-text-secondary leading-relaxed m-0">
+              Gunakan grid porsi di atas untuk membandingkan porsi aktual yang dikonsumsi dengan
+              referensi visual kami, untuk estimasi berat terakurat.
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Tampilan Series — foto terpisah per ukuran, thumbnail scrollable ─────────
-function SeriesPhotoView({
+// ── Range layout (unchanged scrollable thumbnails) ───────────────────────────
+function RangeViewer({
   photos,
-  activeIndex,
+  activeIndex: controlledIndex,
   onSelect,
 }: {
   photos: PortionPhoto[];
-  activeIndex: number;
-  onSelect: (i: number) => void;
+  activeIndex?: number;
+  onSelect?: (index: number) => void;
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeft, setShowLeft] = useState(false);
-  const [showRight, setShowRight] = useState(false);
-
-  const checkArrows = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setShowLeft(el.scrollLeft > 8);
-    setShowRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
-  }, []);
-
-  useEffect(() => {
-    checkArrows();
-    const el = scrollRef.current;
-    if (!el) return;
-    el.addEventListener("scroll", checkArrows, { passive: true });
-    window.addEventListener("resize", checkArrows);
-    return () => {
-      el.removeEventListener("scroll", checkArrows);
-      window.removeEventListener("resize", checkArrows);
-    };
-  }, [checkArrows, photos]);
-
-  // Scroll thumbnail aktif ke tengah saat berubah
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const thumb = el.children[activeIndex] as HTMLElement | undefined;
-    if (thumb) {
-      thumb.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-    }
-  }, [activeIndex]);
-
-  const scrollBy = (dir: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollBy({ left: dir === "left" ? -(el.clientWidth * 0.6) : el.clientWidth * 0.6, behavior: "smooth" });
-  };
-
+  const [internalIndex, setInternalIndex] = useState(0);
+  const activeIndex = controlledIndex !== undefined ? controlledIndex : internalIndex;
   const activePhoto = photos[activeIndex];
 
   const handleSelect = (index: number) => {
@@ -186,86 +182,49 @@ function SeriesPhotoView({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Main foto aktif */}
+    <div className="space-y-5">
+      {/* Main focus photo */}
       <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
         <div className="aspect-[4/3] md:aspect-[16/9] bg-muted/10 relative">
-          <PhotoImg
-            src={activePhoto?.image_url}
-            alt={activePhoto?.label ?? "foto porsi"}
-            className="w-full h-full object-contain animate-fade-in"
-          />
-
-          {/* Navigasi panah kiri/kanan pada foto utama */}
-          {activeIndex > 0 && (
-            <button
-              type="button"
-              onClick={() => onSelect(activeIndex - 1)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 text-white border border-white/20 hover:bg-black/70 transition-colors"
-              aria-label="Foto sebelumnya"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-          )}
-          {activeIndex < photos.length - 1 && (
-            <button
-              type="button"
-              onClick={() => onSelect(activeIndex + 1)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 text-white border border-white/20 hover:bg-black/70 transition-colors"
-              aria-label="Foto berikutnya"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          )}
-
-          {/* Overlay info porsi aktif */}
-          {activePhoto && (
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 md:p-6">
-              <div className="flex items-end justify-between">
-                <div>
-                  <h3 className="text-white font-sans font-bold text-2xl md:text-3xl mb-1">
-                    {activePhoto.label} &middot; {activePhoto.weight_gram} gram
-                  </h3>
-                  <p className="text-white/80 text-sm md:text-base">
-                    {activePhoto.description || `Porsi ${activePhoto.label}`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-white/60 text-xs">
-                    {activeIndex + 1}/{photos.length}
-                  </span>
-                  <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                    Series
-                  </span>
-                </div>
-              </div>
+          {activePhoto.image_url ? (
+            <img
+              key={activePhoto.id}
+              src={activePhoto.image_url}
+              alt={activePhoto.label}
+              className="w-full h-full object-contain animate-fade-in"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/30">
+              <ImageIcon className="w-16 h-16 mb-2" />
+              <span>[Gambar {activePhoto.label} tidak tersedia]</span>
             </div>
           )}
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 md:p-6">
+            <h3 className="text-white font-bold text-2xl md:text-3xl mb-1">
+              {activePhoto.label} · {activePhoto.weight_gram} gram
+            </h3>
+            <p className="text-white/80 text-sm md:text-base">
+              {activePhoto.description || `Porsi ${activePhoto.label}`}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Thumbnail strip */}
-      <div>
-        <p className="text-sm font-medium text-muted-foreground mb-3">
-          Pilih ukuran porsi:
-        </p>
-        <div className="relative">
-          {needsScroll && showLeft && (
+      <div className="grid gap-3 grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {photos.map((photo, index) => {
+          const isActive = index === activeIndex;
+          return (
             <button
+              key={photo.id}
               type="button"
-              onClick={() => scrollBy("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow-md border border-border hover:bg-white transition-colors"
-              aria-label="Scroll kiri"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          )}
-          {needsScroll && showRight && (
-            <button
-              type="button"
-              onClick={() => scrollBy("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow-md border border-border hover:bg-white transition-colors"
-              aria-label="Scroll kanan"
+              onClick={() => handleSelect(index)}
+              className={cn(
+                "relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 outline-none",
+                isActive
+                  ? "border-primary ring-4 ring-primary/20 shadow-md scale-105 z-10"
+                  : "border-transparent hover:border-primary/50 opacity-70 hover:opacity-100"
+              )}
             >
               {photo.thumbnail_url || photo.image_url ? (
                 <img
@@ -285,89 +244,34 @@ function SeriesPhotoView({
                 </span>
               </div>
             </button>
-          )}
-
-          <div
-            ref={scrollRef}
-            className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth hide-scrollbar"
-          >
-            {photos.map((photo, index) => {
-              const isActive = index === activeIndex;
-              return (
-                <button
-                  key={photo.id}
-                  type="button"
-                  onClick={() => onSelect(index)}
-                  className={`relative shrink-0 snap-center rounded-xl overflow-hidden border-2 transition-all duration-300 outline-none w-24 h-24 md:w-32 md:h-32 ${
-                    isActive
-                      ? "border-primary ring-4 ring-primary/20 scale-105 z-10 shadow-md"
-                      : "border-transparent hover:border-primary/50 opacity-70 hover:opacity-100"
-                  }`}
-                  aria-label={`Porsi ${photo.label} — ${photo.weight_gram}g`}
-                  aria-pressed={isActive}
-                >
-                  <PhotoImg
-                    src={photo.thumbnail_url || photo.image_url}
-                    alt={photo.label}
-                    className="w-full h-full object-cover"
-                  />
-
-                  {isActive && <div className="absolute inset-0 bg-primary/10" />}
-
-                  {/* Label + berat */}
-                  <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1 py-[3px] flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-primary leading-none">
-                      {photo.label}
-                    </span>
-                    <span className="text-[10px] font-semibold text-white leading-none">
-                      {photo.weight_gram}g
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-// ─── Public API ───────────────────────────────────────────────────────────────
+// ── Public component ─────────────────────────────────────────────────────────
 export function PortionPhotoViewer({
   photos,
   photoType,
-  activeIndex: controlledIndex,
+  activeIndex,
   onSelect,
 }: PortionPhotoViewerProps) {
-  const [internalIndex, setInternalIndex] = useState(0);
-  const activeIndex = controlledIndex !== undefined ? controlledIndex : internalIndex;
-
-  const handleSelect = (index: number) => {
-    if (controlledIndex === undefined) setInternalIndex(index);
-    onSelect?.(index);
-  };
-
   if (!photos || photos.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed border-border">
         <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-20" />
-        <p className="text-sm">Belum ada foto panduan porsi untuk makanan ini.</p>
+        <p>Belum ada foto panduan porsi untuk makanan ini.</p>
       </div>
     );
   }
 
-  // "range" = guide image (satu foto semua ukuran)
-  if (isGuideType(photoType)) {
-    return <GuidePhotoView photos={photos} />;
+  if (photoType === "series") {
+    return (
+      <SeriesViewer photos={photos} activeIndex={activeIndex} onSelect={onSelect} />
+    );
   }
 
-  // "series" = foto terpisah per ukuran
-  return (
-    <SeriesPhotoView
-      photos={photos}
-      activeIndex={activeIndex}
-      onSelect={handleSelect}
-    />
-  );
+  return <RangeViewer photos={photos} activeIndex={activeIndex} onSelect={onSelect} />;
 }
