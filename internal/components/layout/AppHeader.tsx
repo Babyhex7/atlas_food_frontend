@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, User, LogOut } from "lucide-react";
+import { Search, User, LogOut, ClipboardList } from "lucide-react";
 import { useAuth } from "@/internal/domain/auth/hooks/useAuth";
 import { useLogout } from "@/internal/domain/auth/hooks/useLogout";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
@@ -10,6 +10,7 @@ import { cn } from "@/internal/lib/cn";
 
 const NAV_ITEMS = [
   { href: "/find-food", icon: Search, label: "Find Your Food" },
+  { href: "/surveys", icon: ClipboardList, label: "Survey Recall" },
   { href: "/profile", icon: User, label: "Profil" },
 ];
 

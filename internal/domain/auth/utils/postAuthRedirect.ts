@@ -1,7 +1,8 @@
 import type { AuthRole } from "../constants/authRoles";
 
 export function getPostAuthPath(role: AuthRole): string {
-  return role === "admin" ? "/admin/surveys" : "/profile";
+  // Admin masuk ke panel survey; responden diarahkan ke hub Survey Recall 24 Jam
+  return role === "admin" ? "/admin/surveys" : "/surveys";
 }
 
 const BLOCKED_REDIRECT_PREFIXES = ["/login", "/register"];
