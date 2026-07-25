@@ -64,6 +64,14 @@ export function getPublicSurvey(accessToken: string) {
   return apiClient<Survey>(`/survey/${accessToken}/info`);
 }
 
-export function joinSurvey(accessToken: string) {
-  return apiClient<JoinSurveyResponse>(`/survey/access`, { method: "POST", body: JSON.stringify({ token: accessToken }) });
+/** Join survey aktif setelah login — prefer survey_id (tanpa share link). */
+export function joinSurvey(opts: { surveyId?: string; accessToken?: string; alias?: string }) {
+  const body: Record<string, string> = {};
+  if (opts.surveyId) body.survey_id = opts.surveyId;
+  if (opts.accessToken) body.token = opts.accessToken;
+  if (opts.alias) body.alias = opts.alias;
+  return apiClient<JoinSurveyResponse>(`/survey/access`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }

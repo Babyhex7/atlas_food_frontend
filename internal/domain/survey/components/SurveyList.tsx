@@ -6,11 +6,10 @@ import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { EmptyState } from "@/internal/pkg/components/EmptyState";
 import { Button } from "@/internal/pkg/components/Button";
-import { cn } from "@/internal/lib/cn";
 import { getAccessToken } from "@/internal/lib/cookies";
 import { getSurveys, deleteSurvey } from "../services/surveyService";
 import type { Survey } from "../types/survey";
-import { Copy, Check, ExternalLink, Pencil, Trash2, FileText, Plus, AlertTriangle, ClipboardList, X } from "lucide-react";
+import { Pencil, Trash2, FileText, Plus, AlertTriangle, ClipboardList, X } from "lucide-react";
 
 const STATUS_CLASS: Record<string, string> = {
   active: "badge-success",
@@ -32,7 +31,6 @@ export function SurveyList() {
   const queryClient = useQueryClient();
   const token = getAccessToken() ?? "";
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [copyMsg, setCopyMsg] = useState<string | null>(null);
 
   const { data: surveys = [], isLoading, isError } = useQuery<Survey[]>({
     queryKey: ["admin-surveys"],
@@ -47,14 +45,6 @@ export function SurveyList() {
       setConfirmDeleteId(null);
     },
   });
-
-  const handleCopyLink = (survey: Survey) => {
-    const url = `${window.location.origin}/surveys/${survey.access_token}/join`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopyMsg(survey.id);
-      setTimeout(() => setCopyMsg(null), 2000);
-    });
-  };
 
   if (isLoading) {
     return (
@@ -78,14 +68,13 @@ export function SurveyList() {
 
   return (
     <div className="p-6 px-8">
-      {/* Page header */}
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-text-primary mt-0 mb-1">
             Survey
           </h1>
           <p className="text-sm text-text-muted m-0">
-            {surveys.length} survey ditemukan
+            {surveys.length} survey ditemukan · Responden login lalu buka menu Survey Recall
           </p>
         </div>
         <Button onClick={() => router.push("/admin/surveys/new")}>
@@ -108,7 +97,6 @@ export function SurveyList() {
               className="card p-5 transition-base hover:border-primary-border hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-4 flex-wrap">
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 flex-wrap mb-1">
                     <h2 className="text-base font-semibold text-text-primary m-0 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -131,28 +119,7 @@ export function SurveyList() {
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-                  {survey.access_token && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopyLink(survey)}
-                      className={cn(
-                        "inline-flex items-center gap-1 py-1.5 px-3 rounded-md border-[1.5px] border-border bg-surface text-xs font-medium cursor-pointer transition-fast font-sans hover:border-primary-border hover:text-primary",
-                        copyMsg === survey.id ? "text-success" : "text-text-muted"
-                      )}
-                    >
-                      {copyMsg === survey.id ? <><Check size={12} /> Tersalin</> : <><Copy size={12} /> Salin Link</>}
-                    </button>
-                  )}
-                  {survey.access_token && (
-                    <Link
-                      href={`/surveys/${survey.access_token}/join`}
-                      className="inline-flex items-center gap-1 py-1.5 px-3 rounded-md bg-primary-light text-primary border-[1.5px] border-primary-border text-xs font-semibold no-underline transition-fast hover:bg-primary-muted"
-                    >
-                      <ExternalLink size={12} /> Coba Join
-                    </Link>
-                  )}
                   <Link
                     href={`/admin/surveys/${survey.id}/submissions`}
                     className="inline-flex items-center gap-1 py-1.5 px-3 rounded-md border-[1.5px] border-border bg-surface text-text-muted text-xs font-medium no-underline transition-fast hover:border-primary-border hover:text-primary"
@@ -179,7 +146,6 @@ export function SurveyList() {
         </div>
       )}
 
-      {/* Delete confirm modal */}
       {confirmDeleteId && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setConfirmDeleteId(null); }}>
           <div className="modal modal-sm">

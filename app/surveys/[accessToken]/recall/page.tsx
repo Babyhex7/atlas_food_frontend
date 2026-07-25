@@ -30,7 +30,7 @@ export default function RecallPage() {
       const session = getRecallSession();
       if (!session?.survey_id || session.access_token !== accessToken) {
         if (!cancelled) setGate('redirecting');
-        router.replace(`/surveys/${accessToken}/join`);
+        router.replace("/surveys");
         return;
       }
 

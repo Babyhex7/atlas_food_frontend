@@ -244,7 +244,7 @@ export default function SurveyDonePage() {
           </Link>
           <button
             type="button"
-            onClick={() => { clearRecallSession(); router.push(`/surveys/${accessToken}/join`); }}
+            onClick={() => { clearRecallSession(); router.push("/surveys"); }}
             className="inline-flex items-center gap-2 py-3 px-5 rounded-lg bg-primary text-white font-semibold text-sm border-none cursor-pointer transition-base hover:bg-primary-hover"
           >
             <RefreshCw size={15} /> Isi Survey Lagi

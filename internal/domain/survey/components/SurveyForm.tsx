@@ -11,7 +11,7 @@ import { getSurveyById, createSurvey, updateSurvey } from "../services/surveySer
 import { surveyStatuses, type SurveyStatus } from "../constants/surveyStatus";
 import { surveyValidation } from "../schemas/surveySchema";
 import type { MealConfig, CreateSurveyRequest, UpdateSurveyRequest } from "../types/survey";
-import { ArrowLeft, Plus, X, CheckCircle, AlertCircle, Link as LinkIcon } from "lucide-react";
+import { ArrowLeft, Plus, X, CheckCircle, AlertCircle, Info } from "lucide-react";
 
 const DEFAULT_MEALS: MealConfig[] = [
   { name: "Breakfast", time: "07:00", order: 1 },
@@ -249,14 +249,14 @@ export function SurveyForm() {
             </div>
           )}
 
-          {/* Access token info */}
-          {isEdit && existing?.access_token && (
+          {isEdit && existing?.status === "active" && (
             <div className="alert alert-info text-xs">
-              <LinkIcon size={14} className="shrink-0" />
+              <Info size={14} className="shrink-0" />
               <div>
-                <span className="font-semibold block mb-0.5">Link Survey untuk Responden</span>
-                <span className="font-mono break-all">
-                  {typeof window !== "undefined" ? window.location.origin : ""}/surveys/{existing.access_token}/join
+                <span className="font-semibold block mb-0.5">Cara responden ikut</span>
+                <span>
+                  Responden login, lalu buka menu <strong>Survey Recall</strong> dan pilih survey ini.
+                  Tidak perlu bagikan link undangan.
                 </span>
               </div>
             </div>

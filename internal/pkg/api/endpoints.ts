@@ -14,8 +14,9 @@ export const apiEndpoints = {
     cloneSurvey: (id: string) => `/admin/surveys/${id}/clone`,
   },
   publicSurvey: {
-    detail: (accessToken: string) => `/surveys/${accessToken}`,
-    join: (accessToken: string) => `/surveys/${accessToken}/join`,
+    /** Hub daftar survey aktif (login wajib) */
+    hub: "/surveys",
+    recall: (accessToken: string) => `/surveys/${accessToken}/recall`,
   },
   // Public endpoints (tanpa auth, untuk respondent)
   public: {

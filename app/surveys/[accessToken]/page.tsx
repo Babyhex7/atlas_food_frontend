@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 
-export default function SurveyIndexPage({ params }: { params: { accessToken: string } }) {
-  redirect(`/surveys/${params.accessToken}/join`);
+/** Token URL lama → hub survey (login + pilih survey aktif). */
+export default function SurveyIndexPage() {
+  redirect('/surveys');
 }
