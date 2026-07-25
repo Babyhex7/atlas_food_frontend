@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Check, HelpCircle, Lightbulb } from "lucide-react";
+import { ArrowLeft, Check, Lightbulb } from "lucide-react";
 import { Step1SelectMeal } from "./Step1SelectMeal";
 import { Step2AddFood } from "./Step2AddFood";
 import { Step3Portion } from "./Step3Portion";
@@ -122,17 +122,9 @@ export function RecallWizard() {
           Kembali
         </button>
 
-        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
+        <span className="min-w-[7rem] text-right text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
           {isDone ? "Hasil" : `Langkah ${currentStepNumber} dari ${totalSteps}`}
         </span>
-
-        <button
-          type="button"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border-strong text-text-muted transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          aria-label="Bantuan"
-        >
-          <HelpCircle aria-hidden className="h-4 w-4" />
-        </button>
       </header>
 
       {/* ── Progress ───────────────────────────────────────────────────────── */}

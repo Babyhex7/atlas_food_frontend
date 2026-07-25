@@ -1,16 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getRecallSession, clearRecallSession } from "@/internal/domain/recall/services/recallStorage";
+import {
+  CheckCircle2,
+  Flame,
+  Drumstick,
+  Wheat,
+  Droplets,
+  RefreshCw,
+  Search,
+  User,
+  UtensilsCrossed,
+} from "lucide-react";
+import {
+  clearRecallSession,
+  getRecallSession,
+} from "@/internal/domain/recall/services/recallStorage";
 import type { RecallSession } from "@/internal/domain/recall/types/recall";
+import { calcNutrientsForPortion } from "@/internal/domain/recall/utils/nutrients";
+import {
+  Button,
+  Card,
+  CardLabel,
+  StepHeader,
+} from "@/internal/domain/recall/components/ui/Primitives";
+import { AiRecommendationPanel } from "@/internal/domain/ai";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
-import { CheckCircle, RefreshCw, Search, User } from "lucide-react";
 
-/* ── Nutrient helpers ──────────────────────────────────── */
 type DailyTotals = { energy: number; protein: number; carbs: number; fat: number };
 
 function calcDailyTotals(session: RecallSession | null): DailyTotals {
@@ -18,239 +38,165 @@ function calcDailyTotals(session: RecallSession | null): DailyTotals {
   if (!session) return t;
   for (const meal of session.meals) {
     for (const rf of meal.foods) {
-      const g = rf.portion?.portion_gram ?? 0;
-      const n = rf.detail?.nutrients;
-      if (n && g > 0) {
-        const f = g / 100;
-        t.energy  += (n["energy"]?.value  ?? 0) * f;
-        t.protein += (n["protein"]?.value ?? 0) * f;
-        t.carbs   += (n["carbs"]?.value   ?? 0) * f;
-        t.fat     += (n["fat"]?.value     ?? 0) * f;
-      }
+      const n = calcNutrientsForPortion(rf.detail?.nutrients, rf.portion?.portion_gram ?? 0);
+      t.energy += n.energy;
+      t.protein += n.protein;
+      t.carbs += n.carbs;
+      t.fat += n.fat;
     }
   }
-  return { energy: Math.round(t.energy), protein: Math.round(t.protein * 10) / 10, carbs: Math.round(t.carbs * 10) / 10, fat: Math.round(t.fat * 10) / 10 };
+  return {
+    energy: Math.round(t.energy),
+    protein: Math.round(t.protein * 10) / 10,
+    carbs: Math.round(t.carbs * 10) / 10,
+    fat: Math.round(t.fat * 10) / 10,
+  };
 }
 
-/* ── AI Recommendations ────────────────────────────────── */
-type Rec = { icon: string; title: string; reason: string; foods: string[]; priority: "high" | "medium" | "low" };
-
-function generateRecs(session: RecallSession | null): Rec[] {
-  if (!session) return [];
-  const allFoods = session.meals.flatMap((m) => m.foods);
-  const names = allFoods.map((f) => f.food.name.toLowerCase());
-  let energy = 0, protein = 0, fat = 0;
-  for (const rf of allFoods) {
-    const g = rf.portion?.portion_gram ?? 0;
-    const n = rf.detail?.nutrients;
-    if (n && g > 0) {
-      const f = g / 100;
-      energy  += (n["energy"]?.value  ?? 0) * f;
-      protein += (n["protein"]?.value ?? 0) * f;
-      fat     += (n["fat"]?.value     ?? 0) * f;
-    }
-  }
-  const recs: Rec[] = [];
-  if (protein < 40) recs.push({ icon: "🥩", title: "Tingkatkan Asupan Protein", reason: `Asupan protein Anda sekitar ${protein.toFixed(0)}g, di bawah kebutuhan harian (50–60g).`, foods: ["Ayam Goreng", "Telur Rebus", "Ikan Bandeng", "Tahu", "Tempe"], priority: "high" });
-  if (energy > 0 && energy < 1200) recs.push({ icon: "⚡", title: "Tambah Sumber Energi", reason: `Total energi Anda sekitar ${energy.toFixed(0)} kcal. Pertimbangkan menambah porsi makanan pokok.`, foods: ["Nasi Putih", "Kentang Rebus", "Roti Gandum"], priority: "high" });
-  const hasVeg = names.some((n) => ["sayur", "kangkung", "bayam", "wortel", "brokoli"].some((v) => n.includes(v)));
-  if (!hasVeg) recs.push({ icon: "🥦", title: "Tambahkan Lebih Banyak Sayuran", reason: "Tidak terdeteksi sayuran. Sayuran penting untuk serat, vitamin, dan mineral.", foods: ["Kangkung Rebus", "Bayam Kukus", "Wortel", "Brokoli"], priority: "high" });
-  const hasFruit = names.some((n) => ["pisang", "apel", "jeruk", "mangga", "pepaya"].some((v) => n.includes(v)));
-  if (!hasFruit) recs.push({ icon: "🍌", title: "Konsumsi Buah Setiap Hari", reason: "Tidak terdeteksi buah. Buah kaya vitamin C, serat, dan antioksidan.", foods: ["Pisang", "Pepaya", "Jeruk", "Apel"], priority: "medium" });
-  if (fat > 80) recs.push({ icon: "🫒", title: "Kurangi Asupan Lemak Jenuh", reason: `Asupan lemak Anda sekitar ${fat.toFixed(0)}g, melampaui batas (<65g/hari).`, foods: ["Ikan Kukus", "Ayam Rebus", "Tahu Kukus"], priority: "medium" });
-  const hasDrink = allFoods.some((f) => f.food_type === "drink");
-  if (!hasDrink) recs.push({ icon: "💧", title: "Jangan Lupa Minum Air", reason: "Tidak terdeteksi minuman. Minum minimal 8 gelas air putih per hari.", foods: ["Air Putih", "Air Kelapa", "Teh Tanpa Gula"], priority: "medium" });
-  return recs.sort((a, b) => ({ high: 0, medium: 1, low: 2 }[a.priority] - { high: 0, medium: 1, low: 2 }[b.priority]));
-}
-
-const PRIORITY_BORDER_CLASS: Record<string, string> = { high: "border-danger-border", medium: "border-warning-border", low: "border-info-border" };
-const PRIORITY_BG_CLASS:     Record<string, string> = { high: "bg-danger-light",  medium: "bg-warning-light",  low: "bg-info-light"  };
-const PRIORITY_BADGE:  Record<string, string> = { high: "badge-danger",               medium: "badge-warning",               low: "badge-info"               };
-const PRIORITY_LABEL:  Record<string, string> = { high: "Prioritas Tinggi",           medium: "Prioritas Sedang",            low: "Saran Tambahan"           };
-
-/* ── Page ──────────────────────────────────────────────── */
 export default function SurveyDonePage() {
-  const router  = useRouter();
-  const params  = useParams();
-  const accessToken = Array.isArray(params.accessToken) ? params.accessToken[0] : (params.accessToken ?? "");
-
-  const [session,  setSession]  = useState<RecallSession | null>(null);
-  const [showRecs, setShowRecs] = useState(false);
+  const router = useRouter();
+  const [session, setSession] = useState<RecallSession | null>(null);
 
   useEffect(() => {
-    const stored = getRecallSession();
-    // Hidrasi sekali dari localStorage saat mount — sinkronisasi dari sistem eksternal.
+    // Hidrasi sekali dari localStorage saat mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (stored) setSession(stored);
-    const t = setTimeout(() => setShowRecs(true), 500);
-    return () => clearTimeout(t);
+    setSession(getRecallSession());
   }, []);
 
-  const totals    = calcDailyTotals(session);
-  const recs      = generateRecs(session);
-  const hasNutr   = totals.energy > 0 || totals.protein > 0;
+  const totals = calcDailyTotals(session);
+  const hasNutr = totals.energy > 0 || totals.protein > 0;
   const mealCount = session?.meals.filter((m) => m.foods.length > 0).length ?? 0;
   const foodCount = session?.meals.flatMap((m) => m.foods).length ?? 0;
+  const filledMeals = session?.meals.filter((m) => m.foods.length > 0) ?? [];
 
-  const NUTRIENT_TILES = [
-    { label: "Energi",      value: totals.energy,  unit: "kcal", icon: "⚡", borderClass: "border-warning-border", bgClass: "bg-warning-light", textClass: "text-warning" },
-    { label: "Protein",     value: totals.protein, unit: "g",    icon: "🥩", borderClass: "border-danger-border",  bgClass: "bg-danger-light",  textClass: "text-danger"  },
-    { label: "Karbohidrat", value: totals.carbs,   unit: "g",    icon: "🍚", borderClass: "border-warning-border", bgClass: "bg-[#fffbeb]",     textClass: "text-[#b45309]" },
-    { label: "Lemak",       value: totals.fat,     unit: "g",    icon: "🫒", borderClass: "border-info-border",    bgClass: "bg-info-light",    textClass: "text-info"    },
+  const nutrientTiles = [
+    { label: "Energi", value: totals.energy, unit: "kkal", icon: Flame, tone: "text-warning" },
+    { label: "Protein", value: totals.protein, unit: "g", icon: Drumstick, tone: "text-danger" },
+    { label: "Karbohidrat", value: totals.carbs, unit: "g", icon: Wheat, tone: "text-primary" },
+    { label: "Lemak", value: totals.fat, unit: "g", icon: Droplets, tone: "text-info" },
   ];
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)", display: "flex", flexDirection: "column" }}>
+    <div className="flex min-h-svh flex-col bg-background">
       <AppHeader />
 
-      <div className={cn(CONTAINER_CLASS, "flex-1 pt-10 pb-10")}>
-
-        {/* ── Success banner ── */}
-        <div className="bg-[linear-gradient(135deg,#f0fdf4_0%,#dcfce7_100%)] border border-[#bbf7d0] rounded-2xl p-8 text-center mb-6 shadow-sm">
-          <CheckCircle size={48} className="text-[#16a34a] mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-[#15803d] mb-2 mt-0">
-            Survey Berhasil Dikumpulkan!
-          </h1>
-          <p className="text-sm text-[#166534] mb-6 mx-auto max-w-[480px]">
-            Terima kasih{session?.respondent_name ? `, ${session.respondent_name}` : ""}! Data recall makanan Anda telah berhasil disimpan.
-          </p>
-          <div className="flex justify-center gap-8 flex-wrap">
-            {[{ label: "Waktu Makan", value: mealCount }, { label: "Item Makanan", value: foodCount }, ...(hasNutr ? [{ label: "Total Energi (kcal)", value: totals.energy }] : [])].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-2xl font-bold text-[#15803d]">{stat.value}</div>
-                <div className="text-xs text-[#166534]">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Nutrition summary ── */}
-        {hasNutr && (
-          <div className="card p-6 mb-6">
-            <h2 className="text-base font-semibold text-text-primary mb-4 mt-0">
-              📊 Ringkasan Gizi Hari Ini
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {NUTRIENT_TILES.map((tile) => (
-                <div
-                  key={tile.label}
-                  className={cn("p-4 rounded-xl text-center border", tile.borderClass, tile.bgClass)}
-                >
-                  <div className="text-[1.75rem] mb-1">{tile.icon}</div>
-                  <div className={cn("text-xl font-bold", tile.textClass)}>{tile.value}</div>
-                  <div className={cn("text-xs font-medium", tile.textClass)}>{tile.unit}</div>
-                  <div className={cn("text-xs mt-0.5 opacity-75", tile.textClass)}>{tile.label}</div>
+      <div className={cn(CONTAINER_CLASS, "flex-1 py-8 sm:py-10")}>
+        <div className="mx-auto flex w-full max-w-[45rem] flex-col gap-6">
+          {/* ── Sukses ─────────────────────────────────────────────────── */}
+          <section className="flex flex-col items-center gap-4 rounded-xl border border-success-border bg-success-light px-5 py-8 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-surface">
+              <CheckCircle2 aria-hidden className="h-7 w-7 text-success" />
+            </span>
+            <StepHeader
+              centered
+              title="Survey berhasil dikumpulkan"
+              subtitle={`Terima kasih${
+                session?.respondent_name ? `, ${session.respondent_name}` : ""
+              }! Data recall makanan Anda sudah tersimpan.`}
+            />
+            <dl className="flex flex-wrap justify-center gap-6">
+              {[
+                { label: "Waktu makan", value: mealCount },
+                { label: "Item makanan", value: foodCount },
+                ...(hasNutr ? [{ label: "Energi (kkal)", value: totals.energy }] : []),
+              ].map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.07em] text-success">
+                    {stat.label}
+                  </dt>
+                  <dd className="mt-1 font-mono text-xl font-bold text-success">{stat.value}</dd>
                 </div>
               ))}
-            </div>
-          </div>
-        )}
+            </dl>
+          </section>
 
-        {/* ── AI Recommendations ── */}
-        <div className={cn("transition-[opacity,transform] duration-500 mb-6", showRecs ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3")}>
-          {recs.length > 0 && (
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-full bg-primary-light flex items-center justify-center text-base">💡</div>
-                <div>
-                  <h2 className="text-base font-semibold text-text-primary m-0">
-                    Rekomendasi Berdasarkan Data Anda
-                  </h2>
-                  <p className="text-xs text-text-muted m-0">
-                    Berdasarkan analisis pola makan Anda hari ini
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-col gap-3">
-                {recs.map((rec, i) => (
+          {/* ── Ringkasan gizi ─────────────────────────────────────────── */}
+          {hasNutr ? (
+            <Card>
+              <CardLabel>Ringkasan gizi hari ini</CardLabel>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {nutrientTiles.map(({ label, value, unit, icon: Icon, tone }) => (
                   <div
-                    key={i}
-                    className={cn("border rounded-xl p-5 shadow-xs", PRIORITY_BORDER_CLASS[rec.priority], PRIORITY_BG_CLASS[rec.priority])}
+                    key={label}
+                    className="rounded-lg border border-border bg-surface-alt p-3 text-center"
                   >
-                    <div className="flex gap-4 items-start">
-                      <span className="text-[1.75rem] shrink-0">{rec.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <h3 className="text-sm font-semibold text-text-primary m-0">{rec.title}</h3>
-                          <span className={`badge ${PRIORITY_BADGE[rec.priority]}`}>{PRIORITY_LABEL[rec.priority]}</span>
-                        </div>
-                        <p className="text-xs text-text-muted mb-3 leading-relaxed">{rec.reason}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {rec.foods.map((food) => (
-                            <Link
-                              key={food}
-                              href={`/find-food?q=${encodeURIComponent(food)}`}
-                              className="text-xs font-medium py-[3px] px-[10px] rounded-full border border-border bg-surface text-text-secondary no-underline transition-fast hover:bg-primary hover:text-white hover:border-primary"
-                            >
-                              {food} →
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
+                    <Icon aria-hidden className={cn("mx-auto mb-2 h-4 w-4", tone)} />
+                    <div className="font-mono text-base font-bold text-text-primary">
+                      {value}
+                      <span className="ml-1 text-xs font-medium text-text-muted">{unit}</span>
+                    </div>
+                    <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.07em] text-text-muted">
+                      {label}
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-          {recs.length === 0 && session && (
-            <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl p-6 text-center">
-              <div className="text-[2rem] mb-2">🎉</div>
-              <h3 className="text-base font-semibold text-[#15803d] mb-1 mt-0">Pola Makan Anda Sudah Baik!</h3>
-              <p className="text-sm text-[#166534] m-0">Pertahankan pola makan seimbang Anda.</p>
-            </div>
-          )}
-        </div>
+            </Card>
+          ) : null}
 
-        {/* ── Meal detail ── */}
-        {session && session.meals.some((m) => m.foods.length > 0) && (
-          <div className="card p-6 mb-6">
-            <h2 className="text-base font-semibold text-text-primary mb-4 mt-0">
-              🍱 Detail Waktu Makan
-            </h2>
-            <div className="flex flex-col gap-3">
-              {session.meals.filter((m) => m.foods.length > 0).map((meal) => (
-                <div key={meal.name} className="p-4 bg-surface-alt rounded-lg border border-border">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-semibold text-text-primary">{meal.name}</span>
-                    <span className="text-xs text-text-muted">{meal.time} · {meal.foods.length} item</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {meal.foods.map((rf) => (
-                      <span key={rf.food.id} className="badge badge-default">
-                        {rf.food.name}{rf.portion ? ` (${rf.portion.portion_gram}g)` : ""}
+          {/* ── Detail waktu makan ─────────────────────────────────────── */}
+          {filledMeals.length > 0 ? (
+            <Card>
+              <CardLabel icon={UtensilsCrossed}>Detail waktu makan</CardLabel>
+              <ul className="flex flex-col gap-3">
+                {filledMeals.map((meal) => (
+                  <li
+                    key={`${meal.name}-${meal.time}`}
+                    className="rounded-lg border border-border bg-surface-alt p-4"
+                  >
+                    <div className="mb-2 flex items-baseline justify-between gap-3">
+                      <span className="text-sm font-semibold text-text-primary">{meal.name}</span>
+                      <span className="text-xs text-text-muted">
+                        {meal.time} · {meal.foods.length} item
                       </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {meal.foods.map((rf) => (
+                        <span
+                          key={`${meal.name}-${rf.food.id}`}
+                          className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-secondary"
+                        >
+                          {rf.food.name}
+                          {rf.portion ? ` (${rf.portion.portion_gram}g)` : ""}
+                        </span>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ) : null}
+
+          {/* ── AI (sama komponen dengan Step 6 wizard) ────────────────── */}
+          <AiRecommendationPanel submissionId={session?.submission_id} />
+
+          {/* ── Aksi ───────────────────────────────────────────────────── */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+            <Link
+              href="/find-food"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-5 text-sm font-semibold text-text-secondary no-underline transition-all hover:border-primary hover:bg-primary-light hover:text-primary"
+            >
+              <Search aria-hidden className="h-4 w-4" />
+              Cari makanan
+            </Link>
+            <Link
+              href="/profile"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-5 text-sm font-semibold text-text-secondary no-underline transition-all hover:border-primary hover:bg-primary-light hover:text-primary"
+            >
+              <User aria-hidden className="h-4 w-4" />
+              Profil
+            </Link>
+            <Button
+              icon={RefreshCw}
+              onClick={() => {
+                clearRecallSession();
+                router.push("/surveys");
+              }}
+            >
+              Isi survey lagi
+            </Button>
           </div>
-        )}
-
-        {/* ── Actions ── */}
-        <div className="flex flex-wrap gap-3 justify-center">
-          <Link
-            href="/find-food"
-            className="inline-flex items-center gap-2 py-3 px-5 rounded-lg bg-primary-light text-primary font-medium text-sm no-underline border-[1.5px] border-primary-border transition-fast hover:bg-primary-muted"
-          >
-            <Search size={15} /> Cari Info Makanan
-          </Link>
-          <Link
-            href="/profile"
-            className="inline-flex items-center gap-2 py-3 px-5 rounded-lg bg-surface text-text-secondary font-medium text-sm no-underline border-[1.5px] border-border"
-          >
-            <User size={15} /> Lihat Profil
-          </Link>
-          <button
-            type="button"
-            onClick={() => { clearRecallSession(); router.push("/surveys"); }}
-            className="inline-flex items-center gap-2 py-3 px-5 rounded-lg bg-primary text-white font-semibold text-sm border-none cursor-pointer transition-base hover:bg-primary-hover"
-          >
-            <RefreshCw size={15} /> Isi Survey Lagi
-          </button>
         </div>
-
       </div>
     </div>
   );

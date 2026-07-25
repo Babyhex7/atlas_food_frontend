@@ -52,7 +52,11 @@ export function normalizeStatus(raw: string | undefined): NutritionStatus {
   if (["good", "baik", "optimal", "normal", "healthy", "sehat", "cukup"].includes(value)) {
     return "good";
   }
-  if (["warning", "waspada", "perhatian", "moderate", "sedang", "kurang", "low"].includes(value)) {
+  if (
+    ["warning", "waspada", "perhatian", "moderate", "sedang", "kurang", "low", "less", "partial"].includes(
+      value
+    )
+  ) {
     return "warning";
   }
   if (["danger", "bahaya", "buruk", "poor", "high", "berlebih", "excess"].includes(value)) {
