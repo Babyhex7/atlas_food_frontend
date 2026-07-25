@@ -1,8 +1,9 @@
 import type { AuthRole } from "../constants/authRoles";
 
 export function getPostAuthPath(role: AuthRole): string {
-  // Admin masuk ke panel survey; responden diarahkan ke hub Survey Recall 24 Jam
-  return role === "admin" ? "/admin/surveys" : "/surveys";
+  // Admin masuk ke panel survey; responden default ke Find Your Food.
+  // Hub Survey Recall tetap dapat diakses lewat menu "Survey Recall" di header.
+  return role === "admin" ? "/admin/surveys" : "/find-food";
 }
 
 const BLOCKED_REDIRECT_PREFIXES = ["/login", "/register"];
