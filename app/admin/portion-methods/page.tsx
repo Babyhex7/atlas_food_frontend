@@ -1,5 +1,6 @@
-import { PortionMethodList } from "@/internal/domain/portion/components/PortionMethodList";
+import { redirect } from "next/navigation";
 
+/** Metode porsi dibuat otomatis saat menambah foto porsi di form makanan */
 export default function AdminPortionMethodsPage() {
-  return <PortionMethodList />;
+  redirect("/admin/foods");
 }

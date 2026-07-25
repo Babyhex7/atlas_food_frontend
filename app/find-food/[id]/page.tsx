@@ -7,7 +7,6 @@ import { ArrowLeft, Loader2, Info, Scale, Bookmark, Camera, LayoutGrid } from "l
 import { getFoodDetailPublic } from "@/internal/services/food.service";
 import { isFoodBookmarked, toggleBookmarkedFood } from "@/internal/lib/cookies";
 import { PortionPhotoViewer } from "@/internal/components/PortionPhotoViewer";
-import { FoodAnnotationSection } from "@/internal/domain/annotation/components/FoodAnnotationSection";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
@@ -156,7 +155,7 @@ function FoodDetailBody() {
         <div className="card animate-slide-up p-6">
           <div className="flex items-center gap-3 mb-5">
             <Scale size={22} className="text-primary" />
-            <h2 className="text-xl font-semibold text-text-primary m-0">Album Foto Porsi</h2>
+            <h2 className="text-xl font-semibold text-text-primary m-0">Foto</h2>
             {food.portion_photos && food.portion_photos.length > 0 && (
               <div className="flex items-center gap-2 ml-auto">
                 <span className="badge badge-default">
@@ -170,7 +169,7 @@ function FoodDetailBody() {
                       : "bg-blue-50 text-blue-600 border border-blue-100"
                   )}
                 >
-                  {isGuideType(food.photo_type) ? "Guide" : "Series"}
+                  {isGuideType(food.photo_type) ? "Range" : "Series"}
                 </span>
               </div>
             )}
@@ -183,10 +182,6 @@ function FoodDetailBody() {
             onSelect={handleSelectPhoto}
           />
         </div>
-
-        {/* Area polygon dari Annotation CMS — kartu ini menghilang sendiri
-            bila food ini belum punya gambar published. */}
-        <FoodAnnotationSection foodId={foodId} />
 
         <div className="card animate-slide-up p-6 [animation-delay:80ms]">
           <div className="flex items-center justify-between mb-5 flex-wrap gap-2">

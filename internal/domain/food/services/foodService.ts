@@ -45,11 +45,23 @@ export type AdminFoodListResponse = {
   pagination: { page: number; limit: number; total: number };
 };
 
-export function getAdminFoods(params: { page?: number; limit?: number; category?: string } = {}) {
+export function getAdminFoods(
+  params: {
+    page?: number;
+    limit?: number;
+    category?: string;
+    search?: string;
+    photo_type?: string;
+    is_active?: string;
+  } = {}
+) {
   const query = new URLSearchParams();
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
   if (params.category) query.set("category", params.category);
+  if (params.search) query.set("search", params.search);
+  if (params.photo_type) query.set("photo_type", params.photo_type);
+  if (params.is_active) query.set("is_active", params.is_active);
 
   const qs = query.toString();
   return apiClient<AdminFoodListResponse>(qs ? `/admin/foods?${qs}` : "/admin/foods");

@@ -12,11 +12,22 @@ type RequestOptions = RequestInit & {
   token?: string;
 };
 
-async function parseResponse<T>(response: Response): Promise<T> {
+async function parseResponse<T>(response: Response, requestPath?: string): Promise<T> {
   const payload = (await response.json().catch(() => null)) as ApiResponse<T> | null;
 
   if (!response.ok || payload?.status === "error") {
-    throw new Error(payload?.error?.message ?? `Request failed with status ${response.status}`);
+    const fromApi = payload?.error?.message;
+    if (fromApi) throw new Error(fromApi);
+
+    if (response.status === 404) {
+      throw new Error(
+        requestPath
+          ? `Endpoint tidak ditemukan (${requestPath}). Pastikan backend sudah di-restart.`
+          : "Endpoint tidak ditemukan. Pastikan backend sudah di-restart."
+      );
+    }
+
+    throw new Error(`Request gagal (status ${response.status})`);
   }
 
   return payload?.data as T;
@@ -35,7 +46,7 @@ export async function apiClient<T>(path: string, options: RequestOptions = {}): 
     },
   });
 
-  return parseResponse<T>(response);
+  return parseResponse<T>(response, path);
 }
 
 export async function apiUpload<T>(path: string, formData: FormData, token?: string): Promise<T> {
@@ -49,5 +60,5 @@ export async function apiUpload<T>(path: string, formData: FormData, token?: str
     },
   });
 
-  return parseResponse<T>(response);
+  return parseResponse<T>(response, path);
 }

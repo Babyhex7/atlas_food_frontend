@@ -1,21 +1,18 @@
 "use client";
 
-import { ReactNode, Suspense } from "react";
+import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLogout } from "@/internal/domain/auth/hooks/useLogout";
-import { ClipboardList, UtensilsCrossed, FolderOpen, Camera, Scale, Shapes, LogOut } from "lucide-react";
+import { ClipboardList, UtensilsCrossed, FolderOpen, LogOut } from "lucide-react";
 import { cn } from "@/internal/lib/cn";
-import { CollabSession } from "@/internal/domain/collab";
 import { AdminGuard } from "@/internal/domain/auth/components/AdminGuard";
 
+/** Nav inti saja — foto porsi & anotasi di kelola dari form makanan */
 const NAV_ITEMS = [
-  { href: "/admin/surveys",        label: "Survey",        icon: ClipboardList  },
-  { href: "/admin/foods",          label: "Makanan",       icon: UtensilsCrossed },
-  { href: "/admin/categories",     label: "Kategori",      icon: FolderOpen     },
-  { href: "/admin/as-served-sets", label: "Foto Porsi",    icon: Camera         },
-  { href: "/admin/portion-methods",label: "Metode Porsi",  icon: Scale          },
-  { href: "/admin/annotations",    label: "Anotasi",       icon: Shapes         },
+  { href: "/admin/surveys",    label: "Survey",   icon: ClipboardList  },
+  { href: "/admin/foods",      label: "Makanan",  icon: UtensilsCrossed },
+  { href: "/admin/categories", label: "Kategori", icon: FolderOpen     },
 ];
 
 function AdminSidebar() {
@@ -68,31 +65,12 @@ function AdminSidebar() {
   );
 }
 
-function AdminMain({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  const isFoods = pathname.startsWith("/admin/foods");
-
-  if (!isFoods) {
-    return <>{children}</>;
-  }
-
-  return (
-    <Suspense fallback={children}>
-      <CollabSession roomPrefix="admin-food" autoConnect fixedRoomId="admin:food-db" syncUrl={false}>
-        {children}
-      </CollabSession>
-    </Suspense>
-  );
-}
-
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <AdminGuard>
       <div className="min-h-screen flex bg-background">
         <AdminSidebar />
-        <main className="flex-1 overflow-y-auto min-h-screen">
-          <AdminMain>{children}</AdminMain>
-        </main>
+        <main className="flex-1 overflow-y-auto min-h-screen">{children}</main>
       </div>
     </AdminGuard>
   );

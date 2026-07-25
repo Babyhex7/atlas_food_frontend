@@ -17,6 +17,7 @@ import type {
 export type ListAnnotationsParams = {
   status?: AnnotationStatus | "";
   search?: string;
+  primary_food_id?: string;
   page?: number;
   limit?: number;
 };
@@ -25,6 +26,7 @@ export function listAnnotations(params: ListAnnotationsParams = {}) {
   const query = new URLSearchParams();
   if (params.status) query.set("status", params.status);
   if (params.search) query.set("search", params.search);
+  if (params.primary_food_id) query.set("primary_food_id", params.primary_food_id);
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
 

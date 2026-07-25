@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Upload } from "lucide-react";
 import { useCreateAnnotation, useUploadAnnotationImage } from "../hooks/useAnnotationMutations";
@@ -32,9 +32,18 @@ function readImageSize(file: File): Promise<{ width: number; height: number }> {
   });
 }
 
-/** Upload foto scene lalu buat draft anotasi (brief §8) */
+function safeReturnTo(value: string | null): string | null {
+  if (!value || !value.startsWith("/admin/")) return null;
+  return value;
+}
+
+/** Upload foto scene lalu buat draft anotasi — biasanya dari form makanan */
 export function AnnotationUploader() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const foodId = searchParams.get("foodId")?.trim() || "";
+  const returnTo = safeReturnTo(searchParams.get("returnTo")) || (foodId ? `/admin/foods/${foodId}` : "/admin/foods");
+
   const upload = useUploadAnnotationImage();
   const create = useCreateAnnotation();
 
@@ -53,7 +62,6 @@ export function AnnotationUploader() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(selected ? URL.createObjectURL(selected) : null);
 
-    // Isi judul dari nama file bila admin belum mengetikkan apa pun
     if (selected && !title.trim()) {
       setTitle(selected.name.replace(/\.[^.]+$/, ""));
     }
@@ -71,10 +79,12 @@ export function AnnotationUploader() {
       setError("Judul wajib diisi");
       return;
     }
+    if (!foodId) {
+      setError("Gambar anotasi harus dibuat dari halaman makanan");
+      return;
+    }
 
     try {
-      // Dimensi dibaca sebelum upload agar kegagalan baca tidak
-      // meninggalkan file yatim di server.
       const size = await readImageSize(file);
       const uploaded = await upload.mutateAsync(file);
 
@@ -83,9 +93,12 @@ export function AnnotationUploader() {
         image_url: uploaded.url,
         width: size.width,
         height: size.height,
+        primary_food_id: foodId,
       });
 
-      router.push(`/admin/annotations/${created.id}`);
+      router.push(
+        `/admin/annotations/${created.id}?returnTo=${encodeURIComponent(returnTo)}`
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal membuat anotasi");
     }
@@ -94,11 +107,19 @@ export function AnnotationUploader() {
   return (
     <div className="p-6 px-8">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/admin/annotations" className="btn btn-ghost btn-sm btn-icon" title="Kembali">
+        <Link href={returnTo} className="btn btn-ghost btn-sm btn-icon" title="Kembali">
           <ArrowLeft size={16} />
         </Link>
         <h1 className="text-2xl font-bold text-text-primary m-0">Gambar anotasi baru</h1>
       </div>
+
+      {!foodId && (
+        <div className="alert alert-danger mb-5">
+          <span className="text-sm">
+            Buka dari edit makanan → &quot;Tambah gambar + anotasi&quot; agar terikat ke makanan yang benar.
+          </span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="max-w-[640px] flex flex-col gap-5">
         <div className="form-group">
@@ -127,7 +148,7 @@ export function AnnotationUploader() {
             required
           />
           <span className="text-xs text-text-muted">
-            Format jpg, png, atau webp. Maksimal 10 MB.
+            Format jpg, png, atau webp. Maksimal 10 MB. Setelah unggah, langsung bisa anotasi.
           </span>
         </div>
 
@@ -147,10 +168,10 @@ export function AnnotationUploader() {
         )}
 
         <div className="flex gap-3 justify-end">
-          <Link href="/admin/annotations" className="btn btn-secondary">
+          <Link href={returnTo} className="btn btn-secondary">
             Batal
           </Link>
-          <button type="submit" disabled={busy} className="btn btn-primary">
+          <button type="submit" disabled={busy || !foodId} className="btn btn-primary">
             <Upload size={15} />
             {busy ? "Mengunggah…" : "Unggah & mulai anotasi"}
           </button>

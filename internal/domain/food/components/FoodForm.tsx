@@ -1,14 +1,14 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/internal/pkg/components/Button";
 import { Input } from "@/internal/pkg/components/Input";
-import { LockIndicator, useCollab } from "@/internal/domain/collab";
 import { useAdminCategories } from "@/internal/domain/category/hooks/useCategoryQueries";
 import { useCreateFood, useDeleteFood, useFoodDetail, useUpdateFood } from "../hooks/useFoodQueries";
 import { foodValidation } from "../schemas/foodSchema";
+import { FoodPhotosSection } from "./FoodPhotosSection";
 
 const SECTION = "bg-surface border border-border rounded-xl p-6 flex flex-col gap-5";
 
@@ -18,7 +18,6 @@ export function FoodForm() {
 
   const foodId = (params?.id as string) || "new";
   const isEdit = foodId !== "new" && Boolean(params?.id);
-  const { send, isConnected } = useCollab();
 
   const { data: existing, isLoading } = useFoodDetail(isEdit ? foodId : undefined);
   const { data: categories } = useAdminCategories();
@@ -32,20 +31,14 @@ export function FoodForm() {
   const [localName, setLocalName] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  // Backend memvalidasi photo_type dengan oneof=series|range, jadi form harus
-  // punya nilai eksplisit — tidak boleh dibiarkan kosong.
   const [photoType, setPhotoType] = useState<"series" | "range">("series");
   const [isActive, setIsActive] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [version] = useState(1);
 
   const busy = create.isPending || update.isPending || remove.isPending;
 
   const [loadedId, setLoadedId] = useState<string | null>(null);
 
-  // Isi form dari server saat mode edit. Penyesuaian dilakukan saat render
-  // (pola resmi React) agar tidak memicu render bertingkat tiap kali query
-  // menyegarkan datanya.
   if (existing && loadedId !== existing.id) {
     setLoadedId(existing.id);
     setCode(existing.code);
@@ -56,32 +49,6 @@ export function FoodForm() {
     setPhotoType(existing.photo_type === "range" ? "range" : "series");
     setIsActive(existing.is_active);
   }
-
-  useEffect(() => {
-    if (!isEdit || !isConnected) return;
-    send("db_edit_start", {
-      entity_type: "food",
-      entity_id: foodId,
-      version,
-    });
-    return () => {
-      // Only cancel if still connected — avoid noisy errors on unmount/nav
-      send("db_edit_cancel", { entity_type: "food", entity_id: foodId });
-    };
-    // intentionally omit `send` identity thrash; room send is stable enough per connection
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEdit, isConnected, foodId, version]);
-
-  const onFieldChange = (field: string, value: string) => {
-    if (!isEdit || !isConnected) return;
-    send("db_edit_field", {
-      entity_type: "food",
-      entity_id: foodId,
-      field,
-      value,
-      version,
-    });
-  };
 
   function validate(): string | null {
     const trimmedCode = code.trim();
@@ -122,30 +89,18 @@ export function FoodForm() {
       local_name: localName.trim(),
       description: description.trim(),
       photo_type: photoType,
-      // Dikirim apa adanya, termasuk string kosong: backend memaknainya
-      // sebagai "lepaskan kategori". Mengirim undefined membuat pilihan
-      // "Tanpa kategori" diam-diam tidak berefek.
       category_id: categoryId,
     };
 
     try {
       if (isEdit) {
         await update.mutateAsync({ ...payload, is_active: isActive });
-
-        // Beri tahu admin lain di room bahwa perubahan sudah tersimpan
-        if (isConnected) {
-          send("db_edit_save", {
-            entity_type: "food",
-            entity_id: foodId,
-            version,
-            changes: { code: payload.code, name: payload.name, local_name: payload.local_name },
-          });
-        }
+        router.push("/admin/foods");
       } else {
-        await create.mutateAsync(payload);
+        // Setelah create langsung ke edit agar bisa unggah gambar + anotasi
+        const created = await create.mutateAsync(payload);
+        router.push(`/admin/foods/${created.id}`);
       }
-
-      router.push("/admin/foods");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan makanan");
     }
@@ -171,13 +126,19 @@ export function FoodForm() {
 
   return (
     <div className="p-6 px-8">
-      <div className="max-w-[640px]">
+      <div className={isEdit ? "max-w-[880px]" : "max-w-[640px]"}>
         <div className="flex items-center gap-3 mb-8 flex-wrap">
           <h1 className="text-2xl font-bold text-text-primary m-0">
             {isEdit ? "Edit Makanan" : "Tambah Makanan"}
           </h1>
-          {isEdit ? <LockIndicator entityType="food" entityId={foodId} /> : null}
         </div>
+
+        {!isEdit && (
+          <p className="text-sm text-text-muted mt-0 mb-6">
+            Simpan info dasar dulu. Setelah itu Anda bisa unggah gambar, anotasi area, dan foto porsi
+            di halaman yang sama.
+          </p>
+        )}
 
         <form className="flex flex-col gap-5" onSubmit={onSubmit}>
           <div className={SECTION}>
@@ -190,10 +151,7 @@ export function FoodForm() {
               placeholder="MP-01"
               required
               value={code}
-              onChange={(e) => {
-                setCode(e.target.value);
-                onFieldChange("code", e.target.value);
-              }}
+              onChange={(e) => setCode(e.target.value)}
             />
             <Input
               id="name"
@@ -202,10 +160,7 @@ export function FoodForm() {
               placeholder="Nasi Putih"
               required
               value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                onFieldChange("name", e.target.value);
-              }}
+              onChange={(e) => setName(e.target.value)}
             />
             <Input
               id="local_name"
@@ -213,10 +168,7 @@ export function FoodForm() {
               label="Nama Lokal"
               placeholder="Sego Putih"
               value={localName}
-              onChange={(e) => {
-                setLocalName(e.target.value);
-                onFieldChange("local_name", e.target.value);
-              }}
+              onChange={(e) => setLocalName(e.target.value)}
             />
 
             <div className="flex flex-col w-full gap-2">
@@ -228,10 +180,7 @@ export function FoodForm() {
                 name="description"
                 value={description}
                 placeholder="Keterangan singkat yang tampil di Find Food"
-                onChange={(e) => {
-                  setDescription(e.target.value);
-                  onFieldChange("description", e.target.value);
-                }}
+                onChange={(e) => setDescription(e.target.value)}
                 className="w-full py-2.5 px-3 text-sm text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none font-sans transition-base focus:border-primary focus:shadow-focus"
               />
             </div>
@@ -244,10 +193,7 @@ export function FoodForm() {
                 id="category_id"
                 name="category_id"
                 value={categoryId}
-                onChange={(e) => {
-                  setCategoryId(e.target.value);
-                  onFieldChange("category_id", e.target.value);
-                }}
+                onChange={(e) => setCategoryId(e.target.value)}
                 className="w-full py-2.5 px-3 text-sm text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none font-sans transition-base focus:border-primary focus:shadow-focus"
               >
                 <option value="">Tanpa kategori</option>
@@ -264,7 +210,7 @@ export function FoodForm() {
 
             <div className="flex flex-col w-full gap-2">
               <label htmlFor="photo_type" className="form-label text-sm font-medium text-text-secondary">
-                Tipe foto porsi
+                Tipe foto
               </label>
               <select
                 id="photo_type"
@@ -273,9 +219,12 @@ export function FoodForm() {
                 onChange={(e) => setPhotoType(e.target.value === "range" ? "range" : "series")}
                 className="w-full py-2.5 px-3 text-sm text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none font-sans transition-base focus:border-primary focus:shadow-focus"
               >
-                <option value="series">Series — beberapa foto porsi bertingkat</option>
-                <option value="range">Range — rentang berat</option>
+                <option value="series">Series — hingga 10 foto (tiap foto bisa dianotasi + gram)</option>
+                <option value="range">Range — 1 foto saja (bisa dianotasi + gram)</option>
               </select>
+              <span className="text-xs text-text-muted">
+                Simpan tipe ini dulu sebelum mengelola foto di bawah.
+              </span>
             </div>
 
             {isEdit && (
@@ -303,24 +252,20 @@ export function FoodForm() {
                 Hapus
               </Button>
             )}
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={busy}
-              onClick={() => {
-                if (isEdit && isConnected) {
-                  send("db_edit_cancel", { entity_type: "food", entity_id: foodId });
-                }
-                router.push("/admin/foods");
-              }}
-            >
+            <Button type="button" variant="secondary" disabled={busy} onClick={() => router.push("/admin/foods")}>
               Batal
             </Button>
             <Button type="submit" isLoading={busy}>
-              Simpan Makanan
+              {isEdit ? "Simpan Makanan" : "Simpan & lanjut ke foto"}
             </Button>
           </div>
         </form>
+
+        {isEdit && (
+          <div className="mt-8">
+            <FoodPhotosSection foodId={foodId} photoType={photoType} />
+          </div>
+        )}
       </div>
     </div>
   );

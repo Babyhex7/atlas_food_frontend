@@ -12,6 +12,7 @@ import { getAccessToken } from '@/internal/lib/cookies';
 import { cn } from '@/internal/lib/cn';
 import { loginWithRedirect } from '@/internal/lib/layout';
 import { getApiErrorMessage } from '@/internal/pkg/utils/apiError';
+import { useAuthStore } from '@/internal/domain/auth/store/authStore';
 
 type MealConfig = { name: string; time: string };
 
@@ -21,22 +22,36 @@ const DEFAULT_MEALS: MealConfig[] = [
   { name: 'Makan Malam', time: '19:00' },
 ];
 
+function resolveAlias(user: { name?: string; email?: string; id?: string } | null | undefined): string {
+  const name = user?.name?.trim();
+  if (name) return name;
+  const email = user?.email?.trim();
+  if (email) return email.split('@')[0] || email;
+  if (user?.id) return `RESP-${user.id.slice(0, 8)}`;
+  return 'Responden';
+}
+
 export default function JoinSurveyPage() {
   const router = useRouter();
   const params = useParams();
   const accessToken = params.accessToken as string;
+  const session = useAuthStore((s) => s.session);
 
-  const [alias, setAlias] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleStart = async () => {
-    if (!alias.trim()) { setError('Masukkan alias/nama peserta'); return; }
-    if (!getAccessToken()) { router.push(loginWithRedirect(`/surveys/${accessToken}/join`)); return; }
+    if (!getAccessToken()) {
+      router.push(loginWithRedirect(`/surveys/${accessToken}/join`));
+      return;
+    }
+
+    const alias = resolveAlias(session?.user);
     setLoading(true);
     setError(null);
+
     try {
-      const response = await api.post('/survey/access', { token: accessToken, alias: alias.trim() });
+      const response = await api.post('/survey/access', { token: accessToken, alias });
       const data = response.data.data;
       const surveyInfo = data.survey;
       const participant = data.participant;
@@ -49,16 +64,17 @@ export default function JoinSurveyPage() {
       const parsedMeals = rawMeals.length > 0
         ? rawMeals.map((m: MealConfig) => ({ name: m.name, time: m.time || '07:00' }))
         : DEFAULT_MEALS;
+
       initRecallSession({
         survey_id: surveyInfo.id,
         access_token: accessToken,
         participant_id: participant.id,
-        respondent_name: alias.trim(),
+        respondent_name: participant.alias || alias,
         available_meals: parsedMeals,
       });
       router.push(`/surveys/${accessToken}/recall`);
     } catch (err: unknown) {
-      setError(getApiErrorMessage(err, 'Gagal masuk ke survey. Pastikan token & alias benar.'));
+      setError(getApiErrorMessage(err, 'Gagal masuk ke survey. Pastikan link dari admin masih aktif.'));
     } finally {
       setLoading(false);
     }
@@ -70,41 +86,21 @@ export default function JoinSurveyPage() {
 
       <div className={cn(CONTAINER_CLASS, 'flex-1 flex items-center justify-center py-10 px-4')}>
         <div className="card w-full max-w-[440px] p-8">
-          {/* Icon */}
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 rounded-full bg-primary-light flex items-center justify-center text-primary">
               <Utensils size={28} />
             </div>
           </div>
 
-          {/* Heading */}
           <h1 className="text-xl font-bold text-text-primary text-center mb-2 mt-0">
             Mulai Survey Konsumsi
           </h1>
           <p className="text-sm text-text-muted text-center mb-8 leading-relaxed">
-            Masukkan Alias atau Kode Responden yang diberikan oleh peneliti untuk memulai.
+            Anda masuk lewat link dari admin. Tekan mulai untuk membuka dietary recall —
+            tidak perlu mengisi kode responden.
           </p>
 
-          {/* Form */}
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="alias"
-                className="text-sm font-medium text-text-secondary"
-              >
-                Kode Responden
-              </label>
-              <input
-                id="alias"
-                type="text"
-                value={alias}
-                onChange={(e) => setAlias(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleStart()}
-                placeholder="Misal: RESPONDENT-001"
-                className="w-full py-2.5 px-3 text-sm text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none transition-base font-sans box-border focus:border-primary focus:shadow-focus"
-              />
-            </div>
-
             {error && (
               <div className="alert alert-danger text-sm flex items-start gap-2">
                 <AlertCircle size={16} className="shrink-0 mt-px" />
@@ -112,13 +108,7 @@ export default function JoinSurveyPage() {
               </div>
             )}
 
-            <Button
-              className="w-full"
-              onClick={handleStart}
-              isLoading={loading}
-              disabled={!alias.trim()}
-              size="lg"
-            >
+            <Button className="w-full" onClick={handleStart} isLoading={loading} size="lg">
               Mulai Survey
             </Button>
           </div>

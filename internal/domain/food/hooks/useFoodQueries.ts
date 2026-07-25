@@ -26,7 +26,16 @@ export function useFoodSearch(query: string) {
   });
 }
 
-export function useAdminFoods(params: { page?: number; limit?: number; category?: string } = {}) {
+export function useAdminFoods(
+  params: {
+    page?: number;
+    limit?: number;
+    category?: string;
+    search?: string;
+    photo_type?: string;
+    is_active?: string;
+  } = {}
+) {
   return useQuery({
     queryKey: foodKeys.admin(params),
     queryFn: () => getAdminFoods(params),

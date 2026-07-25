@@ -15,6 +15,7 @@ export interface PortionPhoto {
   thumbnail_url: string | null;
   weight_gram: number;
   description: string;
+  food_image_id?: string;
 }
 
 export interface FoodDetail {

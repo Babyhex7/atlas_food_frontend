@@ -113,21 +113,35 @@ export const useCollabStore = create<CollabState>((set) => ({
     })),
 
   addActivity: (activity) =>
-    set((s) => ({
-      activities: [
-        {
-          id:
-            activity.id ??
-            `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          userId: activity.userId,
-          username: activity.username,
-          action: activity.action,
-          details: activity.details,
-          timestamp: activity.timestamp,
-        },
-        ...s.activities,
-      ].slice(0, 100),
-    })),
+    set((s) => {
+      const timestamp = activity.timestamp ?? Date.now();
+      // Dedup join spam dari reconnect / double socket
+      if (activity.action === "joined" && activity.userId) {
+        const recentJoin = s.activities.find(
+          (a) =>
+            a.action === "joined" &&
+            a.userId === activity.userId &&
+            timestamp - a.timestamp < 8000
+        );
+        if (recentJoin) return s;
+      }
+
+      return {
+        activities: [
+          {
+            id:
+              activity.id ??
+              `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            userId: activity.userId,
+            username: activity.username,
+            action: activity.action,
+            details: activity.details,
+            timestamp,
+          },
+          ...s.activities,
+        ].slice(0, 100),
+      };
+    }),
 
   setLock: (lock) =>
     set((s) => ({

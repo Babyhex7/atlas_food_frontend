@@ -48,6 +48,7 @@ export type FoodImageSummary = {
   width: number;
   height: number;
   status: AnnotationStatus;
+  primary_food_id?: string | null;
   areas_count: number;
   published_at: string | null;
   updated_at: string;

@@ -61,6 +61,7 @@ export type PortionPhoto = {
   thumbnail_url?: string | null;
   weight_gram: number;
   description?: string | null;
+  food_image_id?: string;
 };
 
 /** Response dari GET /public/foods/:id — dengan nutrisi dan portion photos */

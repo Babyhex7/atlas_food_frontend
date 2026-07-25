@@ -1,8 +1,14 @@
 import { apiClient, apiEndpoints } from "@/internal/pkg/api";
 import type { CreateSurveyRequest, JoinSurveyResponse, Survey, UpdateSurveyRequest } from "../types/survey";
 
-export function getSurveys(token: string) {
-  return apiClient<Survey[]>(apiEndpoints.admin.surveys, { token });
+export async function getSurveys(token: string): Promise<Survey[]> {
+  // Backend membungkus list dalam envelope { surveys, total, page, limit } (lihat SurveyListResponse),
+  // jadi ambil field surveys-nya — bukan langsung array.
+  const res = await apiClient<{ surveys: Survey[]; total: number; page: number; limit: number }>(
+    apiEndpoints.admin.surveys,
+    { token }
+  );
+  return res?.surveys ?? [];
 }
 
 export function createSurvey(payload: CreateSurveyRequest, token: string) {

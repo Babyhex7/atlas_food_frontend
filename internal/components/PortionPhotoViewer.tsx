@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { PortionPhoto } from "@/internal/types/food.types";
-import { getImageUrl, isGuideType, PHOTO_PLACEHOLDER } from "@/internal/lib/image";
+import { getImageUrl, isGuideType } from "@/internal/lib/image";
 import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
+import { AnnotationHoverOverlay } from "@/internal/domain/annotation/components/AnnotationHoverOverlay";
 
 interface PortionPhotoViewerProps {
   photos: PortionPhoto[];
@@ -12,7 +13,7 @@ interface PortionPhotoViewerProps {
   onSelect?: (index: number) => void;
 }
 
-// ─── Foto tunggal dengan fallback ─────────────────────────────────────────────
+// ─── Foto tunggal dengan fallback (tanpa zoom full-image) ─────────────────────
 function PhotoImg({
   src,
   alt,
@@ -40,6 +41,7 @@ function PhotoImg({
       alt={alt}
       className={className}
       onError={() => setErrored(true)}
+      draggable={false}
     />
   );
 }
@@ -71,6 +73,7 @@ function GuidePhotoView({ photos }: { photos: PortionPhoto[] }) {
             alt={`Guide foto — semua porsi`}
             className="w-full h-full object-contain animate-fade-in"
           />
+          <AnnotationHoverOverlay foodImageId={guidePhoto.food_image_id} />
 
           {/* Overlay semua label porsi */}
           <div className="absolute top-3 right-3 flex flex-wrap gap-1 justify-end max-w-[60%]">
@@ -113,7 +116,7 @@ function GuidePhotoView({ photos }: { photos: PortionPhoto[] }) {
                 <p className="text-sm font-semibold text-text-primary m-0 leading-none mb-[3px]">
                   {p.weight_gram}g
                 </p>
-                {p.description && (
+                {p.description && !p.description.startsWith("food_image:") && (
                   <p className="text-[11px] text-text-muted m-0 overflow-hidden text-ellipsis whitespace-nowrap">
                     {p.description}
                   </p>
@@ -189,6 +192,7 @@ function SeriesPhotoView({
             alt={activePhoto?.label ?? "foto porsi"}
             className="w-full h-full object-contain animate-fade-in"
           />
+          <AnnotationHoverOverlay foodImageId={activePhoto?.food_image_id} />
 
           {/* Navigasi panah kiri/kanan pada foto utama */}
           {activeIndex > 0 && (
@@ -221,7 +225,9 @@ function SeriesPhotoView({
                     {activePhoto.label} &middot; {activePhoto.weight_gram} gram
                   </h3>
                   <p className="text-white/80 text-sm md:text-base">
-                    {activePhoto.description || `Porsi ${activePhoto.label}`}
+                    {activePhoto.description && !activePhoto.description.startsWith("food_image:")
+                      ? activePhoto.description
+                      : `Porsi ${activePhoto.label}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

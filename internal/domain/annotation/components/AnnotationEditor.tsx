@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAnnotationDetail } from "../hooks/useAnnotationQueries";
 import { usePublishAnnotation, useUnpublishAnnotation } from "../hooks/useAnnotationMutations";
@@ -23,8 +24,16 @@ type AnnotationEditorProps = {
  * Shell Annotation Editor — merangkai kanvas, panel area, autosave, dan publish.
  * Tidak memuat logika polygon maupun penyimpanan; semuanya didelegasikan ke hook.
  */
+function safeReturnTo(value: string | null, fallbackFoodId?: string | null): string {
+  if (value && value.startsWith("/admin/")) return value;
+  if (fallbackFoodId) return `/admin/foods/${fallbackFoodId}`;
+  return "/admin/foods";
+}
+
 export function AnnotationEditor({ id }: AnnotationEditorProps) {
+  const searchParams = useSearchParams();
   const { data: image, isLoading, error } = useAnnotationDetail(id);
+  const backHref = safeReturnTo(searchParams.get("returnTo"), image?.primary_food_id);
 
   const loadFromImage = useAnnotationEditorStore((s) => s.loadFromImage);
   const reset = useAnnotationEditorStore((s) => s.reset);
@@ -121,7 +130,7 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
   return (
     <div className="p-6 px-8 flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <Link href="/admin/annotations" className="btn btn-ghost btn-sm btn-icon" title="Kembali">
+        <Link href={backHref} className="btn btn-ghost btn-sm btn-icon" title="Kembali ke makanan">
           <ArrowLeft size={16} />
         </Link>
         <div className="min-w-0">

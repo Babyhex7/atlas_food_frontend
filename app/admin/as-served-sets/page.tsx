@@ -1,5 +1,6 @@
-import { AsServedSetList } from "@/internal/domain/portion/components/AsServedSetList";
+import { redirect } from "next/navigation";
 
+/** Foto porsi dikelola dari form makanan */
 export default function AdminAsServedSetsPage() {
-  return <AsServedSetList />;
+  redirect("/admin/foods");
 }

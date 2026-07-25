@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft, Trash2, Upload } from "lucide-react";
 import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
 import { Button } from "@/internal/pkg/components/Button";
@@ -23,7 +23,10 @@ import {
  */
 export function AsServedImageManager() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const setId = typeof params?.id === "string" ? params.id : "";
+  const fromFood = searchParams.get("fromFood")?.trim() || "";
+  const backHref = fromFood ? `/admin/foods/${fromFood}` : `/admin/as-served-sets/${setId}`;
 
   const { data: set, isLoading } = useAsServedSet(setId);
   const addImages = useAddAsServedImages(setId);
@@ -113,11 +116,7 @@ export function AsServedImageManager() {
   return (
     <div className="p-6 px-8 flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <Link
-          href={`/admin/as-served-sets/${setId}`}
-          className="btn btn-ghost btn-sm btn-icon"
-          title="Kembali ke set"
-        >
+        <Link href={backHref} className="btn btn-ghost btn-sm btn-icon" title="Kembali">
           <ArrowLeft size={16} />
         </Link>
         <div>
