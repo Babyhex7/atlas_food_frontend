@@ -1,47 +1,61 @@
 "use client";
 
+import { CheckCircle2, ClipboardList, Database, Plus, Sparkles } from "lucide-react";
+import { AiRecommendationPanel } from "@/internal/domain/ai";
+import { Button, StepHeader, StepShell } from "./ui/Primitives";
+
 interface Props {
   respondentName?: string;
+  /** submission_id dari hasil submit — tanpa ini analisis AI tidak bisa dijalankan. */
+  submissionId?: string;
   onFinish: () => void;
   onFillAgain?: () => void;
 }
 
-export function Step6Result({ respondentName, onFinish, onFillAgain }: Props) {
+const SUMMARY_ITEMS = [
+  { icon: Database, label: "Data Anda sudah tersimpan" },
+  { icon: ClipboardList, label: "Laporan siap dianalisis" },
+  { icon: Sparkles, label: "Rekomendasi personal tersedia di bawah" },
+];
+
+export function Step6Result({ respondentName, submissionId, onFinish, onFillAgain }: Props) {
   return (
-    <div className="step-content step-content--centered">
-      <div className="result-success-icon">✅</div>
-      <h2 className="step-title">Meal Report Submitted!</h2>
-      <p className="step-subtitle">
-        Thank you{respondentName ? `, ${respondentName}` : ""}! Your meal recall has been
-        successfully recorded. Our nutritionists will analyze your data to provide personalized
-        recommendations.
-      </p>
+    <StepShell centered>
+      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-success-light">
+        <CheckCircle2 aria-hidden className="h-8 w-8 text-success" />
+      </span>
 
-      <div className="result-summary">
-        <div className="result-summary__item">
-          <span className="result-summary__icon">🥗</span>
-          <span className="result-summary__label">Your data has been saved</span>
-        </div>
-        <div className="result-summary__item">
-          <span className="result-summary__icon">📊</span>
-          <span className="result-summary__label">Nutritional analysis in progress</span>
-        </div>
-        <div className="result-summary__item">
-          <span className="result-summary__icon">💡</span>
-          <span className="result-summary__label">Personalized insights coming soon</span>
-        </div>
-      </div>
+      <StepHeader
+        centered
+        title="Laporan makan terkirim!"
+        subtitle={`Terima kasih${
+          respondentName ? `, ${respondentName}` : ""
+        }! Recall makanan Anda berhasil dicatat. Jalankan analisis AI di bawah untuk melihat rekomendasi gizi personal Anda.`}
+      />
 
-      <div className="result-actions">
-        {onFillAgain && (
-          <button type="button" className="btn-secondary" onClick={onFillAgain}>
-            Fill Another Meal
-          </button>
-        )}
-        <button type="button" className="btn-continue" onClick={onFinish}>
-          Finish
-        </button>
+      <ul className="flex w-full max-w-96 flex-col gap-3">
+        {SUMMARY_ITEMS.map(({ icon: Icon, label }) => (
+          <li
+            key={label}
+            className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 text-left"
+          >
+            <Icon aria-hidden className="h-4 w-4 shrink-0 text-primary" />
+            <span className="text-sm font-medium text-text-secondary">{label}</span>
+          </li>
+        ))}
+      </ul>
+
+      {/* ── Rekomendasi AI ─────────────────────────────────────────────── */}
+      <AiRecommendationPanel submissionId={submissionId} />
+
+      <div className="flex flex-wrap justify-center gap-3">
+        {onFillAgain ? (
+          <Button variant="secondary" icon={Plus} onClick={onFillAgain}>
+            Isi waktu makan lain
+          </Button>
+        ) : null}
+        <Button onClick={onFinish}>Selesai</Button>
       </div>
-    </div>
+    </StepShell>
   );
 }

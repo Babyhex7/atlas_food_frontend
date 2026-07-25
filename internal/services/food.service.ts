@@ -1,12 +1,19 @@
 import { apiClient } from "@/internal/lib/axios";
 import type { FoodSearchResult, FoodDetail } from "@/internal/types/food.types";
 
-/** Search makanan — wajib login (JWT via apiClient) */
+/**
+ * Search makanan — wajib login (JWT via apiClient, sudah termasuk auto-refresh).
+ *
+ * `type` sengaja dihilangkan dari params saat kosong: mengirim `type=` membuat
+ * backend menerima string kosong dan hasilnya bergantung pada perilaku filter.
+ * Hasil di-normalisasi ke array karena endpoint bisa mengembalikan null pada
+ * response lama sebelum perbaikan handler.
+ */
 export async function searchFoodsPublic(query: string, type?: "food" | "drink" | "", limit = 20): Promise<FoodSearchResult[]> {
   const { data } = await apiClient.get("/public/foods/search", {
-    params: { q: query, type, limit },
+    params: { q: query, limit, ...(type ? { type } : {}) },
   });
-  return data.data;
+  return Array.isArray(data?.data) ? data.data : [];
 }
 
 /** Detail makanan + foto porsi — wajib login */

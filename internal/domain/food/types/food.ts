@@ -45,6 +45,8 @@ export type SearchFoodResult = {
   name: string;
   local_name?: string | null;
   photo_type?: "series" | "range";
+  /** Diturunkan backend dari kategori: kategori 'drinks' → "drink", sisanya "food". */
+  food_type?: "food" | "drink";
   category?: {
     id: string;
     code: string;

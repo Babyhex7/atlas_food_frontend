@@ -201,9 +201,34 @@ export function useRecallSession(
     return foods[session.portion_food_index] ?? null;
   };
 
+  // ─── Step 5: Submit ──────────────────────────────────────────────────────────
+  /** Simpan submission_id hasil submit — dipakai Step 6 untuk analisis AI. */
+  const setSubmissionId = useCallback((submissionId: string) => {
+    update({ submission_id: submissionId });
+  }, [update]);
+
   const reset = useCallback(() => {
-    clearRecallSession();
-    setSessionState(createInitialSession(surveyId, accessToken));
+    setSessionState((prev) => {
+      // Kosongkan data recall, tapi pertahankan identitas survey & responden.
+      // participant_id dan respondent_name wajib ada saat submit berikutnya, dan
+      // available_meals menentukan pilihan waktu makan dari konfigurasi admin —
+      // membuang semuanya membuat alur "isi waktu makan lain" gagal submit.
+      const fresh: RecallSession = {
+        ...createInitialSession(prev.survey_id || surveyId, prev.access_token || accessToken),
+        participant_id: prev.participant_id,
+        respondent_name: prev.respondent_name,
+        available_meals: prev.available_meals,
+        current_meal: {
+          type: prev.available_meals?.[0]?.name ?? "",
+          time: prev.available_meals?.[0]?.time ?? "07:00",
+        },
+      };
+      // Persist sesi baru: kalau hanya dihapus, refresh setelah reset membuat gate
+      // di halaman recall tidak menemukan survey_id dan menendang user ke /surveys.
+      clearRecallSession();
+      saveRecallSession(fresh);
+      return fresh;
+    });
   }, [surveyId, accessToken]);
 
   return {
@@ -229,6 +254,8 @@ export function useRecallSession(
     setPortionFoodIndex,
     // Step 4
     setAdditionals,
+    // Step 5
+    setSubmissionId,
     // Computed
     currentMealFoods,
     currentPortionFood,

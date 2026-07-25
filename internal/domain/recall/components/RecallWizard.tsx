@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, Check, HelpCircle, Lightbulb } from "lucide-react";
 import { Step1SelectMeal } from "./Step1SelectMeal";
 import { Step2AddFood } from "./Step2AddFood";
 import { Step3Portion } from "./Step3Portion";
@@ -9,15 +10,16 @@ import { Step5Review } from "./Step5Review";
 import { Step6Result } from "./Step6Result";
 import { useRecallSession } from "../hooks/useRecallSession";
 import { getRecallSession } from "../services/recallStorage";
+import { cn } from "@/internal/lib/cn";
 import type { RecallSession, RecallStep } from "../types/recall";
 
 const STEP_LABELS: Record<RecallStep, string> = {
-  select_meal: "Select Meal",
-  add_food: "Add Food",
-  portion: "Estimation Portion",
-  additional: "Additional Details",
-  review: "Review",
-  done: "Result",
+  select_meal: "Waktu Makan",
+  add_food: "Tambah Makanan",
+  portion: "Estimasi Porsi",
+  additional: "Detail Tambahan",
+  review: "Tinjau",
+  done: "Hasil",
 };
 
 const SIDEBAR_STEPS: RecallStep[] = [
@@ -37,25 +39,33 @@ const STEP_NUMBERS: Record<RecallStep, number> = {
   done: 6,
 };
 
-const DEFAULT_MEAL_ICONS: Record<string, string> = {
-  Breakfast: "🍳",
-  "Morning Snack": "🍎",
-  Lunch: "🍱",
-  "Afternoon Snack": "☕",
-  Dinner: "🍽️",
-  "Evening Snack": "🌙",
-  Sarapan: "🍳",
-  "Makan Siang": "🍱",
-  "Makan Malam": "🍽️",
-  Snack: "🍎",
+/** Tip kontekstual per langkah — ditampilkan di sidebar (desktop). */
+const STEP_TIPS: Partial<Record<RecallStep, { title: string; body: string }>> = {
+  select_meal: {
+    title: "Makan dengan sadar",
+    body: "Catat semua yang Anda konsumsi agar hasil analisisnya seakurat mungkin.",
+  },
+  add_food: {
+    title: "Catat selengkapnya",
+    body: "Masukkan juga lauk, pelengkap, dan minuman supaya gambaran gizinya utuh.",
+  },
+  portion: {
+    title: "Perkirakan dengan jujur",
+    body: "Pilih foto porsi yang paling mendekati, atau isi beratnya secara manual.",
+  },
+  additional: {
+    title: "Jangan lupa bumbu",
+    body: "Minyak, gula, dan saus ikut memengaruhi total kalori Anda.",
+  },
+  review: {
+    title: "Periksa sekali lagi",
+    body: "Pastikan seluruh detail sudah benar sebelum laporan dikirim.",
+  },
 };
 
 function mealOptionsFromSession(session: RecallSession) {
   if (session.available_meals?.length) {
-    return session.available_meals.map((m) => ({
-      name: m.name,
-      icon: DEFAULT_MEAL_ICONS[m.name] ?? "🍽️",
-    }));
+    return session.available_meals.map((m) => ({ name: m.name }));
   }
   return undefined;
 }
@@ -73,7 +83,6 @@ export function RecallWizard() {
   const {
     session,
     stepProgress,
-    stepIndex,
     totalSteps,
     nextStep,
     prevStep,
@@ -86,8 +95,8 @@ export function RecallWizard() {
     setPortion,
     setPortionFoodIndex,
     setAdditionals,
+    setSubmissionId,
     currentMealFoods,
-    currentPortionFood,
     reset,
   } = useRecallSession(surveyId, accessToken, storedSession);
 
@@ -96,96 +105,140 @@ export function RecallWizard() {
   const currentStep = session.current_step;
   const foods = currentMealFoods();
   const currentStepNumber = STEP_NUMBERS[currentStep];
-  const isFinalStep = (currentStep as string) === "review";
-
-  // ─── Step label for header ────────────────────────────────────────────────────
-  const stepLabel = currentStep === "done"
-    ? "Result"
-    : `Step ${currentStepNumber} of ${totalSteps}`;
+  const isDone = currentStep === "done";
+  const isFinalStep = currentStep === "review";
+  const tip = STEP_TIPS[currentStep];
 
   return (
-    <div className="recall-wizard">
-      {/* Header */}
-      <div className="wizard-header">
+    <div className="flex min-h-[100svh] flex-col bg-background">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-sticky flex h-14 items-center justify-between gap-4 border-b border-border bg-surface px-4 sm:px-6">
         <button
           type="button"
-          className="wizard-back-btn"
+          className="inline-flex items-center gap-2 rounded-md text-sm font-semibold text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           onClick={() => (currentStep === "select_meal" ? router.back() : prevStep())}
         >
-          ← {stepLabel}
+          <ArrowLeft aria-hidden className="h-4 w-4" />
+          Kembali
         </button>
-        <button type="button" className="wizard-help-btn">?</button>
-      </div>
 
-      {/* Progress bar */}
-      {currentStep !== "done" && (
-        <div className="wizard-progress-bar">
-          <div className="wizard-progress-bar__track">
+        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
+          {isDone ? "Hasil" : `Langkah ${currentStepNumber} dari ${totalSteps}`}
+        </span>
+
+        <button
+          type="button"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border-strong text-text-muted transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          aria-label="Bantuan"
+        >
+          <HelpCircle aria-hidden className="h-4 w-4" />
+        </button>
+      </header>
+
+      {/* ── Progress ───────────────────────────────────────────────────────── */}
+      {!isDone && (
+        <div className="border-b border-border bg-surface px-4 py-3 sm:px-6">
+          <div
+            className="h-[6px] overflow-hidden rounded-full bg-primary-muted"
+            role="progressbar"
+            aria-valuenow={stepProgress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Progres pengisian recall"
+          >
             <div
-              className="wizard-progress-bar__fill"
+              className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
               style={{ width: `${stepProgress}%` }}
             />
           </div>
-          <span className="wizard-progress-label">
-            {isFinalStep ? "FINAL STEP" : "PROGRESS"} — {stepProgress}% Complete
+          <span className="mt-1 block text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+            {isFinalStep ? "Langkah terakhir" : "Progres"} — {stepProgress}% selesai
           </span>
         </div>
       )}
 
-      <div className="wizard-body">
-        {/* Sidebar */}
-        {currentStep !== "done" && (
-          <aside className="wizard-sidebar">
-            <nav className="wizard-steps-nav">
+      {/* ── Step rail (mobile) ─────────────────────────────────────────────── */}
+      {!isDone && (
+        <nav
+          aria-label="Langkah pengisian"
+          className="flex gap-2 overflow-x-auto border-b border-border bg-surface px-4 py-3 lg:hidden"
+        >
+          {SIDEBAR_STEPS.map((step) => {
+            const num = STEP_NUMBERS[step];
+            const active = currentStep === step;
+            const done = currentStepNumber > num;
+            return (
+              <span
+                key={step}
+                aria-current={active ? "step" : undefined}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1 text-xs transition-colors",
+                  active && "border-primary bg-primary-light font-semibold text-primary",
+                  done && !active && "border-success-border bg-success-light text-success",
+                  !active && !done && "border-border text-text-muted"
+                )}
+              >
+                {done ? <Check aria-hidden className="h-3 w-3" /> : <span>{num}</span>}
+                {STEP_LABELS[step]}
+              </span>
+            );
+          })}
+        </nav>
+      )}
+
+      <div className="flex min-h-0 flex-1">
+        {/* ── Sidebar (desktop) ────────────────────────────────────────────── */}
+        {!isDone && (
+          <aside className="hidden w-56 shrink-0 flex-col gap-1 border-r border-border bg-surface p-5 lg:flex">
+            <nav aria-label="Langkah pengisian" className="flex flex-col gap-1">
               {SIDEBAR_STEPS.map((step) => {
                 const num = STEP_NUMBERS[step];
-                const isActive = currentStep === step;
-                const isDone =
-                  STEP_NUMBERS[currentStep] > num ||
-                  ((currentStep as string) === "done" && num <= 5);
+                const active = currentStep === step;
+                const done = currentStepNumber > num;
                 return (
                   <div
                     key={step}
-                    className={`sidebar-step${isActive ? " sidebar-step--active" : ""}${isDone ? " sidebar-step--done" : ""}`}
+                    aria-current={active ? "step" : undefined}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 transition-colors",
+                      active && "bg-primary-light"
+                    )}
                   >
-                    <div className="sidebar-step__num">
-                      {isDone ? "✓" : num}
-                    </div>
-                    <span className="sidebar-step__label">{STEP_LABELS[step]}</span>
+                    <span
+                      className={cn(
+                        "flex h-[1.75rem] w-[1.75rem] shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors",
+                        active && "border-primary bg-primary text-white",
+                        done && "border-success bg-success text-white",
+                        !active && !done && "border-border-strong text-text-muted"
+                      )}
+                    >
+                      {done ? <Check aria-hidden className="h-3 w-3" /> : num}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-sm",
+                        active ? "font-semibold text-text-primary" : "font-medium text-text-muted"
+                      )}
+                    >
+                      {STEP_LABELS[step]}
+                    </span>
                   </div>
                 );
               })}
             </nav>
 
-            {/* Contextual tip */}
-            {currentStep === "select_meal" && (
-              <div className="sidebar-tip">
-                <strong>Eat Mindfully</strong>
-                <p>Make sure to record everything you consume to achieve the most accurate results.</p>
+            {tip ? (
+              <div className="mt-auto rounded-lg border border-primary-border bg-primary-light p-3 text-xs leading-relaxed text-primary">
+                <Lightbulb aria-hidden className="mb-1 h-4 w-4" />
+                <strong className="mb-1 block font-semibold">{tip.title}</strong>
+                <p>{tip.body}</p>
               </div>
-            )}
-            {currentStep === "add_food" && (
-              <div className="sidebar-tip">
-                <strong>Be Thorough</strong>
-                <p>Include all side dishes, condiments, and drinks to get a complete nutritional picture.</p>
-              </div>
-            )}
-            {currentStep === "portion" && (
-              <div className="sidebar-tip">
-                <strong>Makan dengan Sadar</strong>
-                <p>Pastikan Anda mencatat semua yang dikonsumsi untuk hasil terbaik.</p>
-              </div>
-            )}
-            {currentStep === "review" && (
-              <div className="sidebar-tip">
-                <p>Confirm your meal details to generate a comprehensive nutritional profile.</p>
-              </div>
-            )}
+            ) : null}
           </aside>
         )}
 
-        {/* Main content */}
-        <main className="wizard-main">
+        {/* ── Main ─────────────────────────────────────────────────────────── */}
+        <main className="min-w-0 flex-1 overflow-y-auto">
           {currentStep === "select_meal" && (
             <Step1SelectMeal
               mealType={session.current_meal.type}
@@ -199,7 +252,7 @@ export function RecallWizard() {
 
           {currentStep === "add_food" && (
             <Step2AddFood
-              mealType={session.current_meal.type || "Meal"}
+              mealType={session.current_meal.type || "waktu makan ini"}
               addedFoods={foods}
               onAddFood={addFood}
               onRemoveFood={removeFood}
@@ -232,7 +285,10 @@ export function RecallWizard() {
           {currentStep === "review" && (
             <Step5Review
               session={session}
-              onSubmitSuccess={() => goToStep("done")}
+              onSubmitted={(submissionId) => {
+                setSubmissionId(submissionId);
+                goToStep("done");
+              }}
               onBack={prevStep}
               onEditPortions={() => goToStep("portion")}
               onAddMealTime={() => goToStep("select_meal")}
@@ -242,13 +298,12 @@ export function RecallWizard() {
           {currentStep === "done" && (
             <Step6Result
               respondentName={session.respondent_name}
+              submissionId={session.submission_id}
               onFinish={() => {
                 reset();
                 router.push(`/surveys/${accessToken}/done`);
               }}
-              onFillAgain={() => {
-                reset();
-              }}
+              onFillAgain={reset}
             />
           )}
         </main>

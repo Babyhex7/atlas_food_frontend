@@ -70,4 +70,9 @@ export type RecallSession = {
   meals: RecallMeal[];
   // Makanan yang tidak ketemu di DB
   missing_foods: MissingFood[];
+  /**
+   * Diisi setelah submit berhasil (Step 5). Dipakai Step 6 untuk meminta
+   * analisis gizi AI ke POST /ai/nutrition-analysis.
+   */
+  submission_id?: string;
 };
