@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Bell, Check, Link2, Loader2, Users } from "lucide-react";
+import { Bell, Eye, EyeOff, Link2, Loader2, Users } from "lucide-react";
 import { PresenceAvatars } from "./PresenceAvatars";
+import { ShareModal } from "./ShareModal";
 import { useCollabStore } from "../store/collabStore";
 import type { CollabConnectionStatus } from "../types/collab";
 import { loginWithRedirect } from "@/internal/lib/layout";
@@ -16,6 +17,8 @@ type Props = {
   onEnableCollab?: () => void;
   requireAuthHint?: boolean;
   showLoginCta?: boolean;
+  onFollowUser?: (userId: string) => void;
+  onUnfollow?: () => void;
 };
 
 function statusMeta(status: CollabConnectionStatus) {
@@ -38,12 +41,27 @@ function statusMeta(status: CollabConnectionStatus) {
   }
 }
 
+function roleLabel(role: string | null | undefined) {
+  switch (role) {
+    case "owner":
+      return "Owner";
+    case "editor":
+      return "Can edit";
+    case "viewer":
+      return "Can view";
+    default:
+      return role ?? null;
+  }
+}
+
 export function CollaborationBar({
   roomId,
   status,
   onEnableCollab,
   requireAuthHint,
   showLoginCta,
+  onFollowUser,
+  onUnfollow,
 }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -52,44 +70,43 @@ export function CollaborationBar({
   const lastError = useCollabStore((s) => s.lastError);
   const remoteSearch = useCollabStore((s) => s.remoteSearch);
   const users = useCollabStore((s) => s.users);
+  const selfUserId = useCollabStore((s) => s.selfUserId);
+  const selfRoomRole = useCollabStore((s) => s.selfRoomRole);
+  const followingUserId = useCollabStore((s) => s.followingUserId);
+  const followingUserName = useCollabStore((s) => s.followingUserName);
+  const followingUserColor = useCollabStore((s) => s.followingUserColor);
+  const followPairs = useCollabStore((s) => s.followPairs);
   const setLastError = useCollabStore((s) => s.setLastError);
-  const [copied, setCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const qs = searchParams.toString();
   const currentPath = `${pathname}${qs ? `?${qs}` : ""}`;
   const loginHref = loginWithRedirect(currentPath);
 
-  const share = useCallback(async () => {
-    if (!roomId || typeof window === "undefined") return;
-    const url = new URL(window.location.href);
-    url.searchParams.set("room", roomId);
-    try {
-      await navigator.clipboard.writeText(url.toString());
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      window.prompt("Salin link kolaborasi:", url.toString());
-    }
-  }, [roomId]);
+  const followersOfMe = useMemo(() => {
+    if (!selfUserId) return [];
+    const ids = followPairs.filter((p) => p.leaderId === selfUserId).map((p) => p.followerId);
+    return users.filter((u) => ids.includes(u.userId));
+  }, [followPairs, selfUserId, users]);
 
   const meta = statusMeta(status);
   const busy = status === "connecting" || status === "reconnecting";
+  const roleText = roleLabel(selfRoomRole);
+  const isViewer = selfRoomRole === "viewer";
 
   return (
     <div className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-md font-sans shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-primary-light border border-primary-border flex items-center justify-center shrink-0">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-2.5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary-border bg-primary-light">
             <Users size={15} className="text-primary" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-text-primary leading-tight">
-              Kolaborasi real-time
-            </div>
+            <div className="text-sm font-semibold leading-tight text-text-primary">Multiplayer</div>
             <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
               <span
                 className={cn(
-                  "inline-block w-1.5 h-1.5 rounded-full",
+                  "inline-block h-1.5 w-1.5 rounded-full",
                   meta.dot,
                   meta.pulse && "animate-pulse"
                 )}
@@ -103,19 +120,27 @@ export function CollaborationBar({
                 meta.label
               )}
               {users.length > 0 ? <span>· {users.length} online</span> : null}
+              {roleText ? <span>· {roleText}</span> : null}
             </div>
           </div>
         </div>
 
-        <div className="hidden sm:block h-6 w-px bg-border shrink-0" />
+        <div className="hidden h-6 w-px shrink-0 bg-border sm:block" />
 
-        <PresenceAvatars />
+        <PresenceAvatars onFollow={onFollowUser} onUnfollow={onUnfollow} />
+
+        {followersOfMe.length > 0 ? (
+          <div className="hidden items-center gap-1.5 rounded-full border border-info-border bg-info-light px-2.5 py-1 text-[11px] text-info md:flex">
+            <Eye size={12} />
+            {followersOfMe.length === 1
+              ? `${followersOfMe[0].displayName} mengikuti Anda`
+              : `${followersOfMe.length} orang mengikuti Anda`}
+          </div>
+        ) : null}
 
         {remoteSearch?.query ? (
-          <div className="hidden md:flex items-center max-w-[240px] truncate rounded-md bg-surface-alt border border-border px-2.5 py-1 text-[11px] text-text-secondary">
-            <span className="font-medium text-text-primary mr-1 truncate">
-              {remoteSearch.username}
-            </span>
+          <div className="hidden max-w-[240px] items-center truncate rounded-md border border-border bg-surface-alt px-2.5 py-1 text-[11px] text-text-secondary md:flex">
+            <span className="mr-1 truncate font-medium text-text-primary">{remoteSearch.username}</span>
             mencari “{remoteSearch.query}”
           </div>
         ) : null}
@@ -125,7 +150,7 @@ export function CollaborationBar({
             <button
               type="button"
               onClick={onEnableCollab}
-              className="text-xs font-semibold px-3.5 py-2 rounded-lg bg-primary text-white border-none cursor-pointer font-sans shadow-sm hover:opacity-95 transition-fast"
+              className="cursor-pointer rounded-lg border-none bg-primary px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-fast hover:opacity-95 font-sans"
             >
               Mulai kolaborasi
             </button>
@@ -134,7 +159,7 @@ export function CollaborationBar({
           {!roomId && showLoginCta ? (
             <Link
               href={loginHref}
-              className="text-xs font-semibold px-3.5 py-2 rounded-lg bg-primary text-white no-underline font-sans shadow-sm hover:opacity-95 transition-fast"
+              className="rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-white no-underline shadow-sm transition-fast hover:opacity-95 font-sans"
             >
               Login untuk kolaborasi
             </Link>
@@ -143,7 +168,7 @@ export function CollaborationBar({
           {requireAuthHint ? (
             <Link
               href={loginHref}
-              className="text-xs font-semibold px-3.5 py-2 rounded-lg bg-primary text-white no-underline font-sans shadow-sm"
+              className="rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-white no-underline shadow-sm font-sans"
             >
               Login untuk bergabung
             </Link>
@@ -152,11 +177,11 @@ export function CollaborationBar({
           {roomId ? (
             <button
               type="button"
-              onClick={share}
-              className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg border border-border bg-surface text-text-primary cursor-pointer font-sans hover:bg-surface-alt transition-fast"
+              onClick={() => setShareOpen(true)}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-text-primary transition-fast hover:bg-surface-alt font-sans"
             >
-              {copied ? <Check size={13} className="text-emerald-600" /> : <Link2 size={13} />}
-              {copied ? "Link tersalin" : "Bagikan link"}
+              <Link2 size={13} />
+              Share
             </button>
           ) : null}
 
@@ -165,7 +190,7 @@ export function CollaborationBar({
             onClick={() => setFeedOpen(!feedOpen)}
             aria-pressed={feedOpen}
             className={cn(
-              "inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg border cursor-pointer font-sans transition-fast",
+              "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-fast font-sans",
               feedOpen
                 ? "border-primary-border bg-primary-light text-primary"
                 : "border-border bg-surface text-text-primary hover:bg-surface-alt"
@@ -177,17 +202,50 @@ export function CollaborationBar({
         </div>
       </div>
 
+      {/* Viewer mode strip */}
+      {isViewer && status === "connected" ? (
+        <div className="border-t border-warning-border bg-warning-light">
+          <div className="mx-auto max-w-6xl px-4 py-2 text-xs text-warning">
+            Mode <strong>Can view</strong> — Anda bisa follow viewport, tapi tidak bisa mengubah data.
+          </div>
+        </div>
+      ) : null}
+
+      {/* Follow banner */}
+      {followingUserId ? (
+        <div className="border-t border-primary-border bg-primary-light">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
+            <p className="m-0 flex items-center gap-2 text-xs text-primary">
+              <span
+                className="inline-block h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: followingUserColor ?? "currentColor" }}
+              />
+              Following <strong>{followingUserName || "rekan"}</strong>
+              <span className="text-primary/70">· viewport diselaraskan</span>
+            </p>
+            <button
+              type="button"
+              onClick={onUnfollow}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-primary-border bg-surface px-3 py-1.5 text-xs font-semibold text-primary transition-fast hover:bg-primary hover:text-white font-sans"
+            >
+              <EyeOff size={12} />
+              Stop following
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {(lastError || requireAuthHint) && (
-        <div className="max-w-6xl mx-auto px-4 pb-2.5">
+        <div className="mx-auto max-w-6xl px-4 pb-2.5 pt-2">
           <div className="flex items-start justify-between gap-3 rounded-lg border border-danger/25 bg-danger-light px-3 py-2">
-            <p className="text-xs text-danger m-0 leading-relaxed">
+            <p className="m-0 text-xs leading-relaxed text-danger">
               {lastError || "Login diperlukan untuk bergabung ke sesi kolaborasi."}
             </p>
             {lastError ? (
               <button
                 type="button"
                 onClick={() => setLastError(null)}
-                className="text-[11px] text-danger bg-transparent border-none cursor-pointer shrink-0 font-sans underline"
+                className="shrink-0 cursor-pointer border-none bg-transparent text-[11px] text-danger underline font-sans"
               >
                 Tutup
               </button>
@@ -195,6 +253,10 @@ export function CollaborationBar({
           </div>
         </div>
       )}
+
+      {roomId ? (
+        <ShareModal open={shareOpen} roomId={roomId} onClose={() => setShareOpen(false)} />
+      ) : null}
     </div>
   );
 }

@@ -1,157 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { getAccessToken } from "@/internal/lib/cookies";
 import { useAuthStore } from "@/internal/domain/auth/store/authStore";
 import { buildCollabWsUrl } from "../lib/wsUrl";
+import { COLLAB_MUTATE_TYPES, canEditRoom, routeCollabMessage } from "../lib/messageRouter";
 import { useCollabStore } from "../store/collabStore";
-import type { CollabIncomingMessage, CollabUser, EntityLock } from "../types/collab";
-import { colorForUserId } from "../types/collab";
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-}
-
-function mapUser(raw: Record<string, unknown>): CollabUser {
-  const userId = String(raw.user_id ?? raw.userId ?? "");
-  return {
-    userId,
-    displayName: String(raw.display_name ?? raw.username ?? "User"),
-    role: String(raw.role ?? "respondent"),
-    color: String(raw.color ?? colorForUserId(userId)),
-    lastActive: Date.now(),
-  };
-}
-
-function mapLock(raw: Record<string, unknown>): EntityLock {
-  return {
-    entityType: String(raw.entity_type ?? ""),
-    entityId: String(raw.entity_id ?? ""),
-    lockedBy: String(raw.locked_by ?? ""),
-    username: String(raw.username ?? ""),
-    version: Number(raw.version ?? 1),
-  };
-}
-
-function routeMessage(msg: CollabIncomingMessage) {
-  const store = useCollabStore.getState();
-  const payload = asRecord(msg.payload);
-  const userId = msg.user_id ?? String(payload.user_id ?? "");
-  const username = msg.username ?? String(payload.username ?? "User");
-
-  switch (msg.type) {
-    case "presence_list": {
-      const usersRaw = Array.isArray(payload.users) ? payload.users : [];
-      store.setUsers(usersRaw.map((u) => mapUser(asRecord(u))));
-      break;
-    }
-    case "presence_joined":
-    case "user_joined": {
-      store.upsertUser(mapUser({ ...payload, user_id: userId, username }));
-      break;
-    }
-    case "presence_left":
-    case "user_left": {
-      store.removeUser(userId || String(payload.user_id ?? ""));
-      break;
-    }
-    case "cursor_update": {
-      if (!userId) break;
-      store.upsertUser(
-        mapUser({
-          user_id: userId,
-          username,
-          color: payload.color,
-          role: payload.role,
-        })
-      );
-      store.updateCursor(userId, {
-        x: Number(payload.x ?? 0),
-        y: Number(payload.y ?? 0),
-        page: String(payload.page ?? ""),
-        element_id: payload.element_id ? String(payload.element_id) : undefined,
-      });
-      break;
-    }
-    case "user_searching":
-    case "food_search_shared": {
-      store.setRemoteSearch({
-        userId,
-        username,
-        query: String(payload.query ?? ""),
-      });
-      break;
-    }
-    case "food_selected": {
-      store.setLastSelectedFood({
-        userId,
-        username,
-        foodId: String(payload.food_id ?? ""),
-        foodName: String(payload.food_name ?? ""),
-      });
-      break;
-    }
-    case "meal_updated": {
-      store.setLastMealUpdate({
-        userId,
-        username,
-        mealType: String(payload.meal_type ?? ""),
-        foodId: String(payload.food_id ?? ""),
-        foodName: String(payload.food_name ?? ""),
-      });
-      break;
-    }
-    case "portion_updated":
-    case "portion_selected": {
-      store.setLastPortionUpdate({
-        userId,
-        username,
-        foodId: String(payload.food_id ?? ""),
-        portionGram: Number(payload.portion_gram ?? 0),
-      });
-      break;
-    }
-    case "activity_log": {
-      store.addActivity({
-        userId,
-        username,
-        action: String(payload.action ?? msg.type),
-        details: String(payload.details ?? ""),
-        timestamp: Date.now(),
-      });
-      break;
-    }
-    case "db_locked": {
-      store.setLock(mapLock({ ...payload, locked_by: payload.locked_by ?? userId }));
-      break;
-    }
-    case "db_unlocked": {
-      store.releaseLock(String(payload.entity_type ?? ""), String(payload.entity_id ?? ""));
-      break;
-    }
-    case "db_edit_saved": {
-      store.releaseLock(String(payload.entity_type ?? ""), String(payload.entity_id ?? ""));
-      break;
-    }
-    case "state_sync": {
-      const locksRaw = Array.isArray(payload.locks) ? payload.locks : [];
-      store.setLocksFromSnapshot(locksRaw.map((l) => mapLock(asRecord(l))));
-      break;
-    }
-    case "error": {
-      store.setLastError(String(payload.message ?? "Terjadi kesalahan kolaborasi"));
-      break;
-    }
-    default:
-      break;
-  }
-}
+import type { CollabIncomingMessage } from "../types/collab";
 
 export type CollabSend = (type: string, payload?: Record<string, unknown>) => void;
 
 /**
  * Connects to a collaboration room. Pass null roomId to stay disconnected.
- * Requires login (access token cookie).
+ * Requires login (access token cookie). Invite token dari ?invite= untuk role.
  */
 export function useWebSocket(roomId: string | null) {
   const wsRef = useRef<WebSocket | null>(null);
@@ -159,6 +21,8 @@ export function useWebSocket(roomId: string | null) {
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartbeatTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const intentionalClose = useRef(false);
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("invite")?.trim() || null;
 
   const status = useCollabStore((s) => s.status);
   const session = useAuthStore((s) => s.session);
@@ -170,7 +34,7 @@ export function useWebSocket(roomId: string | null) {
     heartbeatTimer.current = null;
   };
 
-  const send: CollabSend = useCallback((type, payload = {}) => {
+  const sendRaw: CollabSend = useCallback((type, payload = {}) => {
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     try {
@@ -179,6 +43,21 @@ export function useWebSocket(roomId: string | null) {
       useCollabStore.getState().setLastError("Gagal mengirim pesan kolaborasi");
     }
   }, []);
+
+  /** Gate mutate events untuk viewer (SoC: satu titik, semua caller otomatis aman). */
+  const send: CollabSend = useCallback(
+    (type, payload = {}) => {
+      const role = useCollabStore.getState().selfRoomRole;
+      if (COLLAB_MUTATE_TYPES.has(type) && !canEditRoom(role)) {
+        useCollabStore
+          .getState()
+          .setLastError("Mode Can view — Anda hanya bisa mengikuti, tidak mengubah data.");
+        return;
+      }
+      sendRaw(type, payload);
+    },
+    [sendRaw]
+  );
 
   useEffect(() => {
     intentionalClose.current = false;
@@ -208,7 +87,7 @@ export function useWebSocket(roomId: string | null) {
       clearTimers();
       store.setStatus(reconnectAttempt.current > 0 ? "reconnecting" : "connecting");
 
-      const url = buildCollabWsUrl(roomId, token);
+      const url = buildCollabWsUrl(roomId, token, inviteToken);
       let ws: WebSocket;
       try {
         ws = new WebSocket(url);
@@ -224,19 +103,19 @@ export function useWebSocket(roomId: string | null) {
         reconnectAttempt.current = 0;
         store.setStatus("connected");
         store.setLastError(null);
-        send("presence_join", {
+        sendRaw("presence_join", {
           user_id: session?.user?.id,
           display_name: session?.user?.name || session?.user?.email,
           role: session?.user?.role,
         });
-        send("get_history", {});
-        heartbeatTimer.current = setInterval(() => send("ping", {}), 25000);
+        sendRaw("get_history", {});
+        heartbeatTimer.current = setInterval(() => sendRaw("ping", {}), 25000);
       };
 
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(String(event.data)) as CollabIncomingMessage;
-          routeMessage(msg);
+          routeCollabMessage(msg);
         } catch {
           // ignore malformed
         }
@@ -268,8 +147,8 @@ export function useWebSocket(roomId: string | null) {
       wsRef.current?.close(1000, "unmount");
       wsRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reconnect on room/token identity
-  }, [roomId, session?.access_token, session?.user?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reconnect on room/token/invite
+  }, [roomId, session?.access_token, session?.user?.id, inviteToken]);
 
   return {
     send,

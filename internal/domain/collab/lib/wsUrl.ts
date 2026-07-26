@@ -1,5 +1,9 @@
 /** Build WebSocket URL for collab room (JWT via query token for browser handshake). */
-export function buildCollabWsUrl(roomId: string, token: string): string {
+export function buildCollabWsUrl(
+  roomId: string,
+  token: string,
+  inviteToken?: string | null
+): string {
   const apiBase =
     process.env.NEXT_PUBLIC_API_URL ||
     process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -10,8 +14,9 @@ export function buildCollabWsUrl(roomId: string, token: string): string {
     apiBase.replace(/^http/, "ws").replace(/\/$/, "");
 
   const encodedRoom = encodeURIComponent(roomId);
-  const url = `${wsBase}/collab/rooms/${encodedRoom}/ws?token=${encodeURIComponent(token)}`;
-  return url;
+  const params = new URLSearchParams({ token });
+  if (inviteToken) params.set("invite", inviteToken);
+  return `${wsBase}/collab/rooms/${encodedRoom}/ws?${params.toString()}`;
 }
 
 export function generateRoomId(prefix: string): string {

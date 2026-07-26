@@ -1,16 +1,32 @@
 export type CollabRole = "admin" | "respondent" | string;
 
+/** Per-room role (bukan JWT app role). */
+export type RoomRole = "owner" | "editor" | "viewer" | string;
+
 export type CollabCursor = {
   x: number;
   y: number;
   page: string;
+  scrollX?: number;
+  scrollY?: number;
   element_id?: string;
+};
+
+export type CollabViewport = {
+  page: string;
+  path?: string;
+  scrollX: number;
+  scrollY: number;
+  step?: string;
+  zoom?: number;
 };
 
 export type CollabUser = {
   userId: string;
   displayName: string;
   role: CollabRole;
+  roomRole?: RoomRole;
+  following?: string;
   color: string;
   cursor?: CollabCursor;
   lastActive: number;

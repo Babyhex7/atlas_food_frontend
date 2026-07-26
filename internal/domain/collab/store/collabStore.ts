@@ -4,17 +4,30 @@ import type {
   CollabConnectionStatus,
   CollabCursor,
   CollabUser,
+  CollabViewport,
   EntityLock,
+  RoomRole,
 } from "../types/collab";
 import { colorForUserId } from "../types/collab";
+
+type FollowPair = { followerId: string; leaderId: string };
 
 type CollabState = {
   status: CollabConnectionStatus;
   roomId: string | null;
   selfUserId: string | null;
+  selfRoomRole: RoomRole | null;
   users: CollabUser[];
   activities: ActivityEntry[];
   locks: Record<string, EntityLock>;
+  /** User yang sedang kita ikuti (Figma follow). */
+  followingUserId: string | null;
+  followingUserName: string | null;
+  followingUserColor: string | null;
+  /** Snapshot follow graph di room. */
+  followPairs: FollowPair[];
+  /** Viewport terakhir dari leader (untuk mirror). */
+  leaderViewport: CollabViewport | null;
   remoteSearch: { userId: string; username: string; query: string } | null;
   lastSelectedFood: {
     userId: string;
@@ -41,6 +54,7 @@ type CollabState = {
   setStatus: (status: CollabConnectionStatus) => void;
   setRoomId: (roomId: string | null) => void;
   setSelfUserId: (userId: string | null) => void;
+  setSelfRoomRole: (role: RoomRole | null) => void;
   setUsers: (users: CollabUser[]) => void;
   upsertUser: (user: CollabUser) => void;
   removeUser: (userId: string) => void;
@@ -49,6 +63,13 @@ type CollabState = {
   setLock: (lock: EntityLock) => void;
   releaseLock: (entityType: string, entityId: string) => void;
   setLocksFromSnapshot: (locks: EntityLock[]) => void;
+  setFollowing: (opts: {
+    userId: string | null;
+    name?: string | null;
+    color?: string | null;
+  }) => void;
+  setFollowPairs: (pairs: FollowPair[]) => void;
+  setLeaderViewport: (vp: CollabViewport | null) => void;
   setRemoteSearch: (value: CollabState["remoteSearch"]) => void;
   setLastSelectedFood: (value: CollabState["lastSelectedFood"]) => void;
   setLastMealUpdate: (value: CollabState["lastMealUpdate"]) => void;
@@ -62,9 +83,15 @@ const initial = {
   status: "idle" as CollabConnectionStatus,
   roomId: null as string | null,
   selfUserId: null as string | null,
+  selfRoomRole: null as RoomRole | null,
   users: [] as CollabUser[],
   activities: [] as ActivityEntry[],
   locks: {} as Record<string, EntityLock>,
+  followingUserId: null as string | null,
+  followingUserName: null as string | null,
+  followingUserColor: null as string | null,
+  followPairs: [] as FollowPair[],
+  leaderViewport: null as CollabViewport | null,
   remoteSearch: null as CollabState["remoteSearch"],
   lastSelectedFood: null as CollabState["lastSelectedFood"],
   lastMealUpdate: null as CollabState["lastMealUpdate"],
@@ -83,6 +110,7 @@ export const useCollabStore = create<CollabState>((set) => ({
   setStatus: (status) => set({ status }),
   setRoomId: (roomId) => set({ roomId }),
   setSelfUserId: (selfUserId) => set({ selfUserId }),
+  setSelfRoomRole: (selfRoomRole) => set({ selfRoomRole }),
 
   setUsers: (users) => set({ users }),
 
@@ -90,13 +118,35 @@ export const useCollabStore = create<CollabState>((set) => ({
     set((s) => {
       const idx = s.users.findIndex((u) => u.userId === user.userId);
       if (idx === -1) return { users: [...s.users, user] };
+      const prev = s.users[idx];
+      // Jangan overwrite field opsional dengan undefined (cursor_update sering kirim parsial).
+      const merged: CollabUser = {
+        ...prev,
+        ...user,
+        roomRole: user.roomRole ?? prev.roomRole,
+        following: user.following ?? prev.following,
+        cursor: user.cursor ?? prev.cursor,
+        color: user.color || prev.color,
+        displayName: user.displayName || prev.displayName,
+      };
       const next = [...s.users];
-      next[idx] = { ...next[idx], ...user };
+      next[idx] = merged;
       return { users: next };
     }),
 
   removeUser: (userId) =>
-    set((s) => ({ users: s.users.filter((u) => u.userId !== userId) })),
+    set((s) => {
+      const next: Partial<CollabState> = {
+        users: s.users.filter((u) => u.userId !== userId),
+      };
+      if (s.followingUserId === userId) {
+        next.followingUserId = null;
+        next.followingUserName = null;
+        next.followingUserColor = null;
+        next.leaderViewport = null;
+      }
+      return next;
+    }),
 
   updateCursor: (userId, cursor) =>
     set((s) => ({
@@ -115,7 +165,6 @@ export const useCollabStore = create<CollabState>((set) => ({
   addActivity: (activity) =>
     set((s) => {
       const timestamp = activity.timestamp ?? Date.now();
-      // Dedup join spam dari reconnect / double socket
       if (activity.action === "joined" && activity.userId) {
         const recentJoin = s.activities.find(
           (a) =>
@@ -162,6 +211,16 @@ export const useCollabStore = create<CollabState>((set) => ({
       ),
     }),
 
+  setFollowing: ({ userId, name, color }) =>
+    set({
+      followingUserId: userId,
+      followingUserName: userId ? (name ?? null) : null,
+      followingUserColor: userId ? (color ?? null) : null,
+      ...(userId ? {} : { leaderViewport: null }),
+    }),
+
+  setFollowPairs: (followPairs) => set({ followPairs }),
+  setLeaderViewport: (leaderViewport) => set({ leaderViewport }),
   setRemoteSearch: (remoteSearch) => set({ remoteSearch }),
   setLastSelectedFood: (lastSelectedFood) => set({ lastSelectedFood }),
   setLastMealUpdate: (lastMealUpdate) => set({ lastMealUpdate }),

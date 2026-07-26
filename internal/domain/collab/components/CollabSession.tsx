@@ -18,7 +18,9 @@ import { ActivityFeed } from "./ActivityFeed";
 import { LiveCursorOverlay } from "./LiveCursorOverlay";
 import { useWebSocket, type CollabSend } from "../hooks/useWebSocket";
 import { useLiveCursor } from "../hooks/useLiveCursor";
+import { useFollowMode } from "../hooks/useFollowMode";
 import { generateRoomId } from "../lib/wsUrl";
+import { canEditRoom } from "../lib/messageRouter";
 import { useCollabStore } from "../store/collabStore";
 import type { CollabConnectionStatus } from "../types/collab";
 
@@ -27,6 +29,10 @@ type CollabContextValue = {
   roomId: string | null;
   status: CollabConnectionStatus;
   isConnected: boolean;
+  canEdit: boolean;
+  followUser: (userId: string) => void;
+  unfollow: () => void;
+  isFollowing: boolean;
 };
 
 const CollabContext = createContext<CollabContextValue>({
@@ -34,6 +40,10 @@ const CollabContext = createContext<CollabContextValue>({
   roomId: null,
   status: "idle",
   isConnected: false,
+  canEdit: true,
+  followUser: () => undefined,
+  unfollow: () => undefined,
+  isFollowing: false,
 });
 
 export function useCollab() {
@@ -80,21 +90,37 @@ export function CollabSession({
   useEffect(() => {
     if (!syncUrl || !enabledRoom || !hasToken) return;
     const url = new URL(window.location.href);
-    if (url.searchParams.get("room") === enabledRoom) {
+    const currentRoom = url.searchParams.get("room");
+    if (currentRoom === enabledRoom) {
       syncedRef.current = enabledRoom;
       return;
     }
     if (syncedRef.current === enabledRoom) return;
     syncedRef.current = enabledRoom;
     url.searchParams.set("room", enabledRoom);
+    // Pertahankan invite token bila ada (role viewer/editor dari share)
+    const invite = searchParams.get("invite");
+    if (invite) url.searchParams.set("invite", invite);
     window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`);
-  }, [syncUrl, enabledRoom, hasToken]);
+  }, [syncUrl, enabledRoom, hasToken, searchParams]);
 
   useEffect(() => () => reset(), [reset]);
 
   const activeRoom = hasToken ? enabledRoom : null;
   const { send, status, isConnected } = useWebSocket(activeRoom);
+  const { followUser, unfollow, isFollowing } = useFollowMode(send, isConnected);
   const { remoteCursors } = useLiveCursor(send, isConnected);
+  const selfRoomRole = useCollabStore((s) => s.selfRoomRole);
+  const users = useCollabStore((s) => s.users);
+  const selfUserId = useCollabStore((s) => s.selfUserId);
+  const canEdit = canEditRoom(selfRoomRole);
+
+  // Pulihkan room_role jika presence datang sebelum selfUserId siap
+  useEffect(() => {
+    if (!selfUserId) return;
+    const self = users.find((u) => u.userId === selfUserId);
+    if (self?.roomRole) useCollabStore.getState().setSelfRoomRole(self.roomRole);
+  }, [selfUserId, users]);
 
   const enableCollab = useCallback(() => {
     if (!hasToken) return;
@@ -104,8 +130,17 @@ export function CollabSession({
   }, [hasToken, fixedRoomId, roomFromQuery, roomPrefix]);
 
   const value = useMemo(
-    () => ({ send, roomId: activeRoom, status, isConnected }),
-    [send, activeRoom, status, isConnected]
+    () => ({
+      send,
+      roomId: activeRoom,
+      status,
+      isConnected,
+      canEdit,
+      followUser,
+      unfollow,
+      isFollowing,
+    }),
+    [send, activeRoom, status, isConnected, canEdit, followUser, unfollow, isFollowing]
   );
 
   return (
@@ -116,6 +151,8 @@ export function CollabSession({
         onEnableCollab={!activeRoom && hasToken && !authPending ? enableCollab : undefined}
         requireAuthHint={!hasToken && Boolean(roomFromQuery) && isClient && !authPending}
         showLoginCta={!hasToken && !roomFromQuery && isClient && !authPending}
+        onFollowUser={isConnected ? followUser : undefined}
+        onUnfollow={isConnected ? unfollow : undefined}
       />
       <LiveCursorOverlay cursors={remoteCursors} />
       <ActivityFeed />

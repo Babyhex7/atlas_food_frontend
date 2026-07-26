@@ -36,27 +36,57 @@ function throttle<T extends (...args: never[]) => void>(fn: T, wait: number): T 
   }) as T;
 }
 
-/** Broadcast local cursor (throttled ~15fps) and expose remote cursors for current page. */
+/**
+ * Broadcast cursor + viewport (throttled).
+ * Cursor pakai document coords (client + scroll) agar follower di viewport
+ * berbeda tetap bisa mirror relatif ke dokumen.
+ */
 export function useLiveCursor(send: CollabSend, enabled = true) {
   const users = useCollabStore((s) => s.users);
   const selfUserId = useCollabStore((s) => s.selfUserId);
+  const followingUserId = useCollabStore((s) => s.followingUserId);
   const pathname = usePathname();
 
   useEffect(() => {
     if (!enabled) return;
 
-    const handler = (e: MouseEvent) => {
+    const onMove = (e: MouseEvent) => {
+      // Saat mengikuti orang lain, jangan spam cursor sendiri (Figma-like).
+      if (followingUserId) return;
       send("cursor_move", {
-        x: e.clientX,
-        y: e.clientY,
+        x: e.clientX + window.scrollX,
+        y: e.clientY + window.scrollY,
+        scroll_x: window.scrollX,
+        scroll_y: window.scrollY,
         page: window.location.pathname,
       });
     };
 
-    const throttled = throttle(handler, 66);
-    window.addEventListener("mousemove", throttled);
-    return () => window.removeEventListener("mousemove", throttled);
-  }, [send, enabled]);
+    const onScrollOrResize = () => {
+      if (followingUserId) return;
+      send("viewport_update", {
+        page: window.location.pathname,
+        path: window.location.pathname + window.location.search,
+        scroll_x: window.scrollX,
+        scroll_y: window.scrollY,
+      });
+    };
+
+    const throttledMove = throttle(onMove, 66);
+    const throttledViewport = throttle(onScrollOrResize, 100);
+
+    window.addEventListener("mousemove", throttledMove);
+    window.addEventListener("scroll", throttledViewport, { passive: true });
+    window.addEventListener("resize", throttledViewport);
+    // Initial viewport snapshot
+    onScrollOrResize();
+
+    return () => {
+      window.removeEventListener("mousemove", throttledMove);
+      window.removeEventListener("scroll", throttledViewport);
+      window.removeEventListener("resize", throttledViewport);
+    };
+  }, [send, enabled, followingUserId]);
 
   const remoteCursors = useMemo(() => {
     return users
@@ -66,14 +96,20 @@ export function useLiveCursor(send: CollabSend, enabled = true) {
           u.cursor &&
           (!u.cursor.page || u.cursor.page === pathname)
       )
-      .map((u) => ({
-        userId: u.userId,
-        name: u.displayName,
-        x: u.cursor!.x,
-        y: u.cursor!.y,
-        color: u.color,
-      }));
-  }, [users, selfUserId, pathname]);
+      .map((u) => {
+        // Sender menyimpan document coords; konversi ke client viewport lokal.
+        const clientX = u.cursor!.x - (typeof window !== "undefined" ? window.scrollX : 0);
+        const clientY = u.cursor!.y - (typeof window !== "undefined" ? window.scrollY : 0);
+        return {
+          userId: u.userId,
+          name: u.displayName,
+          x: clientX,
+          y: clientY,
+          color: u.color,
+          isLeader: u.userId === followingUserId,
+        };
+      });
+  }, [users, selfUserId, pathname, followingUserId]);
 
   return { remoteCursors };
 }
