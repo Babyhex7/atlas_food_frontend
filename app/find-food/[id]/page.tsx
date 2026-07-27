@@ -11,7 +11,7 @@ import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
 import { isGuideType } from "@/internal/lib/image";
-import { CollabSession, useCollab } from "@/internal/domain/collab";
+import { useCollab, VIEWER_LOCK_CLASS, VIEWER_LOCK_HINT } from "@/internal/domain/collab";
 
 function FoodDetailBody() {
   const params = useParams();
@@ -19,7 +19,7 @@ function FoodDetailBody() {
   const searchParams = useSearchParams();
   const foodId = params.id as string;
   const roomParam = searchParams.get("room");
-  const { send, isConnected } = useCollab();
+  const { send, isConnected, isViewer } = useCollab();
 
   const [isBookmarked, setIsBookmarked] = useState(() => isFoodBookmarked(foodId));
   const [trackedFoodId, setTrackedFoodId] = useState(foodId);
@@ -37,11 +37,13 @@ function FoodDetailBody() {
   });
 
   useEffect(() => {
-    if (!isConnected || !food) return;
+    // Viewer tidak menyiarkan makanan yang dibukanya
+    if (!isConnected || !food || isViewer) return;
     send("food_select", { food_id: food.id, food_name: food.name });
-  }, [isConnected, food, send]);
+  }, [isConnected, food, isViewer, send]);
 
   const handleSelectPhoto = (index: number) => {
+    if (isViewer) return;
     setActivePhotoIndex(index);
     const photo = food?.portion_photos?.[index];
     if (isConnected && photo) {
@@ -175,12 +177,20 @@ function FoodDetailBody() {
             )}
           </div>
 
-          <PortionPhotoViewer
-            photos={food.portion_photos || []}
-            photoType={food.photo_type}
-            activeIndex={activePhotoIndex}
-            onSelect={handleSelectPhoto}
-          />
+          {isViewer && (
+            <p className="mb-4 mt-0 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-xs text-warning">
+              {VIEWER_LOCK_HINT}
+            </p>
+          )}
+
+          <div className={cn(isViewer && VIEWER_LOCK_CLASS)}>
+            <PortionPhotoViewer
+              photos={food.portion_photos || []}
+              photoType={food.photo_type}
+              activeIndex={activePhotoIndex}
+              onSelect={handleSelectPhoto}
+            />
+          </div>
         </div>
 
         <div className="card animate-slide-up p-6 [animation-delay:80ms]">
@@ -246,9 +256,8 @@ export default function FoodDetailPage() {
           </div>
         }
       >
-        <CollabSession roomPrefix="find-food" autoConnect={false}>
-          <FoodDetailBody />
-        </CollabSession>
+        {/* CollabSession ada di app/find-food/layout.tsx supaya tidak putus saat navigasi */}
+        <FoodDetailBody />
       </Suspense>
     </div>
   );

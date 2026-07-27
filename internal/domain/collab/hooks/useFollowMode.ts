@@ -62,6 +62,9 @@ export function useFollowMode(send: CollabSend, enabled: boolean) {
   const followUser = useCallback(
     (userId: string) => {
       if (!enabled || !userId) return;
+      // Follow diri sendiri tidak ada artinya dan ditolak BE — tahan di sini
+      // supaya tidak muncul toast error yang membingungkan.
+      if (userId === useCollabStore.getState().selfUserId) return;
       send("follow_user", { user_id: userId });
     },
     [enabled, send]

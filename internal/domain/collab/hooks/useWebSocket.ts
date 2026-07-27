@@ -44,11 +44,23 @@ export function useWebSocket(roomId: string | null) {
     }
   }, []);
 
-  /** Gate mutate events untuk viewer (SoC: satu titik, semua caller otomatis aman). */
+  /**
+   * Gate event mutasi (SoC: satu titik, semua pemanggil otomatis aman).
+   *
+   * Di luar room = mode solo, bebas. Di dalam room, role WAJIB sudah diketahui
+   * dan bernilai owner/editor — kalau belum diketahui, tahan dulu. Ini menutup
+   * jeda antara socket terbuka dan state_sync tiba, yang dulu bocor karena
+   * role kosong dianggap boleh.
+   */
   const send: CollabSend = useCallback(
     (type, payload = {}) => {
-      const role = useCollabStore.getState().selfRoomRole;
-      if (COLLAB_MUTATE_TYPES.has(type) && !canEditRoom(role)) {
+      if (!COLLAB_MUTATE_TYPES.has(type)) {
+        sendRaw(type, payload);
+        return;
+      }
+      const { roomId: activeRoomId, selfRoomRole } = useCollabStore.getState();
+      const allowed = !activeRoomId || canEditRoom(selfRoomRole);
+      if (!allowed) {
         useCollabStore
           .getState()
           .setLastError("Mode Can view — Anda hanya bisa mengikuti, tidak mengubah data.");
@@ -81,7 +93,10 @@ export function useWebSocket(roomId: string | null) {
     }
 
     store.setRoomId(roomId);
-    store.setSelfUserId(session?.user?.id ?? null);
+    // Nilai awal saja; sumber kebenarannya adalah blok "self" pada state_sync dari
+    // server. Jangan timpa dengan null saat auth store belum terisi (mis. setelah
+    // refresh, di mana token hanya ada di cookie).
+    if (session?.user?.id) store.setSelfUserId(session.user.id);
 
     const connect = () => {
       clearTimers();

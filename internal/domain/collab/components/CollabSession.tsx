@@ -29,18 +29,24 @@ type CollabContextValue = {
   roomId: string | null;
   status: CollabConnectionStatus;
   isConnected: boolean;
+  /** false = UI yang mengubah data harus dinonaktifkan */
   canEdit: boolean;
+  /** true = mode "Can view": kunci total, hanya boleh menonton & follow */
+  isViewer: boolean;
   followUser: (userId: string) => void;
   unfollow: () => void;
   isFollowing: boolean;
 };
 
+// Default context = mode solo (tidak ada room): semua boleh. Halaman di luar
+// CollabSession tetap berfungsi normal tanpa perlu tahu soal kolaborasi.
 const CollabContext = createContext<CollabContextValue>({
   send: () => undefined,
   roomId: null,
   status: "idle",
   isConnected: false,
   canEdit: true,
+  isViewer: false,
   followUser: () => undefined,
   unfollow: () => undefined,
   isFollowing: false,
@@ -85,7 +91,30 @@ export function CollabSession({
   const roomFromQuery = searchParams.get("room")?.trim() || null;
   const [createdRoom, setCreatedRoom] = useState<string | null>(null);
 
+  // Room aktif disimpan per tab (sessionStorage). Tanpa ini, navigasi lewat <Link>
+  // yang tidak membawa ?room= akan membuat sesi kolaborasi hilang diam-diam.
+  // sessionStorage dipilih agar sesi berakhir saat tab ditutup — bukan localStorage
+  // yang membuat user otomatis masuk room lama berhari-hari kemudian.
+  const storageKey = `collab:room:${roomPrefix}`;
+
+  // Pemulihan dilakukan saat render (pola "adjust state during render" React),
+  // bukan di dalam useEffect. Lewat effect, render pertama sempat memakai room
+  // kosong lalu langsung render ulang — WebSocket ikut dibuka-tutup sekali.
+  const [roomRestored, setRoomRestored] = useState(false);
+  if (isClient && !roomRestored) {
+    setRoomRestored(true);
+    if (!fixedRoomId && !roomFromQuery && !createdRoom) {
+      const saved = window.sessionStorage.getItem(storageKey);
+      if (saved) setCreatedRoom(saved);
+    }
+  }
+
   const enabledRoom = fixedRoomId || roomFromQuery || createdRoom;
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !enabledRoom) return;
+    window.sessionStorage.setItem(storageKey, enabledRoom);
+  }, [enabledRoom, storageKey]);
 
   useEffect(() => {
     if (!syncUrl || !enabledRoom || !hasToken) return;
@@ -113,7 +142,14 @@ export function CollabSession({
   const selfRoomRole = useCollabStore((s) => s.selfRoomRole);
   const users = useCollabStore((s) => s.users);
   const selfUserId = useCollabStore((s) => s.selfUserId);
-  const canEdit = canEditRoom(selfRoomRole);
+
+  // Fail-closed: selama kita berada di sebuah room tapi role dari server belum
+  // diketahui, perlakukan sebagai viewer. Jeda ini hanya beberapa milidetik
+  // (state_sync datang tepat setelah connect), dan mencegah viewer sempat
+  // menekan tombol ubah di sela-sela handshake.
+  const inRoom = Boolean(activeRoom);
+  const canEdit = inRoom ? canEditRoom(selfRoomRole) : true;
+  const isViewer = inRoom && !canEdit;
 
   // Pulihkan room_role jika presence datang sebelum selfUserId siap
   useEffect(() => {
@@ -129,6 +165,27 @@ export function CollabSession({
     setCreatedRoom(id);
   }, [hasToken, fixedRoomId, roomFromQuery, roomPrefix]);
 
+  /**
+   * Keluar dari sesi kolaborasi.
+   *
+   * Karena room sekarang bertahan di sessionStorage, tanpa tombol ini pengguna
+   * tidak punya cara keluar selain menutup tab. Semua jejak room harus dibersihkan
+   * sekaligus — state, sessionStorage, dan query di URL — kalau tidak, salah satu
+   * sumber akan menariknya kembali masuk pada render berikutnya.
+   */
+  const leaveRoom = useCallback(() => {
+    syncedRef.current = null;
+    setCreatedRoom(null);
+    if (typeof window === "undefined") return;
+    window.sessionStorage.removeItem(storageKey);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("room");
+    url.searchParams.delete("invite");
+    const qs = url.searchParams.toString();
+    window.history.replaceState(null, "", `${url.pathname}${qs ? `?${qs}` : ""}`);
+    reset();
+  }, [storageKey, reset]);
+
   const value = useMemo(
     () => ({
       send,
@@ -136,11 +193,12 @@ export function CollabSession({
       status,
       isConnected,
       canEdit,
+      isViewer,
       followUser,
       unfollow,
       isFollowing,
     }),
-    [send, activeRoom, status, isConnected, canEdit, followUser, unfollow, isFollowing]
+    [send, activeRoom, status, isConnected, canEdit, isViewer, followUser, unfollow, isFollowing]
   );
 
   return (
@@ -153,6 +211,9 @@ export function CollabSession({
         showLoginCta={!hasToken && !roomFromQuery && isClient && !authPending}
         onFollowUser={isConnected ? followUser : undefined}
         onUnfollow={isConnected ? unfollow : undefined}
+        // Room tetap (mis. recall-<token>) tidak bisa ditinggalkan — sesinya
+        // memang terikat ke survei itu, bukan room ad-hoc yang dibuat pengguna.
+        onLeaveRoom={activeRoom && !fixedRoomId ? leaveRoom : undefined}
       />
       <LiveCursorOverlay cursors={remoteCursors} />
       <ActivityFeed />

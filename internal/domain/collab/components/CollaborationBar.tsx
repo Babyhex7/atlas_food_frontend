@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Bell, Eye, EyeOff, Link2, Loader2, Users } from "lucide-react";
+import { Bell, Eye, EyeOff, Link2, Loader2, LogOut, Users } from "lucide-react";
 import { PresenceAvatars } from "./PresenceAvatars";
 import { ShareModal } from "./ShareModal";
 import { useCollabStore } from "../store/collabStore";
@@ -19,6 +19,7 @@ type Props = {
   showLoginCta?: boolean;
   onFollowUser?: (userId: string) => void;
   onUnfollow?: () => void;
+  onLeaveRoom?: () => void;
 };
 
 function statusMeta(status: CollabConnectionStatus) {
@@ -62,6 +63,7 @@ export function CollaborationBar({
   showLoginCta,
   onFollowUser,
   onUnfollow,
+  onLeaveRoom,
 }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -185,6 +187,17 @@ export function CollaborationBar({
             </button>
           ) : null}
 
+          {onLeaveRoom ? (
+            <button
+              type="button"
+              onClick={onLeaveRoom}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-text-secondary transition-fast hover:border-danger/40 hover:text-danger font-sans"
+            >
+              <LogOut size={13} />
+              Keluar sesi
+            </button>
+          ) : null}
+
           <button
             type="button"
             onClick={() => setFeedOpen(!feedOpen)}
@@ -206,7 +219,8 @@ export function CollaborationBar({
       {isViewer && status === "connected" ? (
         <div className="border-t border-warning-border bg-warning-light">
           <div className="mx-auto max-w-6xl px-4 py-2 text-xs text-warning">
-            Mode <strong>Can view</strong> — Anda bisa follow viewport, tapi tidak bisa mengubah data.
+            Mode <strong>Can view</strong> — kontrol dikunci. Ikuti rekan lewat avatar di atas untuk
+            menyelaraskan layar.
           </div>
         </div>
       ) : null}

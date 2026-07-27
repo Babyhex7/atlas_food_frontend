@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Check, Copy, Eye, Link2, Pencil, X } from "lucide-react";
 import { createCollabInvite, type InviteRole } from "../services/inviteService";
 import { cn } from "@/internal/lib/cn";
@@ -16,37 +17,39 @@ type Props = {
  */
 export function ShareModal({ open, roomId, onClose }: Props) {
   const [role, setRole] = useState<InviteRole>("editor");
-  const [link, setLink] = useState("");
-  const [expiresAt, setExpiresAt] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const buildInvite = useCallback(async () => {
-    if (!roomId || typeof window === "undefined") return;
-    setLoading(true);
-    setError(null);
-    setCopied(false);
-    try {
-      const inv = await createCollabInvite(roomId, role, window.location.href);
-      setLink(inv.shareUrl);
-      setExpiresAt(inv.expiresAt);
-    } catch {
-      const url = new URL(window.location.href);
-      url.searchParams.set("room", roomId);
-      url.searchParams.delete("invite");
-      setLink(url.toString());
-      setExpiresAt(null);
-      setError("Invite API gagal — link fallback tanpa token role.");
-    } finally {
-      setLoading(false);
-    }
-  }, [roomId, role]);
+  // Undangan diambil lewat React Query, bukan useEffect + setState manual.
+  // Selain menghilangkan cascading render, ganti role otomatis memicu
+  // pengambilan ulang karena role ikut jadi bagian queryKey.
+  const { data: invite, isFetching } = useQuery({
+    queryKey: ["collab-invite", roomId, role],
+    enabled: open && Boolean(roomId),
+    refetchOnWindowFocus: false,
+    gcTime: 0,
+    queryFn: async () => {
+      try {
+        const inv = await createCollabInvite(roomId, role, window.location.href);
+        return { shareUrl: inv.shareUrl, expiresAt: inv.expiresAt, error: null as string | null };
+      } catch {
+        // Tetap beri link yang bisa dipakai walau API invite gagal — link ini
+        // hanya kehilangan token role, jadi penerima masuk dengan role default.
+        const url = new URL(window.location.href);
+        url.searchParams.set("room", roomId);
+        url.searchParams.delete("invite");
+        return {
+          shareUrl: url.toString(),
+          expiresAt: null,
+          error: "Invite API gagal — link fallback tanpa token role.",
+        };
+      }
+    },
+  });
 
-  useEffect(() => {
-    if (!open) return;
-    void buildInvite();
-  }, [open, buildInvite]);
+  const link = invite?.shareUrl ?? "";
+  const expiresAt = invite?.expiresAt ?? null;
+  const error = invite?.error ?? null;
+  const loading = isFetching;
 
   useEffect(() => {
     if (!open) return;

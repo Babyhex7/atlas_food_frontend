@@ -16,8 +16,18 @@ export const COLLAB_MUTATE_TYPES = new Set([
   "db_edit_cancel",
 ]);
 
+/**
+ * Fail-closed: hanya owner & editor yang boleh mengubah data.
+ *
+ * Role kosong berarti "server belum memberi tahu", bukan "boleh". Versi lama
+ * mengembalikan true untuk role kosong, sehingga viewer masih bisa mengubah data
+ * selama jeda antara koneksi terbuka dan state_sync diterima.
+ *
+ * Pemanggil yang berada DI LUAR room (mode solo) harus memutuskan sendiri —
+ * lihat CollabSession & useWebSocket yang mengecek roomId terlebih dahulu.
+ */
 export function canEditRoom(role: string | null | undefined): boolean {
-  return role === "owner" || role === "editor" || !role;
+  return role === "owner" || role === "editor";
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -203,6 +213,16 @@ export function routeCollabMessage(msg: CollabIncomingMessage) {
     case "state_sync": {
       const locksRaw = Array.isArray(payload.locks) ? payload.locks : [];
       store.setLocksFromSnapshot(locksRaw.map((l) => mapLock(asRecord(l))));
+
+      // Identitas diri datang dari server, bukan dari auth store. Auth store tidak
+      // dipersist, jadi setelah refresh / di tab baru nilainya null dan avatar
+      // sendiri ikut bisa diklik Follow → BE menolak "user_id target tidak valid".
+      const self = asRecord(payload.self);
+      const selfId = String(self.user_id ?? "");
+      if (selfId) {
+        store.setSelfUserId(selfId);
+        if (self.room_role) store.setSelfRoomRole(String(self.room_role));
+      }
       break;
     }
     case "error": {

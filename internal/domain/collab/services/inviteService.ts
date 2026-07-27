@@ -1,7 +1,9 @@
 import { apiClient } from "@/internal/lib/axios";
-import type { RoomRole } from "../types/collab";
 
-export type InviteRole = Extract<RoomRole, "editor" | "viewer">;
+// Ditulis sebagai literal union langsung, bukan Extract<RoomRole, ...>: RoomRole
+// punya `| string` sehingga seluruh union melebar jadi string dan hasil Extract-nya
+// `never` — bikin setRole("editor") ditolak compiler.
+export type InviteRole = "editor" | "viewer";
 
 export type CollabInviteResult = {
   roomId: string;

@@ -15,9 +15,19 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/internal/lib/cn";
+import { ViewerLock } from "@/internal/domain/collab";
 
 /* ── Shell & header ──────────────────────────────────────────────────────── */
 
+/**
+ * StepShell membungkus isi tiap langkah wizard.
+ *
+ * ViewerLock dipasang di sini — bukan di masing-masing step — supaya peserta
+ * "Can view" terkunci total di seluruh langkah, termasuk langkah yang ditambahkan
+ * nanti. Kalau digantung per komponen, cepat atau lambat ada kontrol baru yang
+ * lupa dikunci. Di luar sesi kolaborasi ViewerLock meneruskan children apa adanya,
+ * jadi wizard solo tidak terpengaruh sama sekali.
+ */
 export function StepShell({
   children,
   className,
@@ -35,7 +45,7 @@ export function StepShell({
         className
       )}
     >
-      {children}
+      <ViewerLock className="flex flex-col gap-6">{children}</ViewerLock>
     </div>
   );
 }

@@ -11,11 +11,17 @@ import type { FoodSearchResult } from "@/internal/types/food.types";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
-import { CollabSession, useCollab } from "@/internal/domain/collab";
+import {
+  useCollab,
+  viewerLockProps,
+  viewerLockLinkProps,
+  VIEWER_LOCK_CLASS,
+  VIEWER_LOCK_HINT,
+} from "@/internal/domain/collab";
 
 function FindFoodBody() {
   const searchParams = useSearchParams();
-  const { send, isConnected } = useCollab();
+  const { send, isConnected, isViewer } = useCollab();
   const queryFromUrl = searchParams.get("q") ?? "";
   const [searchTerm, setSearchTerm] = useState(queryFromUrl);
   const [prevQuery, setPrevQuery] = useState(queryFromUrl);
@@ -39,9 +45,10 @@ function FindFoodBody() {
   });
 
   useEffect(() => {
-    if (!isConnected || !canSearch) return;
+    // Viewer tidak menyiarkan pencarian — layarnya mengikuti leader, bukan sebaliknya
+    if (!isConnected || !canSearch || isViewer) return;
     send("food_search", { query: debouncedSearch.trim(), filters: {} });
-  }, [debouncedSearch, canSearch, isConnected, send]);
+  }, [debouncedSearch, canSearch, isConnected, isViewer, send]);
 
   return (
     <>
@@ -68,8 +75,16 @@ function FindFoodBody() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Cari makanan (nama / kode, misal: Nasi, MP-01…)"
-              className="shadow-xl-focus-ring block w-full pl-12 pr-12 py-4 rounded-xl border-none bg-surface text-text-primary text-base outline-none shadow-xl transition-base font-sans box-border"
+              placeholder={
+                isViewer
+                  ? "Pencarian dikunci — mode Can view"
+                  : "Cari makanan (nama / kode, misal: Nasi, MP-01…)"
+              }
+              {...viewerLockProps(isViewer)}
+              className={cn(
+                "shadow-xl-focus-ring block w-full pl-12 pr-12 py-4 rounded-xl border-none bg-surface text-text-primary text-base outline-none shadow-xl transition-base font-sans box-border",
+                isViewer && "cursor-not-allowed opacity-60"
+              )}
             />
             {isSearching && (
               <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
@@ -82,6 +97,13 @@ function FindFoodBody() {
 
       {/* ── Content (overlaps hero) ── */}
       <div className={cn(CONTAINER_CLASS, "-mt-8 relative z-10 pb-16 flex-1")}>
+
+        {isViewer && (
+          <div className="card mb-4 border-warning-border bg-warning-light p-4 text-sm text-warning">
+            {VIEWER_LOCK_HINT}
+          </div>
+        )}
+
 
         {/* Minimum chars hint */}
         {debouncedSearch.trim().length > 0 && debouncedSearch.trim().length < 2 && (
@@ -102,7 +124,11 @@ function FindFoodBody() {
                 <Link
                   key={cat.id}
                   href={`/find-food/category/${cat.code}`}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl border-[1.5px] border-border no-underline text-center transition-base bg-surface hover:border-primary-border hover:bg-primary-light hover:-translate-y-0.5 hover:shadow-sm"
+                  {...viewerLockLinkProps(isViewer)}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-4 rounded-xl border-[1.5px] border-border no-underline text-center transition-base bg-surface hover:border-primary-border hover:bg-primary-light hover:-translate-y-0.5 hover:shadow-sm",
+                    isViewer && VIEWER_LOCK_CLASS
+                  )}
                 >
                   <span className="text-[2rem] leading-none">
                     {cat.icon
@@ -158,7 +184,12 @@ function FindFoodBody() {
                         ? `/find-food/${food.id}?room=${encodeURIComponent(roomParam)}`
                         : `/find-food/${food.id}`
                     }
-                    onClick={() => {
+                    {...viewerLockLinkProps(isViewer)}
+                    onClick={(e) => {
+                      if (isViewer) {
+                        e.preventDefault();
+                        return;
+                      }
                       if (isConnected) {
                         send("food_select", {
                           food_id: food.id,
@@ -166,7 +197,10 @@ function FindFoodBody() {
                         });
                       }
                     }}
-                    className="flex items-center gap-4 p-4 rounded-xl border-[1.5px] border-border no-underline bg-surface transition-base hover:border-primary-border hover:shadow-md hover:-translate-y-px"
+                    className={cn(
+                      "flex items-center gap-4 p-4 rounded-xl border-[1.5px] border-border no-underline bg-surface transition-base hover:border-primary-border hover:shadow-md hover:-translate-y-px",
+                      isViewer && VIEWER_LOCK_CLASS
+                    )}
                   >
                     {/* Icon */}
                     <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center shrink-0">
@@ -209,13 +243,13 @@ function FindFoodBody() {
 }
 
 export function FindFoodContent() {
+  // CollabSession dipasang di app/find-food/layout.tsx agar koneksi bertahan
+  // saat berpindah halaman — jangan dipasang ulang di sini.
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <AppHeader />
       <Suspense fallback={null}>
-        <CollabSession roomPrefix="find-food" autoConnect={false}>
-          <FindFoodBody />
-        </CollabSession>
+        <FindFoodBody />
       </Suspense>
     </div>
   );
