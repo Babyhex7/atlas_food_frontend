@@ -36,9 +36,11 @@ export function ShareModal({ open, roomId, onClose }: Props) {
         const inv = await createCollabInvite(roomId, role, window.location.href);
         return { shareUrl: inv.shareUrl, expiresAt: inv.expiresAt, error: null as string | null };
       } catch {
+        // Bersihkan query lama dulu — jangan ikutkan param milik pengundang
+        // (bisa membingungkan / berisiko jika URL sempat terpolusi).
         const url = new URL(window.location.href);
+        url.search = "";
         url.searchParams.set("room", roomId);
-        url.searchParams.delete("invite");
         return {
           shareUrl: url.toString(),
           expiresAt: null,

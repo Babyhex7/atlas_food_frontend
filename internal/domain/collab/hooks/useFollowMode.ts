@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCollabStore } from "../store/collabStore";
+import { mergeLeaderPathForFollower } from "../lib/collabParams";
 import type { CollabSend } from "./useWebSocket";
 
 /**
- * Figma-like follow: mirror scroll (+ path bila beda) dari leader viewport_sync.
+ * Figma-like follow: mirror scroll + path (+ query q) dari leader viewport_sync.
+ * room/invite milik follower selalu dipertahankan.
  */
 export function useFollowMode(send: CollabSend, enabled: boolean) {
   const followingUserId = useCollabStore((s) => s.followingUserId);
@@ -22,25 +24,14 @@ export function useFollowMode(send: CollabSend, enabled: boolean) {
 
     const raw = leaderViewport.path || leaderViewport.page || "";
     if (raw.startsWith("/")) {
-      try {
-        const current = new URL(window.location.href);
-        const next = new URL(raw, window.location.origin);
-
-        // Hanya navigasi jika PATHNAME beda — jangan bandingkan full URL
-        // (query room/invite milik follower harus dipertahankan → cegah loop).
-        if (next.pathname !== current.pathname && next.pathname !== lastNavRef.current) {
-          const room = current.searchParams.get("room");
-          const invite = current.searchParams.get("invite");
-          if (room) next.searchParams.set("room", room);
-          if (invite) next.searchParams.set("invite", invite);
-          // Buang query lain dari leader agar tidak bentrok
-          const dest = `${next.pathname}?${next.searchParams.toString()}`.replace(/\?$/, "");
-          lastNavRef.current = next.pathname;
-          router.push(dest);
+      const dest = mergeLeaderPathForFollower(raw, window.location.href);
+      if (dest && dest !== `${window.location.pathname}${window.location.search}`) {
+        if (dest !== lastNavRef.current) {
+          lastNavRef.current = dest;
+          // replace: follow tidak boleh menumpuk history browser follower
+          router.replace(dest);
           return;
         }
-      } catch {
-        // ignore bad path
       }
     }
 

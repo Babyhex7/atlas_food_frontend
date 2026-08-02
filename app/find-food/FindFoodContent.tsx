@@ -17,11 +17,15 @@ import {
   viewerLockLinkProps,
   VIEWER_LOCK_CLASS,
   VIEWER_LOCK_HINT,
+  useCollabStore,
+  withCollabParams,
 } from "@/internal/domain/collab";
 
 function FindFoodBody() {
   const searchParams = useSearchParams();
   const { send, isConnected, isViewer } = useCollab();
+  const followingUserId = useCollabStore((s) => s.followingUserId);
+  const remoteSearch = useCollabStore((s) => s.remoteSearch);
   const queryFromUrl = searchParams.get("q") ?? "";
   const [searchTerm, setSearchTerm] = useState(queryFromUrl);
   const [prevQuery, setPrevQuery] = useState(queryFromUrl);
@@ -32,6 +36,8 @@ function FindFoodBody() {
   const debouncedSearch = useDebounce(searchTerm, 300);
   const canSearch = debouncedSearch.trim().length >= 2;
   const roomParam = searchParams.get("room");
+  const inviteParam = searchParams.get("invite");
+  const isFollowing = Boolean(followingUserId);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["public-categories"],
@@ -44,18 +50,54 @@ function FindFoodBody() {
     enabled: canSearch,
   });
 
+  // Saat follow: mirror query leader ke search bar (awareness instan, ala Figma)
   useEffect(() => {
-    // Viewer tidak menyiarkan pencarian — layarnya mengikuti leader, bukan sebaliknya
-    if (!isConnected || !canSearch || isViewer) return;
+    if (!isFollowing || !remoteSearch?.query) return;
+    if (remoteSearch.userId !== followingUserId) return;
+    setSearchTerm(remoteSearch.query);
+  }, [isFollowing, followingUserId, remoteSearch]);
+
+  // Leader menulis ?q= ke URL + push viewport agar follower ikut (replaceState
+  // tidak memicu useSearchParams Next.js, jadi broadcast eksplisit wajib).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isViewer || isFollowing) return;
+    const url = new URL(window.location.href);
+    const q = debouncedSearch.trim();
+    const current = url.searchParams.get("q") ?? "";
+    let changed = false;
+    if (q.length >= 2) {
+      if (current !== q) {
+        url.searchParams.set("q", q);
+        changed = true;
+      }
+    } else if (url.searchParams.has("q")) {
+      url.searchParams.delete("q");
+      changed = true;
+    }
+    if (!changed) return;
+    const qs = url.searchParams.toString();
+    window.history.replaceState(null, "", `${url.pathname}${qs ? `?${qs}` : ""}`);
+    if (isConnected) {
+      send("viewport_update", {
+        page: window.location.pathname,
+        path: window.location.pathname + window.location.search,
+        scroll_x: window.scrollX,
+        scroll_y: window.scrollY,
+      });
+    }
+  }, [debouncedSearch, isViewer, isFollowing, isConnected, send]);
+
+  useEffect(() => {
+    // Viewer / follower tidak menyiarkan pencarian — layarnya mengikuti leader
+    if (!isConnected || !canSearch || isViewer || isFollowing) return;
     send("food_search", { query: debouncedSearch.trim(), filters: {} });
-  }, [debouncedSearch, canSearch, isConnected, isViewer, send]);
+  }, [debouncedSearch, canSearch, isConnected, isViewer, isFollowing, send]);
 
   return (
     <>
-
       {/* ── Hero banner ── */}
       <div className="bg-primary text-white pt-10 pb-16 px-4 relative overflow-hidden">
-        {/* Subtle dot pattern */}
         <div className="absolute inset-0 opacity-[0.07] pointer-events-none bg-[radial-gradient(rgba(255,255,255,0.8)_1.5px,transparent_1.5px)] bg-[length:24px_24px]" />
 
         <div className={cn(CONTAINER_CLASS, "relative z-[1] text-center")}>
@@ -66,7 +108,6 @@ function FindFoodBody() {
             Temukan estimasi ukuran porsi dan kandungan gizi lengkap dari makanan Indonesia.
           </p>
 
-          {/* Search bar */}
           <div className="relative max-w-[600px] mx-auto">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
               <Search size={18} className="text-text-muted" />
@@ -76,14 +117,16 @@ function FindFoodBody() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={
-                isViewer
-                  ? "Pencarian dikunci — mode Can view"
+                isViewer || isFollowing
+                  ? isFollowing
+                    ? "Mengikuti pencarian rekan…"
+                    : "Pencarian dikunci — mode Can view"
                   : "Cari makanan (nama / kode, misal: Nasi, MP-01…)"
               }
-              {...viewerLockProps(isViewer)}
+              {...viewerLockProps(isViewer || isFollowing)}
               className={cn(
                 "shadow-xl-focus-ring block w-full pl-12 pr-12 py-4 rounded-xl border-none bg-surface text-text-primary text-base outline-none shadow-xl transition-base font-sans box-border",
-                isViewer && "cursor-not-allowed opacity-60"
+                (isViewer || isFollowing) && "cursor-not-allowed opacity-60"
               )}
             />
             {isSearching && (
@@ -95,24 +138,19 @@ function FindFoodBody() {
         </div>
       </div>
 
-      {/* ── Content (overlaps hero) ── */}
       <div className={cn(CONTAINER_CLASS, "-mt-8 relative z-10 pb-16 flex-1")}>
-
         {isViewer && (
           <div className="card mb-4 border-warning-border bg-warning-light p-4 text-sm text-warning">
             {VIEWER_LOCK_HINT}
           </div>
         )}
 
-
-        {/* Minimum chars hint */}
         {debouncedSearch.trim().length > 0 && debouncedSearch.trim().length < 2 && (
           <div className="card p-6 text-center text-text-muted text-sm">
             Ketik minimal 2 karakter untuk mencari…
           </div>
         )}
 
-        {/* Category browse */}
         {debouncedSearch.trim().length === 0 && (
           <div className="card animate-fade-in p-6">
             <h2 className="text-lg font-semibold text-text-primary mb-5 mt-0 flex items-center gap-2">
@@ -123,7 +161,10 @@ function FindFoodBody() {
               {categories.map((cat: { id: string; code: string; name: string; icon?: string }) => (
                 <Link
                   key={cat.id}
-                  href={`/find-food/category/${cat.code}`}
+                  href={withCollabParams(`/find-food/category/${cat.code}`, {
+                    room: roomParam,
+                    invite: inviteParam,
+                  })}
                   {...viewerLockLinkProps(isViewer)}
                   className={cn(
                     "flex flex-col items-center gap-2 p-4 rounded-xl border-[1.5px] border-border no-underline text-center transition-base bg-surface hover:border-primary-border hover:bg-primary-light hover:-translate-y-0.5 hover:shadow-sm",
@@ -131,34 +172,28 @@ function FindFoodBody() {
                   )}
                 >
                   <span className="text-[2rem] leading-none">
-                    {cat.icon
-                      ? <span>{cat.icon}</span>
-                      : <UtensilsCrossed size={30} className="text-primary" />
-                    }
+                    {cat.icon ? (
+                      <span>{cat.icon}</span>
+                    ) : (
+                      <UtensilsCrossed size={30} className="text-primary" />
+                    )}
                   </span>
-                  <span className="text-sm font-medium text-text-primary">
-                    {cat.name}
-                  </span>
+                  <span className="text-sm font-medium text-text-primary">{cat.name}</span>
                 </Link>
               ))}
             </div>
           </div>
         )}
 
-        {/* Search results */}
         {canSearch && (
           <div className="card animate-fade-in p-6">
-            {/* Results header */}
             <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
               <h2 className="text-lg font-semibold text-text-primary m-0">
                 Hasil: &ldquo;{debouncedSearch}&rdquo;
               </h2>
-              <span className="badge badge-default">
-                {searchResults.length} hasil
-              </span>
+              <span className="badge badge-default">{searchResults.length} hasil</span>
             </div>
 
-            {/* Empty */}
             {searchResults.length === 0 && !isSearching && (
               <div className="text-center py-12 px-4">
                 <div className="flex justify-center mb-4">
@@ -167,30 +202,26 @@ function FindFoodBody() {
                 <h3 className="text-base font-semibold text-text-primary mb-2 mt-0">
                   Makanan tidak ditemukan
                 </h3>
-                <p className="text-sm text-text-muted m-0">
-                  Coba gunakan kata kunci lain.
-                </p>
+                <p className="text-sm text-text-muted m-0">Coba gunakan kata kunci lain.</p>
               </div>
             )}
 
-            {/* Results grid */}
             {searchResults.length > 0 && (
               <div className="grid md:grid-cols-2 gap-3">
                 {searchResults.map((food: FoodSearchResult) => (
                   <Link
                     key={food.id}
-                    href={
-                      roomParam
-                        ? `/find-food/${food.id}?room=${encodeURIComponent(roomParam)}`
-                        : `/find-food/${food.id}`
-                    }
+                    href={withCollabParams(`/find-food/${food.id}`, {
+                      room: roomParam,
+                      invite: inviteParam,
+                    })}
                     {...viewerLockLinkProps(isViewer)}
                     onClick={(e) => {
                       if (isViewer) {
                         e.preventDefault();
                         return;
                       }
-                      if (isConnected) {
+                      if (isConnected && !isFollowing) {
                         send("food_select", {
                           food_id: food.id,
                           food_name: food.name,
@@ -202,15 +233,14 @@ function FindFoodBody() {
                       isViewer && VIEWER_LOCK_CLASS
                     )}
                   >
-                    {/* Icon */}
                     <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center shrink-0">
-                      {food.category?.icon
-                        ? <span className="text-xl">{food.category.icon}</span>
-                        : <UtensilsCrossed size={20} className="text-primary" />
-                      }
+                      {food.category?.icon ? (
+                        <span className="text-xl">{food.category.icon}</span>
+                      ) : (
+                        <UtensilsCrossed size={20} className="text-primary" />
+                      )}
                     </div>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-semibold text-text-primary mb-1 mt-0 overflow-hidden text-ellipsis whitespace-nowrap">
                         {food.name}
@@ -243,8 +273,6 @@ function FindFoodBody() {
 }
 
 export function FindFoodContent() {
-  // CollabSession dipasang di app/find-food/layout.tsx agar koneksi bertahan
-  // saat berpindah halaman — jangan dipasang ulang di sini.
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <AppHeader />

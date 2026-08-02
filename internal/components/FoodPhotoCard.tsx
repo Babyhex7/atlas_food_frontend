@@ -101,9 +101,12 @@ function PhotoTypeBadge({ photoType }: { photoType: string }) {
 export function FoodPhotoCard({ food, href, roomParam, previewImageUrl }: FoodPhotoCardProps) {
   const dest =
     href ??
-    (roomParam
-      ? `/find-food/${food.id}?room=${encodeURIComponent(roomParam)}`
-      : `/find-food/${food.id}`);
+    (() => {
+      const params = new URLSearchParams();
+      if (roomParam) params.set("room", roomParam);
+      const qs = params.toString();
+      return qs ? `/find-food/${food.id}?${qs}` : `/find-food/${food.id}`;
+    })();
 
   const categoryCode = food.category?.code ?? "";
 

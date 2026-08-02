@@ -22,7 +22,13 @@ export function useWebSocket(roomId: string | null) {
   const heartbeatTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const intentionalClose = useRef(false);
   const searchParams = useSearchParams();
-  const inviteToken = searchParams.get("invite")?.trim() || null;
+  const inviteFromQuery = searchParams.get("invite")?.trim() || null;
+  // Invite per-room di sessionStorage — navigasi tanpa ?invite= tetap bawa role
+  const inviteFromStorage =
+    typeof window !== "undefined" && roomId
+      ? window.sessionStorage.getItem(`collab:invite:${roomId}`)?.trim() || null
+      : null;
+  const inviteToken = inviteFromQuery || inviteFromStorage;
 
   const status = useCollabStore((s) => s.status);
   const session = useAuthStore((s) => s.session);

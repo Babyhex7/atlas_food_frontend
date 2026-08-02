@@ -147,7 +147,14 @@ export function RegisterForm() {
 
       <p className="mt-6 text-center text-sm text-text-muted">
         Sudah punya akun?{" "}
-        <Link href="/login" className="font-semibold text-primary no-underline hover:underline">
+        <Link
+          href={
+            searchParams.get("redirect")
+              ? `/login?redirect=${encodeURIComponent(searchParams.get("redirect")!)}`
+              : "/login"
+          }
+          className="font-semibold text-primary no-underline hover:underline"
+        >
           Masuk Sekarang
         </Link>
       </p>

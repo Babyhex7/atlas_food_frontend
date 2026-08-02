@@ -1,6 +1,7 @@
 export * from "./types/collab";
 export * from "./store/collabStore";
 export * from "./lib/wsUrl";
+export * from "./lib/collabParams";
 export * from "./lib/messageRouter";
 export * from "./lib/viewerLock";
 export * from "./services/inviteService";

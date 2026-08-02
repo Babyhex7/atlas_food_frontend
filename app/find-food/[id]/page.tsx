@@ -19,6 +19,7 @@ function FoodDetailBody() {
   const searchParams = useSearchParams();
   const foodId = params.id as string;
   const roomParam = searchParams.get("room");
+  const inviteParam = searchParams.get("invite");
   const { send, isConnected, isViewer } = useCollab();
 
   const [isBookmarked, setIsBookmarked] = useState(() => isFoodBookmarked(foodId));
@@ -89,9 +90,13 @@ function FoodDetailBody() {
           <div className="flex justify-between items-center mb-6">
             <button
               type="button"
-              onClick={() =>
-                router.push(roomParam ? `/find-food?room=${encodeURIComponent(roomParam)}` : "/find-food")
-              }
+              onClick={() => {
+                const params = new URLSearchParams();
+                if (roomParam) params.set("room", roomParam);
+                if (inviteParam) params.set("invite", inviteParam);
+                const qs = params.toString();
+                router.push(qs ? `/find-food?${qs}` : "/find-food");
+              }}
               className="inline-flex items-center gap-2 text-sm font-medium text-white/80 bg-transparent border-none cursor-pointer p-0 transition-fast font-sans hover:text-white"
             >
               <ArrowLeft size={16} /> Kembali

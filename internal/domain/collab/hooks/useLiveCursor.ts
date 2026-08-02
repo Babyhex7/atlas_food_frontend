@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { CollabSend } from "./useWebSocket";
 import { useCollabStore } from "../store/collabStore";
 
@@ -40,12 +40,17 @@ function throttle<T extends (...args: never[]) => void>(fn: T, wait: number): T 
  * Broadcast cursor + viewport (throttled).
  * Cursor pakai document coords (client + scroll) agar follower di viewport
  * berbeda tetap bisa mirror relatif ke dokumen.
+ *
+ * Path penuh (pathname + search) ikut di-broadcast saat berubah — penting agar
+ * follower ikut ke detail makanan / query search leader.
  */
 export function useLiveCursor(send: CollabSend, enabled = true) {
   const users = useCollabStore((s) => s.users);
   const selfUserId = useCollabStore((s) => s.selfUserId);
   const followingUserId = useCollabStore((s) => s.followingUserId);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchKey = searchParams.toString();
 
   useEffect(() => {
     if (!enabled) return;
@@ -78,7 +83,7 @@ export function useLiveCursor(send: CollabSend, enabled = true) {
     window.addEventListener("mousemove", throttledMove);
     window.addEventListener("scroll", throttledViewport, { passive: true });
     window.addEventListener("resize", throttledViewport);
-    // Initial viewport snapshot
+    // Snapshot awal + setiap ganti path/query (search, detail, kategori)
     onScrollOrResize();
 
     return () => {
@@ -86,7 +91,7 @@ export function useLiveCursor(send: CollabSend, enabled = true) {
       window.removeEventListener("scroll", throttledViewport);
       window.removeEventListener("resize", throttledViewport);
     };
-  }, [send, enabled, followingUserId]);
+  }, [send, enabled, followingUserId, pathname, searchKey]);
 
   const remoteCursors = useMemo(() => {
     return users

@@ -91,11 +91,13 @@ export function CollabSession({
   const roomFromQuery = searchParams.get("room")?.trim() || null;
   const [createdRoom, setCreatedRoom] = useState<string | null>(null);
 
-  // Room aktif disimpan per tab (sessionStorage). Tanpa ini, navigasi lewat <Link>
-  // yang tidak membawa ?room= akan membuat sesi kolaborasi hilang diam-diam.
+  // Room + invite aktif disimpan per tab (sessionStorage). Tanpa ini, navigasi
+  // lewat <Link> yang tidak membawa ?room=/?invite= membuat sesi/role hilang.
   // sessionStorage dipilih agar sesi berakhir saat tab ditutup — bukan localStorage
   // yang membuat user otomatis masuk room lama berhari-hari kemudian.
   const storageKey = `collab:room:${roomPrefix}`;
+  const inviteStorageKey = `collab:invite:${roomPrefix}`;
+  const inviteFromQuery = searchParams.get("invite")?.trim() || null;
 
   // Pemulihan dilakukan saat render (pola "adjust state during render" React),
   // bukan di dalam useEffect. Lewat effect, render pertama sempat memakai room
@@ -116,22 +118,40 @@ export function CollabSession({
     window.sessionStorage.setItem(storageKey, enabledRoom);
   }, [enabledRoom, storageKey]);
 
+  // Simpan invite per-room agar role viewer/editor tetap setelah navigasi tanpa ?invite=
+  useEffect(() => {
+    if (typeof window === "undefined" || !enabledRoom) return;
+    if (inviteFromQuery) {
+      window.sessionStorage.setItem(`collab:invite:${enabledRoom}`, inviteFromQuery);
+      window.sessionStorage.setItem(inviteStorageKey, inviteFromQuery);
+    }
+  }, [inviteFromQuery, inviteStorageKey, enabledRoom]);
+
   useEffect(() => {
     if (!syncUrl || !enabledRoom || !hasToken) return;
     const url = new URL(window.location.href);
     const currentRoom = url.searchParams.get("room");
-    if (currentRoom === enabledRoom) {
+    const currentInvite = url.searchParams.get("invite");
+    const savedInvite =
+      inviteFromQuery ||
+      (typeof window !== "undefined"
+        ? window.sessionStorage.getItem(`collab:invite:${enabledRoom}`)?.trim() ||
+          window.sessionStorage.getItem(inviteStorageKey)?.trim() ||
+          null
+        : null);
+
+    const roomOk = currentRoom === enabledRoom;
+    const inviteOk = !savedInvite || currentInvite === savedInvite;
+    if (roomOk && inviteOk) {
       syncedRef.current = enabledRoom;
       return;
     }
-    if (syncedRef.current === enabledRoom) return;
+    if (syncedRef.current === enabledRoom && roomOk && inviteOk) return;
     syncedRef.current = enabledRoom;
     url.searchParams.set("room", enabledRoom);
-    // Pertahankan invite token bila ada (role viewer/editor dari share)
-    const invite = searchParams.get("invite");
-    if (invite) url.searchParams.set("invite", invite);
+    if (savedInvite) url.searchParams.set("invite", savedInvite);
     window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`);
-  }, [syncUrl, enabledRoom, hasToken, searchParams]);
+  }, [syncUrl, enabledRoom, hasToken, searchParams, inviteFromQuery, inviteStorageKey]);
 
   useEffect(() => () => reset(), [reset]);
 
@@ -178,13 +198,17 @@ export function CollabSession({
     setCreatedRoom(null);
     if (typeof window === "undefined") return;
     window.sessionStorage.removeItem(storageKey);
+    window.sessionStorage.removeItem(inviteStorageKey);
+    if (enabledRoom) {
+      window.sessionStorage.removeItem(`collab:invite:${enabledRoom}`);
+    }
     const url = new URL(window.location.href);
     url.searchParams.delete("room");
     url.searchParams.delete("invite");
     const qs = url.searchParams.toString();
     window.history.replaceState(null, "", `${url.pathname}${qs ? `?${qs}` : ""}`);
     reset();
-  }, [storageKey, reset]);
+  }, [storageKey, inviteStorageKey, enabledRoom, reset]);
 
   const value = useMemo(
     () => ({
