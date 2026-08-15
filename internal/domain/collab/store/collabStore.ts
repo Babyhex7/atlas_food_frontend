@@ -28,6 +28,14 @@ type CollabState = {
   followPairs: FollowPair[];
   /** Viewport terakhir dari leader (untuk mirror). */
   leaderViewport: CollabViewport | null;
+  /**
+   * Langkah wizard yang sedang kita buka. Disimpan di store — bukan lokal di
+   * komponen — karena setiap viewport_update (termasuk yang dipicu scroll di
+   * useLiveCursor) wajib menyertakannya. Backend menyimpan viewport terakhir apa
+   * adanya, jadi satu pesan tanpa `step` akan menghapus jejak langkah leader dan
+   * follower yang baru bergabung mendarat di langkah yang salah.
+   */
+  localStep: string | null;
   remoteSearch: { userId: string; username: string; query: string } | null;
   lastSelectedFood: {
     userId: string;
@@ -70,6 +78,7 @@ type CollabState = {
   }) => void;
   setFollowPairs: (pairs: FollowPair[]) => void;
   setLeaderViewport: (vp: CollabViewport | null) => void;
+  setLocalStep: (step: string | null) => void;
   setRemoteSearch: (value: CollabState["remoteSearch"]) => void;
   setLastSelectedFood: (value: CollabState["lastSelectedFood"]) => void;
   setLastMealUpdate: (value: CollabState["lastMealUpdate"]) => void;
@@ -92,6 +101,7 @@ const initial = {
   followingUserColor: null as string | null,
   followPairs: [] as FollowPair[],
   leaderViewport: null as CollabViewport | null,
+  localStep: null as string | null,
   remoteSearch: null as CollabState["remoteSearch"],
   lastSelectedFood: null as CollabState["lastSelectedFood"],
   lastMealUpdate: null as CollabState["lastMealUpdate"],
@@ -221,6 +231,7 @@ export const useCollabStore = create<CollabState>((set) => ({
 
   setFollowPairs: (followPairs) => set({ followPairs }),
   setLeaderViewport: (leaderViewport) => set({ leaderViewport }),
+  setLocalStep: (localStep) => set({ localStep }),
   setRemoteSearch: (remoteSearch) => set({ remoteSearch }),
   setLastSelectedFood: (lastSelectedFood) => set({ lastSelectedFood }),
   setLastMealUpdate: (lastMealUpdate) => set({ lastMealUpdate }),

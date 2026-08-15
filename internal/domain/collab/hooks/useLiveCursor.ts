@@ -69,11 +69,16 @@ export function useLiveCursor(send: CollabSend, enabled = true) {
 
     const onScrollOrResize = () => {
       if (followingUserId) return;
+      // Step dibaca dari store saat kirim, bukan lewat dependency efek: pesan ini
+      // menimpa viewport tersimpan di server, jadi tidak boleh ada satu pun yang
+      // berangkat tanpa langkah aktif.
+      const step = useCollabStore.getState().localStep;
       send("viewport_update", {
         page: window.location.pathname,
         path: window.location.pathname + window.location.search,
         scroll_x: window.scrollX,
         scroll_y: window.scrollY,
+        ...(step ? { step } : {}),
       });
     };
 

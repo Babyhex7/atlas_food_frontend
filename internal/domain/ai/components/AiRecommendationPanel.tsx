@@ -225,12 +225,26 @@ export function AiRecommendationPanel({ submissionId }: { submissionId?: string 
             </div>
           ) : null}
 
-          <p className="border-t border-border pt-3 text-[10px] leading-relaxed text-text-muted">
-            {data.source === "cache"
-              ? "Diambil dari hasil analisis yang tersimpan. "
-              : "Dihasilkan oleh AI. "}
-            Rekomendasi ini bersifat informatif dan bukan pengganti nasihat tenaga kesehatan.
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
+            <p className="m-0 max-w-lg text-[10px] leading-relaxed text-text-muted">
+              {data.source === "cache"
+                ? "Diambil dari hasil analisis yang tersimpan. "
+                : "Dihasilkan oleh AI. "}
+              Rekomendasi ini bersifat informatif dan bukan pengganti nasihat tenaga kesehatan.
+            </p>
+            {/* Hasil dari cache bisa terasa usang setelah laporan diperiksa ulang,
+                dan tanpa tombol ini satu-satunya cara menjalankan ulang adalah
+                memuat ulang halaman — yang justru membuang hasil yang sudah ada. */}
+            <button
+              type="button"
+              onClick={() => submissionId && mutate(submissionId)}
+              disabled={!hasSubmission}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:bg-primary-light hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              <RefreshCw aria-hidden className="h-3.5 w-3.5" />
+              Analisis ulang
+            </button>
+          </div>
         </div>
       ) : null}
     </section>

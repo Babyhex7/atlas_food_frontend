@@ -77,7 +77,11 @@ export function Step3Portion({
   const [selection, setSelection] = useState<PortionSelection | null>(null);
   const { send, isConnected } = useCollab();
 
-  const currentFood = foods[foodIndex];
+  // Index dijepit ke daftar yang ada sekarang. Sesi tersimpan bisa membawa index
+  // lama (mis. dari waktu makan sebelumnya), dan menampilkan "belum ada makanan"
+  // padahal daftarnya terisi membuat langkah ini buntu.
+  const safeIndex = foods.length > 0 ? Math.min(Math.max(foodIndex, 0), foods.length - 1) : 0;
+  const currentFood = foods[safeIndex];
   const currentFoodId = currentFood?.food.id;
 
   // Detail yang sudah tersimpan di session dipakai langsung; sisanya diambil
@@ -125,7 +129,7 @@ export function Step3Portion({
   const totalWeight = calcTotalWeight(selectedPhoto, customGram);
   const canConfirm = totalWeight > 0;
   const allPortioned = foods.every((f) => f.portion);
-  const isLastFood = foodIndex >= foods.length - 1;
+  const isLastFood = safeIndex >= foods.length - 1;
 
   const handleConfirm = () => {
     if (!currentFood || totalWeight <= 0) return;
@@ -149,7 +153,7 @@ export function Step3Portion({
         image_label: portion.image_label,
       });
     }
-    if (!isLastFood) onFoodIndexChange(foodIndex + 1);
+    if (!isLastFood) onFoodIndexChange(safeIndex + 1);
   };
 
   if (!currentFood) {
@@ -189,12 +193,12 @@ export function Step3Portion({
           <button
             key={`${rf.food.id}-${i}`}
             type="button"
-            aria-current={i === foodIndex ? "true" : undefined}
+            aria-current={i === safeIndex ? "true" : undefined}
             onClick={() => onFoodIndexChange(i)}
             className={cn(
               "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-              i === foodIndex
+              i === safeIndex
                 ? "border-primary bg-primary font-semibold text-white"
                 : rf.portion
                   ? "border-success-border bg-success-light text-success"
@@ -312,8 +316,8 @@ export function Step3Portion({
               variant="ghost"
               size="sm"
               icon={ChevronLeft}
-              onClick={() => onFoodIndexChange(Math.max(0, foodIndex - 1))}
-              disabled={foodIndex === 0}
+              onClick={() => onFoodIndexChange(Math.max(0, safeIndex - 1))}
+              disabled={safeIndex === 0}
             >
               Sebelumnya
             </Button>
@@ -322,7 +326,7 @@ export function Step3Portion({
               size="sm"
               icon={ChevronRight}
               iconPosition="right"
-              onClick={() => onFoodIndexChange(Math.min(foods.length - 1, foodIndex + 1))}
+              onClick={() => onFoodIndexChange(Math.min(foods.length - 1, safeIndex + 1))}
               disabled={isLastFood}
             >
               Berikutnya

@@ -27,9 +27,11 @@ const MIN_QUERY_LENGTH = 3;
 interface Props {
   mealType: string;
   addedFoods: RecallFood[];
+  missingFoods: MissingFood[];
   onAddFood: (food: SearchFoodResult, type: "food" | "drink") => void;
   onRemoveFood: (foodId: string) => void;
   onAddMissing: (missing: MissingFood) => void;
+  onRemoveMissing: (name: string) => void;
   onContinue: () => void;
   onBack: () => void;
 }
@@ -49,6 +51,7 @@ function FoodSearchBox({
   label,
   placeholder,
   foodType,
+  mealType,
   addedIds,
   onAdd,
   onAddMissing,
@@ -56,6 +59,8 @@ function FoodSearchBox({
   label: string;
   placeholder: string;
   foodType: "food" | "drink";
+  /** Nama waktu makan aktif — ikut dikirim ke room agar feed aktivitas benar. */
+  mealType: string;
   addedIds: Set<string>;
   onAdd: (food: SearchFoodResult, type: "food" | "drink") => void;
   onAddMissing: (missing: MissingFood) => void;
@@ -78,7 +83,11 @@ function FoodSearchBox({
   const listboxId = useId();
 
   const debouncedQuery = useDebounce(query.trim(), 300);
-  const { send, isConnected } = useCollab();
+  const { send, isConnected, isFollowing } = useCollab();
+  // Saat mengikuti rekan, layar kita adalah cerminan miliknya — menyiarkan
+  // pencarian sendiri hanya membuat indikator "sedang mencari" saling tumpang
+  // tindih. Aturan yang sama sudah dipakai di halaman Cari Makanan.
+  const canBroadcast = isConnected && !isFollowing;
 
   const isSearchable = debouncedQuery.length >= MIN_QUERY_LENGTH;
   const tooShort = debouncedQuery.length > 0 && !isSearchable;
@@ -114,7 +123,7 @@ function FoodSearchBox({
 
     let cancelled = false;
 
-    if (isConnected) {
+    if (canBroadcast) {
       send("food_search", { query: debouncedQuery, filters: { food_type: foodType } });
     }
 
@@ -144,7 +153,7 @@ function FoodSearchBox({
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, foodType, isConnected, send]);
+  }, [debouncedQuery, foodType, canBroadcast, send]);
 
   const resetSearch = useCallback(() => {
     setQuery("");
@@ -161,14 +170,16 @@ function FoodSearchBox({
       }
       // Backend mengirim food_type; kalau tidak ada, pakai jenis kotak pencarian.
       onAdd(food, food.food_type ?? foodType);
-      if (isConnected) {
+      if (canBroadcast) {
         send("food_select", { food_id: food.id, food_name: food.name });
-        send("meal_add", { meal_type: foodType, food_id: food.id, food_name: food.name });
+        // meal_type harus nama waktu makan ("Sarapan"), bukan jenis kotak
+        // pencarian ("food"/"drink") — feed aktivitas rekan membacanya apa adanya.
+        send("meal_add", { meal_type: mealType, food_id: food.id, food_name: food.name });
       }
       resetSearch();
       inputRef.current?.focus();
     },
-    [addedIds, onAdd, foodType, isConnected, send, resetSearch]
+    [addedIds, onAdd, foodType, mealType, canBroadcast, send, resetSearch]
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -335,12 +346,17 @@ function FoodSearchBox({
 export function Step2AddFood({
   mealType,
   addedFoods,
+  missingFoods,
   onAddFood,
   onRemoveFood,
   onAddMissing,
+  onRemoveMissing,
   onContinue,
   onBack,
 }: Props) {
+  // Item manual tidak punya data gizi, jadi tidak bisa jadi satu-satunya isi
+  // waktu makan — porsi & perhitungan di langkah berikutnya butuh makanan dari
+  // database. Tetap dicatat dan ikut terkirim sebagai masukan untuk peneliti.
   const canContinue = addedFoods.length > 0;
   const addedIds = useMemo(() => new Set(addedFoods.map((f) => f.food.id)), [addedFoods]);
 
@@ -360,6 +376,7 @@ export function Step2AddFood({
         label="Tambah makanan"
         placeholder="Cari makanan (mis. Nasi Goreng, Ayam Goreng, Bubur Ayam…)"
         foodType="food"
+        mealType={mealType}
         addedIds={addedIds}
         onAdd={onAddFood}
         onAddMissing={onAddMissing}
@@ -369,6 +386,7 @@ export function Step2AddFood({
         label="Tambah minuman"
         placeholder="Cari minuman (mis. Es Teh, Kopi Susu, Jus Jeruk…)"
         foodType="drink"
+        mealType={mealType}
         addedIds={addedIds}
         onAdd={onAddFood}
         onAddMissing={onAddMissing}
@@ -421,11 +439,64 @@ export function Step2AddFood({
         </div>
       ) : null}
 
+      {/* ── Item yang dicatat manual ───────────────────────────────────── */}
+      {missingFoods.length > 0 ? (
+        <div className="overflow-hidden rounded-xl border border-warning-border bg-surface">
+          <div className="flex items-center justify-between gap-3 border-b border-warning-border bg-warning-light px-4 py-3">
+            <span className="flex items-center gap-2 text-sm font-semibold text-warning">
+              <SearchX aria-hidden className="h-4 w-4 shrink-0" />
+              Dicatat manual
+            </span>
+            <span className="rounded-full bg-surface px-2 py-px text-xs font-medium text-warning">
+              {missingFoods.length} item
+            </span>
+          </div>
+
+          <p className="border-b border-border px-4 py-2 text-xs leading-relaxed text-text-muted">
+            Item ini belum ada di basis data, jadi tidak punya nilai gizi dan tidak masuk
+            perhitungan. Catatannya tetap dikirim bersama laporan agar tim gizi bisa
+            menambahkannya.
+          </p>
+
+          <ul>
+            {missingFoods.map((mf) => (
+              <li
+                key={mf.name}
+                className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
+              >
+                <SearchX aria-hidden className="h-4 w-4 shrink-0 text-text-muted" />
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
+                  {mf.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemoveMissing(mf.name)}
+                  aria-label={`Hapus catatan ${mf.name}`}
+                  className="rounded-md p-1 text-text-muted transition-colors hover:bg-danger-light hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <Trash2 aria-hidden className="h-4 w-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <StepNav>
         <Button variant="ghost" onClick={onBack}>
           Kembali
         </Button>
-        <Button icon={ArrowRight} iconPosition="right" onClick={onContinue} disabled={!canContinue}>
+        <Button
+          icon={ArrowRight}
+          iconPosition="right"
+          onClick={onContinue}
+          disabled={!canContinue}
+          title={
+            canContinue
+              ? undefined
+              : "Tambahkan minimal satu makanan dari basis data untuk melanjutkan"
+          }
+        >
           Lanjut
         </Button>
       </StepNav>

@@ -73,6 +73,13 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
     onContinue();
   };
 
+  // Mundur juga menyimpan: takaran yang sudah diketik lalu hilang begitu saja
+  // saat menekan "Kembali" adalah kehilangan data senyap, bukan pembatalan.
+  const handleBack = () => {
+    persist();
+    onBack();
+  };
+
   if (foods.length === 0) {
     return (
       <StepShell>
@@ -177,7 +184,7 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
       })}
 
       <StepNav>
-        <Button variant="ghost" onClick={onBack}>
+        <Button variant="ghost" onClick={handleBack}>
           Kembali
         </Button>
         {/* Langkah ini opsional, jadi cukup satu tombol lanjut: kosongkan saja

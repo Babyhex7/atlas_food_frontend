@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Check, Lightbulb } from "lucide-react";
+import { ArrowLeft, Check, Info, Lightbulb } from "lucide-react";
 import { Step1SelectMeal } from "./Step1SelectMeal";
 import { Step2AddFood } from "./Step2AddFood";
 import { Step3Portion } from "./Step3Portion";
@@ -10,6 +11,7 @@ import { Step5Review } from "./Step5Review";
 import { Step6Result } from "./Step6Result";
 import { useRecallSession } from "../hooks/useRecallSession";
 import { getRecallSession } from "../services/recallStorage";
+import { useCollab, useCollabStore } from "@/internal/domain/collab";
 import { cn } from "@/internal/lib/cn";
 import type { RecallSession, RecallStep } from "../types/recall";
 
@@ -63,6 +65,12 @@ const STEP_TIPS: Partial<Record<RecallStep, { title: string; body: string }>> = 
   },
 };
 
+/** Step yang boleh diterima dari viewport leader — jangan percaya string bebas. */
+function asRecallStep(value: string | undefined): RecallStep | null {
+  if (!value) return null;
+  return (STEP_NUMBERS as Record<string, number>)[value] ? (value as RecallStep) : null;
+}
+
 function mealOptionsFromSession(session: RecallSession) {
   if (session.available_meals?.length) {
     return session.available_meals.map((m) => ({ name: m.name }));
@@ -70,7 +78,16 @@ function mealOptionsFromSession(session: RecallSession) {
   return undefined;
 }
 
-export function RecallWizard() {
+type WizardProps = {
+  /**
+   * true = pengguna masuk lewat link undangan rekan, bukan lewat survei miliknya
+   * sendiri. Datanya tetap lokal (recall tidak direplikasi antar peserta), jadi
+   * statusnya harus dinyatakan terang-terangan agar tidak terlihat seperti bug.
+   */
+  guest?: boolean;
+};
+
+export function RecallWizard({ guest = false }: WizardProps) {
   const params = useParams();
   const router = useRouter();
   const accessToken = Array.isArray(params.accessToken)
@@ -92,6 +109,7 @@ export function RecallWizard() {
     addFood,
     removeFood,
     addMissingFood,
+    removeMissingFood,
     setPortion,
     setPortionFoodIndex,
     setAdditionals,
@@ -109,23 +127,76 @@ export function RecallWizard() {
   const isFinalStep = currentStep === "review";
   const tip = STEP_TIPS[currentStep];
 
+  // ── Sinkronisasi langkah antar peserta ────────────────────────────────────
+  // Seluruh wizard hidup di satu URL, jadi mirror berbasis path saja tidak cukup:
+  // tanpa broadcast `step`, follower ikut ke halaman recall tapi tetap terpaku di
+  // langkah miliknya sendiri. Field `step` sudah didukung protokol viewport_update
+  // di backend, di sini tinggal diisi dan dipakai.
+  const { send, isConnected, isFollowing } = useCollab();
+  const leaderStep = useCollabStore((s) => s.leaderViewport?.step);
+  const setLocalStep = useCollabStore((s) => s.setLocalStep);
+
+  // Langkah aktif ditaruh di store supaya viewport_update mana pun — termasuk
+  // yang dikirim useLiveCursor saat scroll — ikut membawanya.
+  useEffect(() => {
+    setLocalStep(currentStep);
+    return () => setLocalStep(null);
+  }, [currentStep, setLocalStep]);
+
+  useEffect(() => {
+    // Saat mengikuti orang lain kita bukan sumber kebenaran — jangan pantulkan
+    // balik langkah leader, karena itu memicu loop mirror antar dua peserta.
+    if (!isConnected || isFollowing) return;
+    send("viewport_update", {
+      page: window.location.pathname,
+      path: window.location.pathname + window.location.search,
+      step: currentStep,
+      scroll_x: window.scrollX,
+      scroll_y: window.scrollY,
+    });
+  }, [isConnected, isFollowing, currentStep, send]);
+
+  useEffect(() => {
+    if (!isFollowing) return;
+    const next = asRecallStep(leaderStep);
+    if (!next || next === currentStep) return;
+    goToStep(next);
+  }, [isFollowing, leaderStep, currentStep, goToStep]);
+
   return (
     <div className="flex min-h-[100svh] flex-col bg-background">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-sticky flex h-14 items-center justify-between gap-4 border-b border-border bg-surface px-4 sm:px-6">
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-md text-sm font-semibold text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          onClick={() => (currentStep === "select_meal" ? router.back() : prevStep())}
-        >
-          <ArrowLeft aria-hidden className="h-4 w-4" />
-          Kembali
-        </button>
+        {/* Setelah laporan terkirim tidak ada jalan mundur: kembali ke review
+            hanya membuka peluang submit ganda untuk sesi yang sama. */}
+        {isDone ? (
+          <span />
+        ) : (
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-md text-sm font-semibold text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            onClick={() => (currentStep === "select_meal" ? router.back() : prevStep())}
+          >
+            <ArrowLeft aria-hidden className="h-4 w-4" />
+            Kembali
+          </button>
+        )}
 
         <span className="min-w-[7rem] text-right text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
           {isDone ? "Hasil" : `Langkah ${currentStepNumber} dari ${totalSteps}`}
         </span>
       </header>
+
+      {guest ? (
+        <div className="flex items-start gap-2 border-b border-info-border bg-info-light px-4 py-2 text-xs text-info sm:px-6">
+          <Info aria-hidden className="mt-px h-4 w-4 shrink-0" />
+          <span>
+            Anda bergabung ke sesi rekan. Kehadiran, kursor, dan langkah aktif tersinkron, tetapi
+            isian recall tetap milik masing-masing peserta — laporan hanya bisa dikirim dari survei
+            Anda sendiri.
+          </span>
+        </div>
+      ) : null}
 
       {/* ── Progress ───────────────────────────────────────────────────────── */}
       {!isDone && (
@@ -246,9 +317,11 @@ export function RecallWizard() {
             <Step2AddFood
               mealType={session.current_meal.type || "waktu makan ini"}
               addedFoods={foods}
+              missingFoods={session.missing_foods}
               onAddFood={addFood}
               onRemoveFood={removeFood}
               onAddMissing={addMissingFood}
+              onRemoveMissing={removeMissingFood}
               onContinue={nextStep}
               onBack={prevStep}
             />
@@ -291,10 +364,10 @@ export function RecallWizard() {
             <Step6Result
               respondentName={session.respondent_name}
               submissionId={session.submission_id}
-              onFinish={() => {
-                reset();
-                router.push(`/surveys/${accessToken}/done`);
-              }}
+              // Sesi TIDAK direset di sini: halaman /done membaca sesi yang sama
+              // untuk menampilkan ringkasan gizi dan menjalankan analisis AI.
+              // Mereset lebih dulu membuat halaman terakhir tampil kosong.
+              onFinish={() => router.push(`/surveys/${accessToken}/done`)}
               onFillAgain={reset}
             />
           )}

@@ -230,6 +230,26 @@ export function Step5Review({
             })}
           </ul>
 
+          {/* Item manual ikut terkirim ke backend, jadi harus terbaca di review —
+              kalau tidak, responden mengira catatannya hilang. */}
+          {session.missing_foods.length > 0 ? (
+            <div className="border-t border-warning-border bg-warning-light px-5 py-4">
+              <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.07em] text-warning">
+                Dicatat manual · tanpa nilai gizi
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {session.missing_foods.map((mf) => (
+                  <span
+                    key={mf.name}
+                    className="rounded-full border border-warning-border bg-surface px-3 py-1 text-xs font-medium text-text-secondary"
+                  >
+                    {mf.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {allAdditionals.length > 0 ? (
             <div className="border-t border-border bg-surface-alt px-5 py-4">
               <span className="mb-3 block text-xs font-semibold uppercase tracking-[0.07em] text-text-muted">

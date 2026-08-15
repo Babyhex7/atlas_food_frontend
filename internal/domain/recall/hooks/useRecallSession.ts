@@ -93,12 +93,21 @@ export function useRecallSession(
   }, [update]);
 
   const goToStep = useCallback((step: RecallStep) => {
-    update({ current_step: step });
+    update((prev) => ({
+      ...prev,
+      current_step: step,
+      // Masuk ke langkah porsi selalu dengan index yang masih valid. Tanpa ini,
+      // lompat dari review ke portion setelah menghapus makanan bisa menunjuk
+      // ke slot kosong dan step-nya tampak "tidak ada makanan".
+      portion_food_index:
+        step === "portion" ? clampPortionIndex(prev) : prev.portion_food_index,
+    }));
   }, [update]);
 
   // ─── Step 1: Select Meal ─────────────────────────────────────────────────────
   const setMealType = useCallback((type: string) => {
     update((prev) => {
+      if (prev.current_meal.type === type) return prev;
       const configMeal = prev.available_meals?.find((m) => m.name === type);
       return {
         ...prev,
@@ -106,6 +115,10 @@ export function useRecallSession(
           type,
           time: configMeal?.time ?? prev.current_meal.time,
         },
+        // Ganti waktu makan = ganti daftar makanan. Index porsi milik waktu makan
+        // sebelumnya tidak berlaku lagi dan harus mulai dari nol, kalau tidak
+        // alur "Tambah waktu makan" dari review langsung mentok di Step 3.
+        portion_food_index: 0,
       };
     });
   }, [update]);
@@ -134,20 +147,37 @@ export function useRecallSession(
   }, [update]);
 
   const removeFood = useCallback((foodId: string) => {
-    update((prev) => ({
-      ...prev,
-      meals: prev.meals.map(m =>
-        m.name === prev.current_meal.type
-          ? { ...m, foods: m.foods.filter(f => f.food.id !== foodId) }
-          : m
-      ),
-    }));
+    update((prev) => {
+      const next: RecallSession = {
+        ...prev,
+        meals: prev.meals.map(m =>
+          m.name === prev.current_meal.type
+            ? { ...m, foods: m.foods.filter(f => f.food.id !== foodId) }
+            : m
+        ),
+      };
+      // Daftar menyusut → index porsi bisa menggantung di luar batas.
+      return { ...next, portion_food_index: clampPortionIndex(next) };
+    });
   }, [update]);
 
   const addMissingFood = useCallback((missing: MissingFood) => {
+    update((prev) => {
+      const name = missing.name.trim();
+      if (!name) return prev;
+      // Duplikat tidak menambah informasi apa pun bagi peneliti dan hanya
+      // membuat daftar di review jadi berulang.
+      if (prev.missing_foods.some(m => m.name.toLowerCase() === name.toLowerCase())) {
+        return prev;
+      }
+      return { ...prev, missing_foods: [...prev.missing_foods, { ...missing, name }] };
+    });
+  }, [update]);
+
+  const removeMissingFood = useCallback((name: string) => {
     update((prev) => ({
       ...prev,
-      missing_foods: [...prev.missing_foods, missing],
+      missing_foods: prev.missing_foods.filter(m => m.name !== name),
     }));
   }, [update]);
 
@@ -249,6 +279,7 @@ export function useRecallSession(
     addFood,
     removeFood,
     addMissingFood,
+    removeMissingFood,
     // Step 3
     setPortion,
     setPortionFoodIndex,
@@ -267,6 +298,18 @@ export function useRecallSession(
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Index porsi harus selalu menunjuk ke makanan yang benar-benar ada di waktu
+ * makan aktif. Index yang menggantung membuat Step 3 menampilkan "belum ada
+ * makanan" padahal daftarnya terisi — dan alurnya buntu di situ.
+ */
+function clampPortionIndex(session: RecallSession): number {
+  const count =
+    session.meals.find(m => m.name === session.current_meal.type)?.foods.length ?? 0;
+  if (count === 0) return 0;
+  return Math.min(Math.max(session.portion_food_index, 0), count - 1);
+}
 
 function upsertMealFood(
   session: RecallSession,

@@ -20,11 +20,13 @@ type Props = {
 export function ShareModal({ open, roomId, onClose }: Props) {
   const [role, setRole] = useState<InviteRole>("editor");
   const [copied, setCopied] = useState(false);
+  // createPortal butuh document, jadi render pertama (server / hidrasi) harus
+  // menghasilkan null. Ditentukan saat render — pola yang sama dipakai
+  // CollabSession — bukan lewat efek yang memicu render berantai.
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
+  if (typeof window !== "undefined" && !mounted) {
     setMounted(true);
-  }, []);
+  }
 
   const { data: invite, isFetching } = useQuery({
     queryKey: ["collab-invite", roomId, role],
