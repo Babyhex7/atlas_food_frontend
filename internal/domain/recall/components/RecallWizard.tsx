@@ -11,7 +11,12 @@ import { Step5Review } from "./Step5Review";
 import { Step6Result } from "./Step6Result";
 import { useRecallSession } from "../hooks/useRecallSession";
 import { getRecallSession } from "../services/recallStorage";
-import { useCollab, useCollabStore } from "@/internal/domain/collab";
+import {
+  CollabHeaderControls,
+  CollabStatusStrip,
+  useCollab,
+  useCollabStore,
+} from "@/internal/domain/collab";
 import { cn } from "@/internal/lib/cn";
 import type { RecallSession, RecallStep } from "../types/recall";
 
@@ -166,7 +171,8 @@ export function RecallWizard({ guest = false }: WizardProps) {
   return (
     <div className="flex min-h-[100svh] flex-col bg-background">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-sticky flex h-14 items-center justify-between gap-4 border-b border-border bg-surface px-4 sm:px-6">
+      <header className="sticky top-0 z-sticky border-b border-border bg-surface">
+        <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-6">
         {/* Setelah laporan terkirim tidak ada jalan mundur: kembali ke review
             hanya membuka peluang submit ganda untuk sesi yang sama. */}
         {isDone ? (
@@ -182,9 +188,15 @@ export function RecallWizard({ guest = false }: WizardProps) {
           </button>
         )}
 
-        <span className="min-w-[7rem] text-right text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
-          {isDone ? "Hasil" : `Langkah ${currentStepNumber} dari ${totalSteps}`}
-        </span>
+          <div className="flex items-center gap-3">
+            <span className="hidden min-w-28 text-right text-xs font-semibold uppercase tracking-[0.08em] text-text-muted sm:inline">
+              {isDone ? "Hasil" : `Langkah ${currentStepNumber} dari ${totalSteps}`}
+            </span>
+            <CollabHeaderControls />
+          </div>
+        </div>
+
+        <CollabStatusStrip />
       </header>
 
       {guest ? (

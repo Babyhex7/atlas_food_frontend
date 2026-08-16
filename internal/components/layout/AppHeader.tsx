@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { Search, User, LogOut, ClipboardList } from "lucide-react";
 import { useAuth } from "@/internal/domain/auth/hooks/useAuth";
 import { useLogout } from "@/internal/domain/auth/hooks/useLogout";
+import { CollabHeaderControls } from "@/internal/domain/collab/components/CollabHeaderControls";
+import { CollabStatusStrip } from "@/internal/domain/collab/components/CollabStatusStrip";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
 
@@ -23,7 +25,7 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-surface border-b border-border shadow-xs">
-      <div className={`${CONTAINER_CLASS} h-16 flex items-center justify-between gap-4`}>
+      <div className={`${CONTAINER_CLASS} h-16 flex items-center justify-between gap-3`}>
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-primary shrink-0">
@@ -57,21 +59,32 @@ export function AppHeader() {
           })}
         </nav>
 
+        {/* Kolaborasi — bagikan, presence, aktivitas. Menyusut jadi null di
+            halaman tanpa CollabSession. */}
+        <CollabHeaderControls className="shrink-0" />
+
         {/* Auth */}
         <div className="flex items-center gap-2 shrink-0">
           {isAuthenticated && user ? (
             <>
-              <span className="hidden md:inline text-sm text-text-muted max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap">
+              <span aria-hidden className="hidden h-6 w-px bg-border sm:block" />
+              <span className="hidden max-w-40 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-text-muted lg:inline">
                 {user.name}
+              </span>
+              <span
+                aria-hidden
+                className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary md:flex"
+              >
+                {user.name.charAt(0).toUpperCase()}
               </span>
               <button
                 type="button"
                 onClick={logout}
                 aria-label="Keluar dari akun"
-                className="inline-flex items-center gap-1 py-2 px-3 rounded-md border-[1.5px] border-danger-border bg-transparent text-danger text-sm font-medium cursor-pointer transition-fast hover:bg-danger-light"
+                title="Keluar dari akun"
+                className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-transparent bg-transparent text-text-secondary transition-fast hover:bg-danger-light hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
-                <LogOut size={15} />
-                <span className="hidden sm:inline">Keluar</span>
+                <LogOut size={16} aria-hidden />
               </button>
             </>
           ) : (
@@ -85,6 +98,8 @@ export function AppHeader() {
           )}
         </div>
       </div>
+
+      <CollabStatusStrip />
     </header>
   );
 }

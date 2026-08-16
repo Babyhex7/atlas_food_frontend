@@ -71,7 +71,12 @@ export function PresenceAvatars({ onFollow, onUnfollow }: Props) {
                   <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-surface text-[8px] font-bold text-text-primary border border-border px-0.5">
                     {watched}
                   </span>
-                ) : null}
+                ) : (
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-surface bg-success"
+                  />
+                )}
               </button>
 
               {menuOpen && !isSelf ? (

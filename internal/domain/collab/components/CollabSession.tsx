@@ -13,7 +13,6 @@ import {
 import { useSearchParams } from "next/navigation";
 import { getAccessToken } from "@/internal/lib/cookies";
 import { useAuth } from "@/internal/domain/auth/hooks/useAuth";
-import { CollaborationBar } from "./CollaborationBar";
 import { ActivityFeed } from "./ActivityFeed";
 import { LiveCursorOverlay } from "./LiveCursorOverlay";
 import { useWebSocket, type CollabSend } from "../hooks/useWebSocket";
@@ -36,6 +35,14 @@ type CollabContextValue = {
   followUser: (userId: string) => void;
   unfollow: () => void;
   isFollowing: boolean;
+  /** Mulai sesi baru; undefined saat sudah di dalam room atau belum bisa mulai. */
+  enableCollab?: () => void;
+  /** Keluar sesi; undefined untuk room tetap yang memang terikat ke survei. */
+  leaveRoom?: () => void;
+  /** true = siap memulai, false = perlu login, null = status auth belum pasti. */
+  canStart: boolean | null;
+  /** true = sedang membuka link undangan tapi belum login. */
+  requireAuth: boolean;
 };
 
 // Default context = mode solo (tidak ada room): semua boleh. Halaman di luar
@@ -50,6 +57,8 @@ const CollabContext = createContext<CollabContextValue>({
   followUser: () => undefined,
   unfollow: () => undefined,
   isFollowing: false,
+  canStart: null,
+  requireAuth: false,
 });
 
 export function useCollab() {
@@ -210,6 +219,12 @@ export function CollabSession({
     reset();
   }, [storageKey, inviteStorageKey, enabledRoom, reset]);
 
+  // Selama status auth belum pasti (SSR / token cookie belum ditukar), canStart
+  // sengaja null: menampilkan ajakan login pada saat itu membuat pengguna yang
+  // sebenarnya sudah login melihat tombol "Masuk" berkedip sesaat.
+  const canStart = !isClient || authPending ? null : hasToken;
+  const requireAuth = !hasToken && Boolean(roomFromQuery) && isClient && !authPending;
+
   const value = useMemo(
     () => ({
       send,
@@ -221,24 +236,35 @@ export function CollabSession({
       followUser,
       unfollow,
       isFollowing,
+      enableCollab: !activeRoom && hasToken && !authPending ? enableCollab : undefined,
+      // Room tetap (mis. recall-<token>) tidak bisa ditinggalkan — sesinya
+      // memang terikat ke survei itu, bukan room ad-hoc yang dibuat pengguna.
+      leaveRoom: activeRoom && !fixedRoomId ? leaveRoom : undefined,
+      canStart,
+      requireAuth,
     }),
-    [send, activeRoom, status, isConnected, canEdit, isViewer, followUser, unfollow, isFollowing]
+    [
+      send,
+      activeRoom,
+      status,
+      isConnected,
+      canEdit,
+      isViewer,
+      followUser,
+      unfollow,
+      isFollowing,
+      enableCollab,
+      leaveRoom,
+      hasToken,
+      authPending,
+      fixedRoomId,
+      canStart,
+      requireAuth,
+    ]
   );
 
   return (
     <CollabContext.Provider value={value}>
-      <CollaborationBar
-        roomId={activeRoom}
-        status={status}
-        onEnableCollab={!activeRoom && hasToken && !authPending ? enableCollab : undefined}
-        requireAuthHint={!hasToken && Boolean(roomFromQuery) && isClient && !authPending}
-        showLoginCta={!hasToken && !roomFromQuery && isClient && !authPending}
-        onFollowUser={isConnected ? followUser : undefined}
-        onUnfollow={isConnected ? unfollow : undefined}
-        // Room tetap (mis. recall-<token>) tidak bisa ditinggalkan — sesinya
-        // memang terikat ke survei itu, bukan room ad-hoc yang dibuat pengguna.
-        onLeaveRoom={activeRoom && !fixedRoomId ? leaveRoom : undefined}
-      />
       <LiveCursorOverlay cursors={remoteCursors} />
       <ActivityFeed />
       {children}

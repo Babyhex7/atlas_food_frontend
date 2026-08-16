@@ -58,6 +58,12 @@ type CollabState = {
   } | null;
   lastError: string | null;
   feedOpen: boolean;
+  /**
+   * Waktu terakhir panel aktivitas dibuka. Dipakai menghitung lencana "belum
+   * dibaca" di tombol aktivitas — tanpa ini tombolnya tidak pernah bisa
+   * memberitahu ada apa-apa tanpa dibuka lebih dulu.
+   */
+  lastSeenActivityAt: number;
 
   setStatus: (status: CollabConnectionStatus) => void;
   setRoomId: (roomId: string | null) => void;
@@ -85,6 +91,7 @@ type CollabState = {
   setLastPortionUpdate: (value: CollabState["lastPortionUpdate"]) => void;
   setLastError: (message: string | null) => void;
   setFeedOpen: (open: boolean) => void;
+  markActivitiesSeen: () => void;
   reset: () => void;
 };
 
@@ -108,6 +115,7 @@ const initial = {
   lastPortionUpdate: null as CollabState["lastPortionUpdate"],
   lastError: null as string | null,
   feedOpen: false,
+  lastSeenActivityAt: 0,
 };
 
 function lockKey(entityType: string, entityId: string) {
@@ -237,6 +245,8 @@ export const useCollabStore = create<CollabState>((set) => ({
   setLastMealUpdate: (lastMealUpdate) => set({ lastMealUpdate }),
   setLastPortionUpdate: (lastPortionUpdate) => set({ lastPortionUpdate }),
   setLastError: (lastError) => set({ lastError }),
-  setFeedOpen: (feedOpen) => set({ feedOpen }),
+  setFeedOpen: (feedOpen) =>
+    set(feedOpen ? { feedOpen, lastSeenActivityAt: Date.now() } : { feedOpen }),
+  markActivitiesSeen: () => set({ lastSeenActivityAt: Date.now() }),
   reset: () => set({ ...initial }),
 }));
