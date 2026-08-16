@@ -54,7 +54,8 @@ export function CollabStatusStrip() {
           <Eye size={13} aria-hidden className="shrink-0" />
           <span>
             Mode <strong>hanya lihat</strong> — kontrol terkunci. Klik avatar rekan untuk mengikuti
-            layarnya.
+            layarnya, atau minta link undangan <strong>Can edit</strong> dari pemilik sesi untuk
+            ikut mengisi.
           </span>
         </div>
       ) : null}

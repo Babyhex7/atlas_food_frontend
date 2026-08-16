@@ -37,7 +37,7 @@ export function ShareModal({ open, roomId, onClose }: Props) {
       try {
         const inv = await createCollabInvite(roomId, role, window.location.href);
         return { shareUrl: inv.shareUrl, expiresAt: inv.expiresAt, error: null as string | null };
-      } catch {
+      } catch (err) {
         // Bersihkan query lama dulu — jangan ikutkan param milik pengundang
         // (bisa membingungkan / berisiko jika URL sempat terpolusi).
         const url = new URL(window.location.href);
@@ -46,7 +46,12 @@ export function ShareModal({ open, roomId, onClose }: Props) {
         return {
           shareUrl: url.toString(),
           expiresAt: null,
-          error: "Invite API gagal — link fallback tanpa token role.",
+          // Link tanpa token hanya memberi hak menonton — sejak backend
+          // menurunkan default join menjadi viewer. Katakan apa adanya supaya
+          // pengundang tidak mengira rekannya bisa ikut mengisi.
+          error: `${
+            err instanceof Error ? err.message : "Gagal membuat undangan"
+          } — link cadangan ini hanya memberi akses lihat.`,
         };
       }
     },

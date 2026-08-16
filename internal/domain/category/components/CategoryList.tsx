@@ -1,22 +1,34 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EmptyState } from "@/internal/pkg/components/EmptyState";
 import { Button } from "@/internal/pkg/components/Button";
+import { PageHeader } from "@/internal/pkg/components/PageHeader";
+import { AdminSearchInput, AdminToolbar } from "@/internal/components/admin/AdminToolbar";
 import { Plus, ChevronRight, FolderOpen } from "lucide-react";
 import { useAdminCategories } from "../hooks/useCategoryQueries";
 
 /**
- * Daftar kategori admin.
- *
- * Mengambil datanya sendiri — sebelumnya menerima prop `categories` yang tidak
- * pernah diisi oleh route, sehingga daftarnya selalu kosong.
+ * Daftar kategori admin. Endpoint kategori mengembalikan seluruh isinya tanpa
+ * pagination — jumlahnya memang belasan — jadi pencarian dikerjakan di klien
+ * dan tidak ada kontrol halaman yang perlu ditampilkan.
  */
 export function CategoryList() {
   const router = useRouter();
   const { data, isLoading, error } = useAdminCategories();
-  const categories = data ?? [];
+  const [search, setSearch] = useState("");
+
+  const categories = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+    const all = data ?? [];
+    if (!keyword) return all;
+    return all.filter(
+      (cat) =>
+        cat.name.toLowerCase().includes(keyword) || (cat.code ?? "").toLowerCase().includes(keyword)
+    );
+  }, [data, search]);
 
   if (isLoading) {
     return <div className="p-6 px-8 text-sm text-text-muted">Memuat kategori…</div>;
@@ -34,51 +46,68 @@ export function CategoryList() {
     );
   }
 
+  const hasFilter = Boolean(search.trim());
+
   return (
     <div className="p-6 px-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary mb-1">
-            Kategori
-          </h1>
-          <p className="text-sm text-text-muted m-0">
-            {categories.length} kategori ditemukan
-          </p>
-        </div>
-        <Button onClick={() => router.push("/admin/categories/new")}>
-          <Plus size={15} /> Tambah Kategori
-        </Button>
-      </div>
+      <PageHeader
+        title="Kategori"
+        description={`${(data ?? []).length} kategori mengelompokkan makanan di Find Food`}
+        action={
+          <Button onClick={() => router.push("/admin/categories/new")}>
+            <Plus size={15} /> Tambah Kategori
+          </Button>
+        }
+      />
+
+      <AdminToolbar>
+        <AdminSearchInput
+          label="Cari kategori"
+          placeholder="Cari nama atau kode…"
+          value={search}
+          onChange={setSearch}
+        />
+      </AdminToolbar>
 
       {categories.length === 0 ? (
         <EmptyState
           icon={<FolderOpen size={40} className="text-text-muted" />}
-          title="Belum ada kategori"
-          description="Tambahkan kategori untuk mengelompokkan makanan."
-          action={<Button onClick={() => router.push("/admin/categories/new")}><Plus size={14} /> Tambah Kategori</Button>}
+          title={hasFilter ? "Tidak ada hasil" : "Belum ada kategori"}
+          description={
+            hasFilter
+              ? "Coba kata kunci lain."
+              : "Tambahkan kategori untuk mengelompokkan makanan."
+          }
+          action={
+            !hasFilter ? (
+              <Button onClick={() => router.push("/admin/categories/new")}>
+                <Plus size={14} /> Tambah Kategori
+              </Button>
+            ) : undefined
+          }
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
           {categories.map((cat) => (
             <Link
               key={cat.id}
               href={`/admin/categories/${cat.id}`}
-              className="flex items-center gap-4 p-4 rounded-xl border-[1.5px] border-border bg-surface no-underline transition-base hover:border-primary-border hover:bg-primary-light hover:-translate-y-0.5 hover:shadow-sm"
+              className="flex items-center gap-4 rounded-xl border-[1.5px] border-border bg-surface p-4 no-underline transition-base hover:-translate-y-0.5 hover:border-primary-border hover:bg-primary-light hover:shadow-sm"
             >
-              <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center shrink-0">
-                {cat.icon
-                  ? <span className="text-2xl">{cat.icon}</span>
-                  : <FolderOpen size={22} className="text-primary" />
-                }
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-text-primary mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary-light">
+                {cat.icon ? (
+                  <span className="text-2xl">{cat.icon}</span>
+                ) : (
+                  <FolderOpen size={22} className="text-primary" />
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="mb-0.5 block truncate text-sm font-semibold text-text-primary">
                   {cat.name}
-                </p>
-                <p className="text-xs text-text-muted m-0 font-mono">{cat.code}</p>
-              </div>
-              <ChevronRight size={16} className="text-text-muted shrink-0" />
+                </span>
+                <span className="block truncate font-mono text-xs text-text-muted">{cat.code}</span>
+              </span>
+              <ChevronRight size={16} aria-hidden className="shrink-0 text-text-muted" />
             </Link>
           ))}
         </div>

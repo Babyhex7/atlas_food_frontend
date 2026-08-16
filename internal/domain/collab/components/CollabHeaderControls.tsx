@@ -23,7 +23,8 @@ import { cn } from "@/internal/lib/cn";
  */
 export function CollabHeaderControls({ className }: { className?: string }) {
   const loginHref = useLoginHref();
-  const { roomId, status, enableCollab, leaveRoom, canStart, followUser, unfollow } = useCollab();
+  const { roomId, status, enableCollab, leaveRoom, canStart, followUser, unfollow, isViewer } =
+    useCollab();
 
   const feedOpen = useCollabStore((s) => s.feedOpen);
   const setFeedOpen = useCollabStore((s) => s.setFeedOpen);
@@ -37,6 +38,7 @@ export function CollabHeaderControls({ className }: { className?: string }) {
   );
 
   const connecting = status === "connecting" || status === "reconnecting";
+  const canShare = !isViewer;
 
   // Di luar sesi: satu ajakan saja, tidak ada kontrol yang belum ada gunanya.
   if (!roomId) {
@@ -76,14 +78,19 @@ export function CollabHeaderControls({ className }: { className?: string }) {
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <button
-        type="button"
-        onClick={() => setShareOpen(true)}
-        className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border-none bg-primary px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-fast font-sans hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-      >
-        <Share2 size={15} aria-hidden />
-        <span className="hidden sm:inline">Bagikan</span>
-      </button>
+      {/* Viewer tidak bisa mengundang — sama seperti Figma, hak berbagi
+          mengikuti hak ubah. Backend menolaknya juga; ini hanya agar tombol
+          yang pasti gagal tidak ditawarkan. */}
+      {canShare ? (
+        <button
+          type="button"
+          onClick={() => setShareOpen(true)}
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border-none bg-primary px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-fast font-sans hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
+          <Share2 size={15} aria-hidden />
+          <span className="hidden sm:inline">Bagikan</span>
+        </button>
+      ) : null}
 
       <PresenceAvatars onFollow={followUser} onUnfollow={unfollow} />
 
@@ -131,7 +138,9 @@ export function CollabHeaderControls({ className }: { className?: string }) {
         </button>
       ) : null}
 
-      <ShareModal open={shareOpen} roomId={roomId} onClose={() => setShareOpen(false)} />
+      {canShare ? (
+        <ShareModal open={shareOpen} roomId={roomId} onClose={() => setShareOpen(false)} />
+      ) : null}
     </div>
   );
 }

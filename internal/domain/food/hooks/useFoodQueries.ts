@@ -26,19 +26,26 @@ export function useFoodSearch(query: string) {
   });
 }
 
+export type AdminFoodsParams = {
+  page?: number;
+  limit?: number;
+  category?: string;
+  search?: string;
+  photo_type?: string;
+  is_active?: string;
+};
+
 export function useAdminFoods(
-  params: {
-    page?: number;
-    limit?: number;
-    category?: string;
-    search?: string;
-    photo_type?: string;
-    is_active?: string;
-  } = {}
+  params: AdminFoodsParams = {},
+  options: { enabled?: boolean } = {}
 ) {
   return useQuery({
     queryKey: foodKeys.admin(params),
     queryFn: () => getAdminFoods(params),
+    enabled: options.enabled ?? true,
+    // Halaman baru pagination tidak boleh mengosongkan tabel dulu — tanpa ini
+    // daftar berkedip ke state "Memuat" tiap pindah halaman atau ubah filter.
+    placeholderData: (previous) => previous,
   });
 }
 

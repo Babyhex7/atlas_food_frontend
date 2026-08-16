@@ -1,76 +1,23 @@
-"use client";
-
-import { ReactNode } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useLogout } from "@/internal/domain/auth/hooks/useLogout";
-import { ClipboardList, UtensilsCrossed, FolderOpen, LogOut } from "lucide-react";
-import { cn } from "@/internal/lib/cn";
+import { Suspense, type ReactNode } from "react";
+import { AdminSidebar } from "@/internal/components/admin/AdminSidebar";
+import { AdminTopBar } from "@/internal/components/admin/AdminTopBar";
 import { AdminGuard } from "@/internal/domain/auth/components/AdminGuard";
-
-/** Nav inti saja — foto porsi & anotasi di kelola dari form makanan */
-const NAV_ITEMS = [
-  { href: "/admin/surveys",    label: "Survey",   icon: ClipboardList  },
-  { href: "/admin/foods",      label: "Makanan",  icon: UtensilsCrossed },
-  { href: "/admin/categories", label: "Kategori", icon: FolderOpen     },
-];
-
-function AdminSidebar() {
-  const pathname = usePathname();
-  const logout   = useLogout();
-
-  return (
-    <aside className="w-60 bg-surface border-r border-border flex flex-col h-screen sticky top-0 shrink-0">
-      <div className="h-16 flex items-center px-5 border-b border-border gap-2">
-        <Link href="/" className="text-lg font-bold text-primary no-underline tracking-tight">
-          Atlas Food
-        </Link>
-        <span className="text-xs font-semibold font-mono bg-primary-light text-primary py-[1px] px-1.5 rounded-sm border border-primary-border">
-          ADMIN
-        </span>
-      </div>
-
-      <nav className="flex-1 overflow-y-auto py-3">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(`${href}/`);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 py-3 px-5 text-sm no-underline transition-fast border-r-2",
-                active
-                  ? "font-semibold text-primary bg-primary-light border-primary"
-                  : "font-regular text-text-muted border-transparent hover:bg-surface-alt hover:text-text-primary"
-              )}
-            >
-              <Icon size={16} />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="p-4 border-t border-border">
-        <button
-          type="button"
-          onClick={() => logout()}
-          className="w-full flex items-center gap-2 py-2 px-3 rounded-md text-sm font-medium text-text-muted bg-none border-none cursor-pointer transition-fast font-sans hover:text-danger hover:bg-danger-light"
-        >
-          <LogOut size={15} />
-          Logout
-        </button>
-      </div>
-    </aside>
-  );
-}
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <AdminGuard>
-      <div className="min-h-screen flex bg-background">
+      <div className="flex min-h-screen bg-background">
         <AdminSidebar />
-        <main className="flex-1 overflow-y-auto min-h-screen">{children}</main>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <AdminTopBar />
+          {/* Halaman daftar membaca ?q= dari URL, jadi butuh batas Suspense di
+              atasnya agar rute admin tetap bisa diprerender. */}
+          <main className="min-w-0 flex-1">
+            <Suspense fallback={<div className="p-8 text-sm text-text-muted">Memuat…</div>}>
+              {children}
+            </Suspense>
+          </main>
+        </div>
       </div>
     </AdminGuard>
   );

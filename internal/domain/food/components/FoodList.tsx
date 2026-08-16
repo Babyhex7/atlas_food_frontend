@@ -2,104 +2,142 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { EmptyState } from "@/internal/pkg/components/EmptyState";
 import { Button } from "@/internal/pkg/components/Button";
-import { Plus, ChevronRight, UtensilsCrossed, Search } from "lucide-react";
+import { PageHeader } from "@/internal/pkg/components/PageHeader";
+import {
+  AdminSearchInput,
+  AdminSelect,
+  AdminToolbar,
+} from "@/internal/components/admin/AdminToolbar";
+import { AdminPagination } from "@/internal/components/admin/AdminPagination";
+import { Plus, ChevronRight, UtensilsCrossed } from "lucide-react";
+import { cn } from "@/internal/lib/cn";
 import { useAdminFoods } from "../hooks/useFoodQueries";
 import { useAdminCategories } from "@/internal/domain/category/hooks/useCategoryQueries";
 
+const PAGE_SIZE = 20;
+
 /**
- * Daftar makanan admin + search/filter (kategori, tipe foto, status).
+ * Daftar makanan admin. Pencarian, saringan, dan pagination semuanya dikerjakan
+ * backend (GET /admin/foods) — daftar ini hanya memegang satu halaman, bukan
+ * memuat seluruh tabel lalu memotongnya di browser.
  */
 export function FoodList() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: categories } = useAdminCategories();
 
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  // Pencarian dari top bar dikirim lewat ?q= supaya hasilnya bisa dibagikan.
+  const queryFromUrl = searchParams.get("q") ?? "";
+  const [search, setSearch] = useState(queryFromUrl);
+  const [debouncedSearch, setDebouncedSearch] = useState(queryFromUrl);
+
+  // ?q= juga harus mengambil alih saat halaman ini SUDAH terbuka: mencari lewat
+  // top bar dari /admin/foods hanya mengganti query string tanpa melepas
+  // komponen, jadi nilai awal useState saja tidak pernah ikut berubah.
+  const [lastQueryFromUrl, setLastQueryFromUrl] = useState(queryFromUrl);
+  if (queryFromUrl !== lastQueryFromUrl) {
+    setLastQueryFromUrl(queryFromUrl);
+    setSearch(queryFromUrl);
+    setDebouncedSearch(queryFromUrl);
+  }
   const [category, setCategory] = useState("");
   const [photoType, setPhotoType] = useState("");
-  const [isActive, setIsActive] = useState<"" | "true" | "false">("");
+  const [isActive, setIsActive] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading, error } = useAdminFoods({
-    limit: 100,
-    page: 1,
+  // Setiap perubahan saringan harus melempar balik ke halaman 1: bertahan di
+  // halaman 5 pada hasil yang cuma 2 halaman membuat daftar tampak kosong.
+  const filterKey = `${debouncedSearch}|${category}|${photoType}|${isActive}`;
+  const [lastFilterKey, setLastFilterKey] = useState(filterKey);
+  if (filterKey !== lastFilterKey) {
+    setLastFilterKey(filterKey);
+    setPage(1);
+  }
+
+  const { data, isLoading, isFetching, error } = useAdminFoods({
+    page,
+    limit: PAGE_SIZE,
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
     ...(category ? { category } : {}),
     ...(photoType ? { photo_type: photoType } : {}),
     ...(isActive ? { is_active: isActive } : {}),
   });
+
   const foods = data?.foods ?? [];
-  const total = data?.pagination?.total ?? foods.length;
+  const total = data?.pagination?.total ?? 0;
   const hasFilter = Boolean(debouncedSearch || category || photoType || isActive);
 
   return (
     <div className="p-6 px-8">
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary mb-1">Makanan</h1>
-          <p className="text-sm text-text-muted m-0">
-            {isLoading ? "Memuat…" : `${total} makanan ditemukan`}
-          </p>
-        </div>
-        <Button onClick={() => router.push("/admin/foods/new")}>
-          <Plus size={15} /> Tambah Makanan
-        </Button>
-      </div>
+      <PageHeader
+        title="Makanan"
+        description={isLoading ? "Memuat…" : `${total} makanan di database`}
+        action={
+          <Button onClick={() => router.push("/admin/foods/new")}>
+            <Plus size={15} /> Tambah Makanan
+          </Button>
+        }
+      />
 
-      <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="relative sm:col-span-2">
-          <Search
-            size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-          />
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama, kode, atau nama lokal…"
-            className="w-full h-11 pl-9 pr-3 text-sm text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none font-sans focus:border-primary focus:shadow-focus"
-          />
-        </div>
-        <select
+      <AdminToolbar>
+        <AdminSearchInput
+          label="Cari makanan"
+          placeholder="Cari nama, kode, atau nama lokal…"
+          value={search}
+          onChange={setSearch}
+        />
+        <AdminSelect
+          label="Kategori"
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="h-11 px-3 text-sm text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none font-sans focus:border-primary"
-        >
-          <option value="">Semua kategori</option>
-          {(categories ?? []).map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-        <div className="grid grid-cols-2 gap-3">
-          <select
-            value={photoType}
-            onChange={(e) => setPhotoType(e.target.value)}
-            className="h-11 px-3 text-sm text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none font-sans focus:border-primary"
+          onChange={setCategory}
+          options={[
+            { value: "", label: "Semua" },
+            ...(categories ?? []).map((cat) => ({ value: cat.id, label: cat.name })),
+          ]}
+        />
+        <AdminSelect
+          label="Tipe foto"
+          value={photoType}
+          onChange={setPhotoType}
+          options={[
+            { value: "", label: "Semua" },
+            { value: "series", label: "Series" },
+            { value: "range", label: "Range" },
+          ]}
+        />
+        <AdminSelect
+          label="Status"
+          value={isActive}
+          onChange={setIsActive}
+          options={[
+            { value: "", label: "Semua" },
+            { value: "true", label: "Aktif" },
+            { value: "false", label: "Nonaktif" },
+          ]}
+        />
+        {hasFilter ? (
+          <button
+            type="button"
+            onClick={() => {
+              setSearch("");
+              setCategory("");
+              setPhotoType("");
+              setIsActive("");
+            }}
+            className="h-10 cursor-pointer rounded-lg border-none bg-transparent px-2 font-sans text-sm font-medium text-text-muted transition-fast hover:text-primary"
           >
-            <option value="">Semua tipe</option>
-            <option value="series">Series</option>
-            <option value="range">Range</option>
-          </select>
-          <select
-            value={isActive}
-            onChange={(e) => setIsActive(e.target.value as "" | "true" | "false")}
-            className="h-11 px-3 text-sm text-text-primary bg-surface border-[1.5px] border-border rounded-md outline-none font-sans focus:border-primary"
-          >
-            <option value="">Semua status</option>
-            <option value="true">Aktif</option>
-            <option value="false">Nonaktif</option>
-          </select>
-        </div>
-      </div>
+            Reset saringan
+          </button>
+        ) : null}
+      </AdminToolbar>
 
       {error && (
         <div className="alert alert-danger mb-4">
@@ -110,14 +148,18 @@ export function FoodList() {
       )}
 
       {isLoading ? (
-        <p className="text-sm text-text-muted m-0">Memuat makanan…</p>
+        <div className="flex flex-col gap-2">
+          {[1, 2, 3, 4, 5].map((row) => (
+            <div key={row} className="skeleton h-17 rounded-xl" />
+          ))}
+        </div>
       ) : foods.length === 0 ? (
         <EmptyState
           icon={<UtensilsCrossed size={40} className="text-text-muted" />}
           title={hasFilter ? "Tidak ada hasil" : "Belum ada makanan"}
           description={
             hasFilter
-              ? "Coba ubah kata kunci atau filter."
+              ? "Coba ubah kata kunci atau saringan."
               : "Tambahkan makanan ke database Atlas Food."
           }
           action={
@@ -129,31 +171,50 @@ export function FoodList() {
           }
         />
       ) : (
-        <div className="flex flex-col gap-2">
-          {foods.map((food) => (
-            <Link
-              key={food.id}
-              href={`/admin/foods/${food.id}`}
-              className="flex items-center gap-4 py-4 px-5 rounded-xl border-[1.5px] border-border bg-surface no-underline transition-base hover:border-primary-border hover:shadow-sm hover:-translate-y-px"
-            >
-              <div className="w-10 h-10 rounded-lg bg-primary-light flex items-center justify-center text-xl shrink-0">
-                {food.category?.icon || "🍽️"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-text-primary mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap">
-                  {food.name}
-                </p>
-                <p className="text-xs text-text-muted m-0 font-mono">
-                  {food.code}
-                  {food.category?.name ? ` · ${food.category.name}` : ""}
-                  {food.photo_type ? ` · ${food.photo_type}` : ""}
-                  {food.is_active === false ? " · nonaktif" : ""}
-                </p>
-              </div>
-              <ChevronRight size={16} className="text-text-muted shrink-0" />
-            </Link>
-          ))}
-        </div>
+        <>
+          {/* Halaman yang sedang diambil ulang diredupkan, bukan diganti skeleton —
+              daftar tidak berkedip saat pindah halaman. */}
+          <div
+            aria-busy={isFetching}
+            className={cn("flex flex-col gap-2 transition-opacity", isFetching && "opacity-60")}
+          >
+            {foods.map((food) => (
+              <Link
+                key={food.id}
+                href={`/admin/foods/${food.id}`}
+                className="flex items-center gap-4 rounded-xl border-[1.5px] border-border bg-surface py-4 px-5 no-underline transition-base hover:-translate-y-px hover:border-primary-border hover:shadow-sm"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-light text-xl">
+                  {food.category?.icon || "🍽️"}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="mb-0.5 block truncate text-sm font-semibold text-text-primary">
+                    {food.name}
+                  </span>
+                  <span className="block truncate font-mono text-xs text-text-muted">
+                    {food.code}
+                    {food.category?.name ? ` · ${food.category.name}` : ""}
+                    {food.photo_type ? ` · ${food.photo_type}` : ""}
+                  </span>
+                </span>
+                {food.is_active === false ? (
+                  <span className="shrink-0 rounded bg-surface-alt px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                    Nonaktif
+                  </span>
+                ) : null}
+                <ChevronRight size={16} aria-hidden className="shrink-0 text-text-muted" />
+              </Link>
+            ))}
+          </div>
+
+          <AdminPagination
+            page={page}
+            limit={PAGE_SIZE}
+            total={total}
+            onPageChange={setPage}
+            unit="makanan"
+          />
+        </>
       )}
     </div>
   );

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/internal/pkg/components/Button";
 import { Input } from "@/internal/pkg/components/Input";
+import { PageHeader } from "@/internal/pkg/components/PageHeader";
 import {
   useCategoryDetail,
   useCreateCategory,
@@ -131,9 +132,10 @@ export function CategoryForm() {
   return (
     <div className="p-6 px-8">
       <div className="max-w-[640px]">
-        <h1 className="text-2xl font-bold text-text-primary mb-8">
-          {isEdit ? "Ubah Kategori" : "Tambah Kategori"}
-        </h1>
+        <PageHeader
+          title={isEdit ? "Ubah Kategori" : "Tambah Kategori"}
+          description="Kategori mengelompokkan makanan di Find Food dan menjadi saringan di daftar admin."
+        />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className={SECTION}>

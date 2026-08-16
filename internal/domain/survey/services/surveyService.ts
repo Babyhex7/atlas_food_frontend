@@ -1,11 +1,16 @@
 import { apiClient, apiEndpoints } from "@/internal/pkg/api";
 import type { CreateSurveyRequest, JoinSurveyResponse, Survey, UpdateSurveyRequest } from "../types/survey";
 
-export async function getSurveys(token: string): Promise<Survey[]> {
+export async function getSurveys(token: string, limit = 200): Promise<Survey[]> {
   // Backend membungkus list dalam envelope { surveys, total, page, limit } (lihat SurveyListResponse),
   // jadi ambil field surveys-nya — bukan langsung array.
+  //
+  // limit wajib dikirim: tanpa itu backend memakai default 10, sehingga daftar
+  // admin diam-diam terpotong di survey ke-11 dan pencarian tidak pernah
+  // menemukan survey lama. Endpoint ini belum punya filter server, jadi seluruh
+  // isinya memang diambil sekaligus lalu disaring di klien.
   const res = await apiClient<{ surveys: Survey[]; total: number; page: number; limit: number }>(
-    apiEndpoints.admin.surveys,
+    `${apiEndpoints.admin.surveys}?page=1&limit=${limit}`,
     { token }
   );
   return res?.surveys ?? [];

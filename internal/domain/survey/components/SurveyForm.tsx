@@ -5,13 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/internal/pkg/components/Button";
 import { Input } from "@/internal/pkg/components/Input";
+import { PageHeader } from "@/internal/pkg/components/PageHeader";
 import { cn } from "@/internal/lib/cn";
 import { getAccessToken } from "@/internal/lib/cookies";
 import { getSurveyById, createSurvey, updateSurvey } from "../services/surveyService";
 import { surveyStatuses, type SurveyStatus } from "../constants/surveyStatus";
 import { surveyValidation } from "../schemas/surveySchema";
 import type { MealConfig, CreateSurveyRequest, UpdateSurveyRequest } from "../types/survey";
-import { ArrowLeft, Plus, X, CheckCircle, AlertCircle, Info } from "lucide-react";
+import { Plus, X, CheckCircle, AlertCircle, Info } from "lucide-react";
 
 const DEFAULT_MEALS: MealConfig[] = [
   { name: "Breakfast", time: "07:00", order: 1 },
@@ -129,24 +130,14 @@ export function SurveyForm() {
   return (
     <div className="p-6 px-8">
       <div className="max-w-[640px]">
-        {/* Back + heading */}
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            type="button"
-            onClick={() => router.push("/admin/surveys")}
-            className="flex items-center gap-1 text-sm text-text-muted bg-transparent border-none cursor-pointer p-2 rounded-md transition-fast font-sans hover:text-text-primary hover:bg-surface-alt"
-          >
-            <ArrowLeft size={15} /> Kembali
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary m-0">
-              {isEdit ? "Edit Survey" : "Buat Survey Baru"}
-            </h1>
-            <p className="text-sm text-text-muted mt-1 mb-0">
-              {isEdit ? "Perbarui konfigurasi survey" : "Konfigurasi survey recall gizi baru"}
-            </p>
-          </div>
-        </div>
+        {/* Jalur naik ada di breadcrumb top bar — form ini cukup memakai
+            "Batal" untuk keluar tanpa menyimpan. */}
+        <PageHeader
+          title={isEdit ? "Edit Survey" : "Buat Survey Baru"}
+          description={
+            isEdit ? "Perbarui konfigurasi survey" : "Konfigurasi survey recall gizi baru"
+          }
+        />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
