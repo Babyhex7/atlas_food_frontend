@@ -5,6 +5,7 @@ import type {
   CollabCursor,
   CollabUser,
   CollabViewport,
+  CursorChatBubble,
   EntityLock,
   RoomRole,
 } from "../types/collab";
@@ -20,6 +21,8 @@ type CollabState = {
   users: CollabUser[];
   activities: ActivityEntry[];
   locks: Record<string, EntityLock>;
+  /** Bubble cursor-chat aktif per user (key: userId) — ephemeral, tidak dipersist. */
+  cursorChats: Record<string, CursorChatBubble>;
   /** User yang sedang kita ikuti (Figma follow). */
   followingUserId: string | null;
   followingUserName: string | null;
@@ -73,6 +76,8 @@ type CollabState = {
   upsertUser: (user: CollabUser) => void;
   removeUser: (userId: string) => void;
   updateCursor: (userId: string, cursor: CollabCursor) => void;
+  upsertCursorChat: (bubble: CursorChatBubble) => void;
+  removeCursorChat: (userId: string) => void;
   addActivity: (activity: Omit<ActivityEntry, "id"> & { id?: string }) => void;
   setLock: (lock: EntityLock) => void;
   releaseLock: (entityType: string, entityId: string) => void;
@@ -103,6 +108,7 @@ const initial = {
   users: [] as CollabUser[],
   activities: [] as ActivityEntry[],
   locks: {} as Record<string, EntityLock>,
+  cursorChats: {} as Record<string, CursorChatBubble>,
   followingUserId: null as string | null,
   followingUserName: null as string | null,
   followingUserColor: null as string | null,
@@ -163,7 +169,26 @@ export const useCollabStore = create<CollabState>((set) => ({
         next.followingUserColor = null;
         next.leaderViewport = null;
       }
+      // Fallback pembersihan bubble cursor-chat kalau "cursor_chat_closed" tidak
+      // sempat sampai (mis. koneksi putus abrupt) — presence_left tetap jadi
+      // sinyal cadangan biar tidak ada bubble hantu tertinggal di layar peer.
+      if (userId in s.cursorChats) {
+        const cursorChats = { ...s.cursorChats };
+        delete cursorChats[userId];
+        next.cursorChats = cursorChats;
+      }
       return next;
+    }),
+
+  upsertCursorChat: (bubble) =>
+    set((s) => ({ cursorChats: { ...s.cursorChats, [bubble.userId]: bubble } })),
+
+  removeCursorChat: (userId) =>
+    set((s) => {
+      if (!(userId in s.cursorChats)) return s;
+      const next = { ...s.cursorChats };
+      delete next[userId];
+      return { cursorChats: next };
     }),
 
   updateCursor: (userId, cursor) =>

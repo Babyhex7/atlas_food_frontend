@@ -32,6 +32,17 @@ export type CollabUser = {
   lastActive: number;
 };
 
+/** Bubble teks ephemeral yang nempel di kursor peer (ala Figma "/"). */
+export type CursorChatBubble = {
+  userId: string;
+  displayName: string;
+  color: string;
+  x: number;
+  y: number;
+  text: string;
+  updatedAt: number;
+};
+
 export type ActivityEntry = {
   id: string;
   userId: string;

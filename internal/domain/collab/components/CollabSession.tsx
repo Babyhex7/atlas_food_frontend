@@ -15,8 +15,10 @@ import { getAccessToken } from "@/internal/lib/cookies";
 import { useAuth } from "@/internal/domain/auth/hooks/useAuth";
 import { ActivityFeed } from "./ActivityFeed";
 import { LiveCursorOverlay } from "./LiveCursorOverlay";
+import { CursorChatOverlay } from "./CursorChatOverlay";
 import { useWebSocket, type CollabSend } from "../hooks/useWebSocket";
 import { useLiveCursor } from "../hooks/useLiveCursor";
+import { useCursorChat } from "../hooks/useCursorChat";
 import { useFollowMode } from "../hooks/useFollowMode";
 import { generateRoomId } from "../lib/wsUrl";
 import { canEditRoom } from "../lib/messageRouter";
@@ -168,6 +170,13 @@ export function CollabSession({
   const { send, status, isConnected } = useWebSocket(activeRoom);
   const { followUser, unfollow, isFollowing } = useFollowMode(send, isConnected);
   const { remoteCursors } = useLiveCursor(send, isConnected);
+  const {
+    local: localCursorChat,
+    updateText: updateCursorChatText,
+    commit: commitCursorChat,
+    cancel: cancelCursorChat,
+    remoteBubbles: cursorChatBubbles,
+  } = useCursorChat(send, isConnected);
   const selfRoomRole = useCollabStore((s) => s.selfRoomRole);
   const users = useCollabStore((s) => s.users);
   const selfUserId = useCollabStore((s) => s.selfUserId);
@@ -266,6 +275,13 @@ export function CollabSession({
   return (
     <CollabContext.Provider value={value}>
       <LiveCursorOverlay cursors={remoteCursors} />
+      <CursorChatOverlay
+        local={localCursorChat}
+        onLocalChange={updateCursorChatText}
+        onLocalCommit={commitCursorChat}
+        onLocalCancel={cancelCursorChat}
+        remoteBubbles={cursorChatBubbles}
+      />
       <ActivityFeed />
       {children}
     </CollabContext.Provider>

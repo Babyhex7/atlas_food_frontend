@@ -107,6 +107,25 @@ export function routeCollabMessage(msg: CollabIncomingMessage) {
       });
       break;
     }
+    case "cursor_chat_updated": {
+      if (!userId) break;
+      const existing = store.users.find((u) => u.userId === userId);
+      store.upsertCursorChat({
+        userId,
+        displayName: existing?.displayName || username,
+        color: String(payload.color ?? existing?.color ?? colorForUserId(userId)),
+        x: Number(payload.x ?? 0),
+        y: Number(payload.y ?? 0),
+        text: String(payload.text ?? ""),
+        updatedAt: Date.now(),
+      });
+      break;
+    }
+    case "cursor_chat_closed": {
+      if (!userId) break;
+      store.removeCursorChat(userId);
+      break;
+    }
     case "viewport_sync": {
       // Izinkan sync awal: kalau belum set following tapi payload match pending, tetap terima
       // setelah follow_started. Urutan BE: follow_started dulu lalu viewport.

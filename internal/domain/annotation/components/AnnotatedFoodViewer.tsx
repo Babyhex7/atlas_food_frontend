@@ -62,13 +62,17 @@ export function AnnotatedFoodViewer({ image, overlay = false, onAreaSelect }: An
               <polygon
                 key={area.id}
                 points={toSvgPoints(area.polygon)}
+                // Diam: polygon tak terlihat sama sekali — foto tampil apa adanya.
+                // fill tetap diisi warna (bukan "none") supaya area masih menangkap
+                // hover meski fill-opacity 0.
                 fill={color}
-                fillOpacity={isHot ? 0.42 : overlay ? 0.08 : 0.12}
+                fillOpacity={isHot ? 0.1 : 0}
                 stroke={color}
-                strokeWidth={isHot ? 3.5 : 2}
+                strokeOpacity={isHot ? 1 : 0}
+                strokeWidth={isHot ? 3 : 2}
                 strokeLinejoin="round"
-                className="cursor-pointer transition-[fill-opacity,stroke-width,transform] duration-200 ease-out origin-center pointer-events-auto"
-                style={isHot ? { filter: "drop-shadow(0 0 6px rgba(0,0,0,0.25))" } : undefined}
+                className="cursor-pointer transition-[fill-opacity,stroke-opacity,stroke-width] duration-200 ease-out pointer-events-auto"
+                style={isHot ? { filter: `drop-shadow(0 0 5px ${color}99)` } : undefined}
                 tabIndex={0}
                 role="button"
                 aria-label={area.name}
