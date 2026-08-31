@@ -186,11 +186,11 @@ Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 2. Kolaborasi bersifat *awareness* (kehadiran, kursor, *viewport*, langkah, aktivitas, kunci entitas) — **bukan** penyuntingan bersama satu dokumen. Isian *recall* tidak direplikasi antar peserta. Batasan ini merupakan keputusan desain yang dilandasi validitas data *self-report*, diuraikan pada Subbab 3.6.
 3. *Hub* kolaborasi, kunci entitas, dan token undangan disimpan di memori proses (*in-memory*); sistem belum mendukung penyebaran multi-instans.
 4. Fitur kolaborasi hanya aktif pada halaman pengisian *recall* dan halaman pencarian makanan. Portal admin **tidak** dilengkapi kolaborasi real-time maupun penguncian entitas pada versi 1, meskipun mekanismenya telah tersedia pada lapis layanan.
-4. Perhitungan nilai gizi terbatas pada empat zat gizi makro: energi, protein, karbohidrat, dan lemak.
-5. Model bahasa yang digunakan adalah model pihak ketiga melalui Groq API; penelitian tidak melatih atau melakukan *fine-tuning* model.
-6. Rekomendasi LLM bersifat informatif dan tidak divalidasi sebagai nasihat medis.
-7. Validasi akurasi asupan terhadap metode penimbangan makanan (*weighed food record*) berada di luar cakupan.
-8. Pengujian keamanan terbatas pada verifikasi mekanisme otorisasi yang dirancang; tidak dilakukan uji penetrasi menyeluruh.
+5. Perhitungan nilai gizi terbatas pada empat zat gizi makro: energi, protein, karbohidrat, dan lemak.
+6. Model bahasa yang digunakan adalah model pihak ketiga melalui Groq API; penelitian tidak melatih atau melakukan *fine-tuning* model.
+7. Rekomendasi LLM bersifat informatif dan tidak divalidasi sebagai nasihat medis.
+8. Validasi akurasi asupan terhadap metode penimbangan makanan (*weighed food record*) berada di luar cakupan.
+9. Pengujian keamanan terbatas pada verifikasi mekanisme otorisasi yang dirancang; tidak dilakukan uji penetrasi menyeluruh.
 
 ## 1.6 Ruang Lingkup Penelitian
 
@@ -1012,8 +1012,8 @@ Perhitungan skor:
 |---|---|---|
 | > 80,3 | A — Excellent | Acceptable |
 | 68–80,3 | B — Good | Acceptable |
-| 68 | C — Okay | Marginal |
-| 51–67 | D — Poor | Marginal |
+| = 68 | C — Okay (batas) | Marginal |
+| 51–67,9 | D — Poor | Marginal |
 | < 51 | F — Awful | Not acceptable |
 
 Instrumen SUS versi bahasa Indonesia yang digunakan dilampirkan pada Lampiran B.
