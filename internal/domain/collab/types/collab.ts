@@ -96,3 +96,36 @@ export function colorForUserId(userId: string): string {
   }
   return COLLAB_COLORS[Math.abs(hash) % COLLAB_COLORS.length];
 }
+
+/** Tipe alat canvas yang tersedia. */
+export type CanvasTool = "pencil" | "circle" | "rectangle" | "laser" | "eraser";
+
+/** Koordinat relatif (0.0 sampai 1.0) untuk skala responsif di semua ukuran layar. */
+export type CanvasPoint = {
+  x: number; // 0.0 - 1.0
+  y: number; // 0.0 - 1.0
+};
+
+/** Data 1 stroke/goresan canvas. */
+export type CanvasStroke = {
+  id: string;
+  userId: string;
+  username?: string;
+  tool: CanvasTool;
+  color: string;
+  width: number;
+  targetImageId?: string;
+  points: CanvasPoint[];
+  timestamp: number;
+};
+
+/** Titik sorot laser pointer dengan durasi pudar otomatis. */
+export type LaserPoint = {
+  userId: string;
+  username: string;
+  color: string;
+  x: number; // 0.0 - 1.0
+  y: number; // 0.0 - 1.0
+  timestamp: number;
+};
+
