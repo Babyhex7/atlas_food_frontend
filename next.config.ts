@@ -32,9 +32,15 @@ const nextConfig: NextConfig = {
 
   images: {
     remotePatterns: [
-      // Backend lokal (dev) — sajikan foto dari /uploads/atlas/
+      // Backend (dev/prod) — sajikan foto dari /uploads/**
       {
         protocol: "http",
+        hostname: apiHostname,
+        port: "",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
         hostname: apiHostname,
         port: "",
         pathname: "/uploads/**",
@@ -43,6 +49,12 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: apiHostname,
         port: "8080",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "http",
+        hostname: apiHostname,
+        port: "8081",
         pathname: "/uploads/**",
       },
       // MinIO / object storage (prod) — semua path di bawah bucket
