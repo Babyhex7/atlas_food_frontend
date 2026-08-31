@@ -20,3 +20,7 @@ export * from "./components/LiveCursorOverlay";
 export * from "./components/CursorChatOverlay";
 export * from "./components/ActivityFeed";
 export * from "./components/LockIndicator";
+export * from "./store/canvasStore";
+export * from "./hooks/useLiveCanvas";
+export * from "./components/CanvasToolbar";
+export * from "./components/LiveCanvasOverlay";

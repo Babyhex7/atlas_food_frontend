@@ -1,5 +1,6 @@
 import { useCollabStore } from "../store/collabStore";
-import type { CollabIncomingMessage, CollabUser, EntityLock } from "../types/collab";
+import { useCanvasStore } from "../store/canvasStore";
+import type { CanvasPoint, CanvasStroke, CollabIncomingMessage, CollabUser, EntityLock } from "../types/collab";
 import { colorForUserId } from "../types/collab";
 
 /** Event yang mengubah data bersama — diblokir untuk room_role viewer di FE. */
@@ -14,6 +15,11 @@ export const COLLAB_MUTATE_TYPES = new Set([
   "db_edit_field",
   "db_edit_save",
   "db_edit_cancel",
+  "canvas_draw_start",
+  "canvas_draw_move",
+  "canvas_draw_end",
+  "canvas_laser_move",
+  "canvas_clear",
 ]);
 
 /**
@@ -242,6 +248,94 @@ export function routeCollabMessage(msg: CollabIncomingMessage) {
         store.setSelfUserId(selfId);
         if (self.room_role) store.setSelfRoomRole(String(self.room_role));
       }
+
+      if (Array.isArray(payload.canvas_strokes)) {
+        const parsedStrokes: CanvasStroke[] = payload.canvas_strokes.map((s) => {
+          const rec = asRecord(s);
+          return {
+            id: String(rec.stroke_id ?? rec.id ?? ""),
+            userId: String(rec.user_id ?? rec.userId ?? ""),
+            username: String(rec.username ?? ""),
+            tool: (rec.tool as any) || "pencil",
+            color: String(rec.color ?? colorForUserId(String(rec.user_id ?? ""))),
+            width: Number(rec.width ?? 3),
+            targetImageId: rec.target_image_id ? String(rec.target_image_id) : undefined,
+            points: parseCanvasPoints(rec.points),
+            timestamp: Number(rec.timestamp ?? Date.now()),
+          };
+        });
+        useCanvasStore.getState().syncStrokes(parsedStrokes);
+      }
+      break;
+    }
+    case "canvas_stroke_started": {
+      const canvasStore = useCanvasStore.getState();
+      const strokeId = String(payload.stroke_id ?? "");
+      if (!strokeId) break;
+      const points = parseCanvasPoints(payload.points);
+      if (points.length === 0 && payload.x != null && payload.y != null) {
+        points.push({ x: Number(payload.x), y: Number(payload.y) });
+      }
+      canvasStore.upsertStroke({
+        id: strokeId,
+        userId,
+        username,
+        tool: (payload.tool as any) || "pencil",
+        color: String(payload.color ?? colorForUserId(userId)),
+        width: Number(payload.width ?? 3),
+        targetImageId: payload.target_image_id ? String(payload.target_image_id) : undefined,
+        points,
+        timestamp: Date.now(),
+      });
+      break;
+    }
+    case "canvas_stroke_updated": {
+      const canvasStore = useCanvasStore.getState();
+      const strokeId = String(payload.stroke_id ?? "");
+      if (!strokeId) break;
+      const points = parseCanvasPoints(payload.points);
+      if (points.length > 0) {
+        canvasStore.appendPointsToStroke(strokeId, points);
+      }
+      break;
+    }
+    case "canvas_laser_updated": {
+      const canvasStore = useCanvasStore.getState();
+      if (!userId) break;
+      canvasStore.setLaserPoint({
+        userId,
+        username,
+        color: String(payload.color ?? colorForUserId(userId)),
+        x: Number(payload.x ?? 0),
+        y: Number(payload.y ?? 0),
+        timestamp: Date.now(),
+      });
+      break;
+    }
+    case "canvas_cleared": {
+      const canvasStore = useCanvasStore.getState();
+      const targetImageId = payload.target_image_id ? String(payload.target_image_id) : undefined;
+      canvasStore.clearStrokes(targetImageId);
+      break;
+    }
+    case "canvas_state_sync": {
+      const canvasStore = useCanvasStore.getState();
+      const rawStrokes = Array.isArray(payload.canvas_strokes) ? payload.canvas_strokes : [];
+      const parsedStrokes: CanvasStroke[] = rawStrokes.map((s) => {
+        const rec = asRecord(s);
+        return {
+          id: String(rec.stroke_id ?? rec.id ?? ""),
+          userId: String(rec.user_id ?? rec.userId ?? ""),
+          username: String(rec.username ?? ""),
+          tool: (rec.tool as any) || "pencil",
+          color: String(rec.color ?? colorForUserId(String(rec.user_id ?? ""))),
+          width: Number(rec.width ?? 3),
+          targetImageId: rec.target_image_id ? String(rec.target_image_id) : undefined,
+          points: parseCanvasPoints(rec.points),
+          timestamp: Number(rec.timestamp ?? Date.now()),
+        };
+      });
+      canvasStore.syncStrokes(parsedStrokes);
       break;
     }
     case "error": {
@@ -251,4 +345,18 @@ export function routeCollabMessage(msg: CollabIncomingMessage) {
     default:
       break;
   }
+}
+
+function parseCanvasPoints(rawPoints: unknown): CanvasPoint[] {
+  if (!Array.isArray(rawPoints)) return [];
+  const res: CanvasPoint[] = [];
+  for (const pt of rawPoints) {
+    if (Array.isArray(pt) && pt.length >= 2) {
+      res.push({ x: Number(pt[0] ?? 0), y: Number(pt[1] ?? 0) });
+    } else if (pt && typeof pt === "object") {
+      const rec = pt as Record<string, unknown>;
+      res.push({ x: Number(rec.x ?? 0), y: Number(rec.y ?? 0) });
+    }
+  }
+  return res;
 }

@@ -15,7 +15,7 @@ import { getApiErrorMessage } from "@/internal/pkg/utils/apiError";
 import type { FoodDetail, PortionPhoto } from "@/internal/domain/food/types/food";
 import type { RecallFood } from "../types/recall";
 import type { SelectedPortion } from "@/internal/domain/portion/types/portion";
-import { useCollab } from "@/internal/domain/collab";
+import { useCollab, LiveCanvasOverlay } from "@/internal/domain/collab";
 import {
   Banner,
   Button,
@@ -246,12 +246,15 @@ export function Step3Portion({
                   >
                     <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg bg-surface-alt">
                       {photo.thumbnail_url || photo.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={photo.thumbnail_url ?? photo.image_url}
-                          alt={photo.label}
-                          className="h-full w-full object-cover"
-                        />
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photo.thumbnail_url ?? photo.image_url}
+                            alt={photo.label}
+                            className="h-full w-full object-cover"
+                          />
+                          <LiveCanvasOverlay send={send} targetImageId={photo.id} />
+                        </>
                       ) : (
                         <ImageOff aria-hidden className="h-6 w-6 text-text-placeholder" />
                       )}

@@ -16,6 +16,7 @@ import { useAuth } from "@/internal/domain/auth/hooks/useAuth";
 import { ActivityFeed } from "./ActivityFeed";
 import { LiveCursorOverlay } from "./LiveCursorOverlay";
 import { CursorChatOverlay } from "./CursorChatOverlay";
+import { CanvasToolbar } from "./CanvasToolbar";
 import { useWebSocket, type CollabSend } from "../hooks/useWebSocket";
 import { useLiveCursor } from "../hooks/useLiveCursor";
 import { useCursorChat } from "../hooks/useCursorChat";
@@ -282,6 +283,7 @@ export function CollabSession({
         onLocalCancel={cancelCursorChat}
         remoteBubbles={cursorChatBubbles}
       />
+      <CanvasToolbar />
       <ActivityFeed />
       {children}
     </CollabContext.Provider>
