@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 // Ambil hostname dari NEXT_PUBLIC_API_URL untuk remotePatterns
 function getApiHostname(): string {
-  const url = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
+  const url =
+    process.env.NEXT_PUBLIC_API_URL ??
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    "http://localhost:8080/api/v1";
   try {
     return new URL(url).hostname;
   } catch {
