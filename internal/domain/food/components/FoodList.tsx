@@ -150,7 +150,7 @@ export function FoodList() {
       {isLoading ? (
         <div className="flex flex-col gap-2">
           {[1, 2, 3, 4, 5].map((row) => (
-            <div key={row} className="skeleton h-17 rounded-xl" />
+            <div key={row} className="skeleton h-14 rounded-xl" />
           ))}
         </div>
       ) : foods.length === 0 ? (
@@ -172,39 +172,77 @@ export function FoodList() {
         />
       ) : (
         <>
-          {/* Halaman yang sedang diambil ulang diredupkan, bukan diganti skeleton —
-              daftar tidak berkedip saat pindah halaman. */}
+          {/* Master Data Table Makanan */}
           <div
             aria-busy={isFetching}
-            className={cn("flex flex-col gap-2 transition-opacity", isFetching && "opacity-60")}
+            className={cn("table-wrapper bg-surface shadow-xs transition-opacity", isFetching && "opacity-60")}
           >
-            {foods.map((food) => (
-              <Link
-                key={food.id}
-                href={`/admin/foods/${food.id}`}
-                className="flex items-center gap-4 rounded-xl border-[1.5px] border-border bg-surface py-4 px-5 no-underline transition-base hover:-translate-y-px hover:border-primary-border hover:shadow-sm"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-light text-xl">
-                  {food.category?.icon || "🍽️"}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="mb-0.5 block truncate text-sm font-semibold text-text-primary">
-                    {food.name}
-                  </span>
-                  <span className="block truncate font-mono text-xs text-text-muted">
-                    {food.code}
-                    {food.category?.name ? ` · ${food.category.name}` : ""}
-                    {food.photo_type ? ` · ${food.photo_type}` : ""}
-                  </span>
-                </span>
-                {food.is_active === false ? (
-                  <span className="shrink-0 rounded bg-surface-alt px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-muted">
-                    Nonaktif
-                  </span>
-                ) : null}
-                <ChevronRight size={16} aria-hidden className="shrink-0 text-text-muted" />
-              </Link>
-            ))}
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Makanan & Kode</th>
+                  <th>Kategori</th>
+                  <th>Tipe Foto</th>
+                  <th>Status</th>
+                  <th className="text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foods.map((food) => (
+                  <tr key={food.id} className="group hover:bg-surface-alt transition-fast">
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-light text-lg">
+                          {food.category?.icon || "🍽️"}
+                        </span>
+                        <div className="min-w-0">
+                          <Link
+                            href={`/admin/foods/${food.id}`}
+                            className="font-semibold text-text-primary no-underline hover:text-primary hover:underline block truncate"
+                          >
+                            {food.name}
+                          </Link>
+                          {food.local_name && (
+                            <span className="text-xs text-text-muted block truncate">
+                              {food.local_name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      {food.category?.name ? (
+                        <span className="badge badge-primary">{food.category.name}</span>
+                      ) : (
+                        <span className="text-xs text-text-muted">—</span>
+                      )}
+                    </td>
+                    <td>
+                      {food.photo_type ? (
+                        <span className="badge badge-default uppercase">{food.photo_type}</span>
+                      ) : (
+                        <span className="text-xs text-text-muted">—</span>
+                      )}
+                    </td>
+                    <td>
+                      {food.is_active === false ? (
+                        <span className="badge badge-danger">Nonaktif</span>
+                      ) : (
+                        <span className="badge badge-success">Aktif</span>
+                      )}
+                    </td>
+                    <td className="text-right">
+                      <Link
+                        href={`/admin/foods/${food.id}`}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-text-secondary no-underline hover:border-primary-border hover:text-primary transition-fast"
+                      >
+                        Detail <ChevronRight size={14} />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           <AdminPagination

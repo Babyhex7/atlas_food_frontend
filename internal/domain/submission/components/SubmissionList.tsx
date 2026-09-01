@@ -1,13 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { EmptyState } from "@/internal/pkg/components/EmptyState";
 import { Button } from "@/internal/pkg/components/Button";
 import { PageHeader } from "@/internal/pkg/components/PageHeader";
 import { AdminPagination } from "@/internal/components/admin/AdminPagination";
+import { AdminSelect } from "@/internal/components/admin/AdminToolbar";
 import { cn } from "@/internal/lib/cn";
+import { getAccessToken } from "@/internal/lib/cookies";
+import { getSurveys } from "@/internal/domain/survey/services/surveyService";
+import type { Survey } from "@/internal/domain/survey/types/survey";
 import { useSurveySubmissions } from "../hooks/useSubmissionQueries";
 import { downloadSurveyExport } from "../services/submissionService";
 import type { SubmissionMeal } from "../types/submission";
@@ -41,21 +46,34 @@ function parseMeals(raw: unknown): SubmissionMeal[] {
 
 export function SubmissionList() {
   const params = useParams();
-  const surveyId = String(params?.id ?? "");
+  const searchParams = useSearchParams();
+  const token = getAccessToken() ?? "";
+
+  const { data: surveys = [] } = useQuery<Survey[]>({
+    queryKey: ["admin-surveys"],
+    queryFn: () => getSurveys(token),
+    enabled: Boolean(token),
+  });
+
+  const urlSurveyId = String(params?.id ?? searchParams.get("survey_id") ?? "");
+  const [selectedSurveyId, setSelectedSurveyId] = useState("");
+
+  const activeSurveyId = selectedSurveyId || urlSurveyId || (surveys[0]?.id ?? "");
 
   const [page, setPage] = useState(1);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
-  const { data, isLoading, isError, isFetching } = useSurveySubmissions(surveyId, page, PAGE_SIZE);
+  const { data, isLoading, isError, isFetching } = useSurveySubmissions(activeSurveyId, page, PAGE_SIZE);
   const submissions = data?.submissions ?? [];
   const total = data?.total ?? 0;
 
   async function handleExport() {
+    if (!activeSurveyId) return;
     setExportError(null);
     setExporting(true);
     try {
-      await downloadSurveyExport(surveyId);
+      await downloadSurveyExport(activeSurveyId);
     } catch {
       setExportError("Gagal mengunduh CSV. Coba lagi atau pastikan sesi admin masih aktif.");
     } finally {
@@ -104,6 +122,20 @@ export function SubmissionList() {
         }
       />
 
+      {surveys.length > 1 && (
+        <div className="mb-6 max-w-xs">
+          <AdminSelect
+            label="Pilih Survey"
+            value={activeSurveyId}
+            onChange={(val) => {
+              setSelectedSurveyId(val);
+              setPage(1);
+            }}
+            options={surveys.map((s) => ({ value: s.id, label: s.name }))}
+          />
+        </div>
+      )}
+
       {exportError && (
         <div className="alert alert-danger mb-4">
           <span className="text-sm">{exportError}</span>
@@ -117,62 +149,77 @@ export function SubmissionList() {
         />
       ) : (
         <>
+          {/* Master Data Table Submissions */}
           <div
             aria-busy={isFetching}
-            className={cn("flex flex-col gap-4 transition-opacity", isFetching && "opacity-60")}
+            className={cn("table-wrapper bg-surface shadow-xs transition-opacity", isFetching && "opacity-60")}
           >
-            {submissions.map((sub) => {
-              const meals = parseMeals(sub.meals_data);
-              const totalFoods = meals.reduce((acc, meal) => acc + (meal.foods?.length ?? 0), 0);
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Responden & Email</th>
+                  <th>Waktu Submit</th>
+                  <th>Waktu Makan & Food Count</th>
+                  <th>Total Energi</th>
+                  <th>Makronutrisi (P / K / L)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {submissions.map((sub) => {
+                  const meals = parseMeals(sub.meals_data);
+                  const totalFoods = meals.reduce((acc, meal) => acc + (meal.foods?.length ?? 0), 0);
 
-              return (
-                <div
-                  key={sub.id}
-                  className="rounded-xl border-[1.5px] border-border bg-surface p-5 transition-base hover:border-primary-border hover:shadow-sm"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="mb-1 flex flex-wrap items-center gap-2">
-                        <span className="font-semibold text-text-primary">
-                          {sub.respondent_name ?? "Anonim"}
-                        </span>
-                        {sub.respondent_email && (
-                          <span className="text-xs text-text-muted">({sub.respondent_email})</span>
-                        )}
-                      </div>
-                      <p className="m-0 text-xs text-text-muted">
-                        Disubmit:{" "}
-                        {new Date(sub.submitted_at ?? sub.created_at).toLocaleString("id-ID")}
-                      </p>
-                      <p className="m-0 mt-0.5 text-xs text-text-muted">
-                        {meals.length} waktu makan · {totalFoods} makanan
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <NutrientBadge label="Energi" value={sub.total_energy ?? 0} unit=" kcal" />
-                      <NutrientBadge label="Protein" value={sub.total_protein ?? 0} unit="g" />
-                      <NutrientBadge label="Karb" value={sub.total_carbs ?? 0} unit="g" />
-                      <NutrientBadge label="Lemak" value={sub.total_fat ?? 0} unit="g" />
-                    </div>
-                  </div>
-
-                  {meals.length > 0 && (
-                    <div className="mt-3 border-t border-border pt-3">
-                      <div className="flex flex-wrap gap-2">
-                        {meals.map((meal, index) => (
-                          <span
-                            key={`${sub.id}-${meal.name}-${index}`}
-                            className="rounded-full bg-surface-alt px-2.5 py-1 text-xs text-text-muted"
-                          >
-                            {meal.name} ({meal.foods?.length ?? 0} item)
+                  return (
+                    <tr key={sub.id} className="hover:bg-surface-alt transition-fast">
+                      <td>
+                        <div className="min-w-0">
+                          <span className="font-semibold text-text-primary block truncate">
+                            {sub.respondent_name ?? "Anonim"}
                           </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                          {sub.respondent_email && (
+                            <span className="text-xs text-text-muted block truncate">
+                              {sub.respondent_email}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="text-xs text-text-muted whitespace-nowrap">
+                        {new Date(sub.submitted_at ?? sub.created_at).toLocaleString("id-ID")}
+                      </td>
+                      <td>
+                        <div className="text-xs text-text-secondary">
+                          <span className="font-medium">{meals.length} waktu makan</span> · {totalFoods} makanan
+                        </div>
+                        {meals.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {meals.map((m, idx) => (
+                              <span
+                                key={`${sub.id}-${m.name}-${idx}`}
+                                className="rounded bg-surface-alt px-1.5 py-0.5 text-[10px] text-text-muted"
+                              >
+                                {m.name} ({m.foods?.length ?? 0})
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <span className="font-semibold text-text-primary tabular-nums">
+                          {(sub.total_energy ?? 0).toFixed(0)} kcal
+                        </span>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1.5 text-xs tabular-nums">
+                          <span className="badge badge-primary font-mono">{sub.total_protein?.toFixed(1) ?? "0.0"}g P</span>
+                          <span className="badge badge-default font-mono">{sub.total_carbs?.toFixed(1) ?? "0.0"}g K</span>
+                          <span className="badge badge-warning font-mono">{sub.total_fat?.toFixed(1) ?? "0.0"}g L</span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
 
           <AdminPagination

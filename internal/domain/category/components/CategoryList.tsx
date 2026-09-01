@@ -87,29 +87,51 @@ export function CategoryList() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/admin/categories/${cat.id}`}
-              className="flex items-center gap-4 rounded-xl border-[1.5px] border-border bg-surface p-4 no-underline transition-base hover:-translate-y-0.5 hover:border-primary-border hover:bg-primary-light hover:shadow-sm"
-            >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary-light">
-                {cat.icon ? (
-                  <span className="text-2xl">{cat.icon}</span>
-                ) : (
-                  <FolderOpen size={22} className="text-primary" />
-                )}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="mb-0.5 block truncate text-sm font-semibold text-text-primary">
-                  {cat.name}
-                </span>
-                <span className="block truncate font-mono text-xs text-text-muted">{cat.code}</span>
-              </span>
-              <ChevronRight size={16} aria-hidden className="shrink-0 text-text-muted" />
-            </Link>
-          ))}
+        /* Master Data Table Kategori */
+        <div className="table-wrapper bg-surface shadow-xs">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Ikon & Kategori</th>
+                <th>Kode</th>
+                <th>Urutan Tampilan</th>
+                <th className="text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map((cat) => (
+                <tr key={cat.id} className="hover:bg-surface-alt transition-fast">
+                  <td>
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-light text-lg">
+                        {cat.icon || "📁"}
+                      </span>
+                      <Link
+                        href={`/admin/categories/${cat.id}`}
+                        className="font-semibold text-text-primary no-underline hover:text-primary hover:underline truncate"
+                      >
+                        {cat.name}
+                      </Link>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="font-mono text-xs font-semibold text-text-secondary">{cat.code}</span>
+                  </td>
+                  <td className="text-xs text-text-muted">
+                    {cat.display_order ?? "—"}
+                  </td>
+                  <td className="text-right">
+                    <Link
+                      href={`/admin/categories/${cat.id}`}
+                      className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-text-secondary no-underline hover:border-primary-border hover:text-primary transition-fast"
+                    >
+                      Edit <ChevronRight size={14} />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

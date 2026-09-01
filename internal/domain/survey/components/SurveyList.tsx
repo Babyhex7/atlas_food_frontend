@@ -191,59 +191,66 @@ export function SurveyList() {
         />
       ) : (
         <>
-          <div className="flex flex-col gap-3">
-            {visible.map((survey) => (
-              <div
-                key={survey.id}
-                className="card p-5 transition-base hover:border-primary-border hover:shadow-md"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex flex-wrap items-center gap-3">
-                      <h2 className="m-0 truncate text-base font-semibold text-text-primary">
-                        {survey.name}
-                      </h2>
+          {/* Master Data Table Survey */}
+          <div className="table-wrapper bg-surface shadow-xs">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Nama Survey & Slug</th>
+                  <th>Status</th>
+                  <th>Tanggal Dibuat</th>
+                  <th className="text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((survey) => (
+                  <tr key={survey.id} className="group hover:bg-surface-alt transition-fast">
+                    <td>
+                      <div className="min-w-0">
+                        <Link
+                          href={`/admin/surveys/${survey.id}`}
+                          className="font-semibold text-text-primary no-underline hover:text-primary hover:underline block truncate"
+                        >
+                          {survey.name}
+                        </Link>
+                        <span className="font-mono text-xs text-text-muted block truncate">
+                          slug: {survey.slug}
+                        </span>
+                      </div>
+                    </td>
+                    <td>
                       <StatusBadge status={survey.status} />
-                    </div>
-                    <p className="mb-2 mt-0 font-mono text-xs text-text-muted">
-                      slug: {survey.slug}
-                    </p>
-                    {survey.description && (
-                      <p className="mb-2 mt-0 truncate text-sm text-text-muted">
-                        {survey.description}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-4 text-xs text-text-muted">
-                      <span>Dibuat: {survey.created_at?.split(" ")[0] ?? "—"}</span>
-                      {survey.start_date && <span>Mulai: {survey.start_date}</span>}
-                      {survey.end_date && <span>Selesai: {survey.end_date}</span>}
-                    </div>
-                  </div>
-
-                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                    <Link
-                      href={`/admin/surveys/${survey.id}/submissions`}
-                      className="inline-flex items-center gap-1 rounded-md border-[1.5px] border-border bg-surface py-1.5 px-3 text-xs font-medium text-text-muted no-underline transition-fast hover:border-primary-border hover:text-primary"
-                    >
-                      <FileText size={12} /> Submissions
-                    </Link>
-                    <Link
-                      href={`/admin/surveys/${survey.id}`}
-                      className="inline-flex items-center gap-1 rounded-md border-[1.5px] border-border bg-surface py-1.5 px-3 text-xs font-medium text-text-muted no-underline transition-fast hover:border-primary-border hover:text-primary"
-                    >
-                      <Pencil size={12} /> Edit
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDeleteId(survey.id)}
-                      className="inline-flex cursor-pointer items-center gap-1 rounded-md border-[1.5px] border-danger-border bg-surface py-1.5 px-3 font-sans text-xs font-medium text-danger transition-fast hover:bg-danger-light"
-                    >
-                      <Trash2 size={12} /> Hapus
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </td>
+                    <td className="text-xs text-text-muted whitespace-nowrap">
+                      {survey.created_at?.split(" ")[0] ?? "—"}
+                    </td>
+                    <td className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/surveys/${survey.id}/submissions`}
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-surface py-1 px-2.5 text-xs font-medium text-text-secondary no-underline transition-fast hover:border-primary-border hover:text-primary"
+                        >
+                          <FileText size={12} /> Submissions
+                        </Link>
+                        <Link
+                          href={`/admin/surveys/${survey.id}`}
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-surface py-1 px-2.5 text-xs font-medium text-text-secondary no-underline transition-fast hover:border-primary-border hover:text-primary"
+                        >
+                          <Pencil size={12} /> Edit
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteId(survey.id)}
+                          className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-danger-border bg-surface py-1 px-2.5 font-sans text-xs font-medium text-danger transition-fast hover:bg-danger-light"
+                        >
+                          <Trash2 size={12} /> Hapus
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           <AdminPagination

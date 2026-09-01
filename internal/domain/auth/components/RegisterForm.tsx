@@ -83,7 +83,12 @@ export function RegisterForm() {
       const response = await registerApi(payload);
       setSession(response);
       const redirect = searchParams.get("redirect");
-      router.push(getSafeRedirect(redirect, getPostAuthPath(response.user.role)));
+      const target = getSafeRedirect(
+        redirect,
+        getPostAuthPath(response.user.role),
+        response.user.role
+      );
+      router.push(target);
     } catch (err: any) {
       setErrorMsg(err.message || "Gagal melakukan registrasi. Silakan coba lagi.");
     } finally {

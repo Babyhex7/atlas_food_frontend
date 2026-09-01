@@ -37,7 +37,12 @@ export function LoginForm() {
       const response = await login(data);
       setSession(response);
       const redirect = searchParams.get("redirect");
-      router.push(getSafeRedirect(redirect, getPostAuthPath(response.user.role)));
+      const target = getSafeRedirect(
+        redirect,
+        getPostAuthPath(response.user.role),
+        response.user.role
+      );
+      router.push(target);
     } catch (err: any) {
       setErrorMsg(err.message || "Gagal melakukan login. Periksa email & password Anda.");
     } finally {
