@@ -1,13 +1,45 @@
 import { apiClient as axiosClient } from "@/internal/lib/axios";
 import type { CreateSubmissionRequest, SurveySubmission } from "../types/submission";
 
+import { v4 as uuidv4 } from "uuid";
+import { OfflineSubmissionService } from "@/internal/domain/survey/services/offlineService";
+
 /**
  * submitSurvey — POST /api/v1/survey/submit
- * Uses Axios client (with auto token refresh) for reliable auth handling.
+ * Uses Axios client with Idempotency-Key header and falls back to local IndexedDB queue when offline.
  */
 export async function submitSurvey(payload: CreateSubmissionRequest): Promise<{ submission_id: string; message: string }> {
-  const response = await axiosClient.post("/survey/submit", payload);
-  return response.data.data;
+  const localId = payload.local_id || uuidv4();
+  const payloadWithLocalId = { ...payload, local_id: localId };
+
+  // 1. If currently offline, queue directly into IndexedDB
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    await OfflineSubmissionService.enqueueSubmission(payload.survey_id, payloadWithLocalId, localId);
+    return {
+      submission_id: localId,
+      message: "Data survei berhasil disimpan secara lokal (Offline Mode). Akan dikirim otomatis saat terhubung ke internet.",
+    };
+  }
+
+  // 2. If online, attempt POST with Idempotency-Key header
+  try {
+    const response = await axiosClient.post("/survey/submit", payloadWithLocalId, {
+      headers: {
+        "Idempotency-Key": localId,
+      },
+    });
+    return response.data.data;
+  } catch (error: any) {
+    // If a network error occurred (e.g. signal dropped mid-request), fallback to offline queue
+    if (!error.response && typeof navigator !== "undefined") {
+      await OfflineSubmissionService.enqueueSubmission(payload.survey_id, payloadWithLocalId, localId);
+      return {
+        submission_id: localId,
+        message: "Koneksi terputus saat pengiriman. Data survei Anda telah disimpan secara lokal & akan disinkronkan otomatis.",
+      };
+    }
+    throw error;
+  }
 }
 
 export type SubmissionPage = {

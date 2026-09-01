@@ -54,6 +54,7 @@ export type SurveySubmission = {
 };
 
 export type CreateSubmissionRequest = {
+  local_id?: string;
   survey_id: string;
   participant_id?: string;
   respondent_name?: string;

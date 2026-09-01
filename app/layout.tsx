@@ -3,6 +3,10 @@ import "../styles/globals.css";
 import { ReactQueryProvider } from "@/internal/providers/query-provider";
 import { AuthProvider } from "@/internal/providers/auth-provider";
 
+import { PWARegister } from "@/internal/components/pwa/PWARegister";
+import { OfflineStatusBar } from "@/internal/components/pwa/OfflineStatusBar";
+import { PWAInstallPrompt } from "@/internal/components/pwa/PWAInstallPrompt";
+
 export const metadata: Metadata = {
   title: "Atlas Food — Survey Gizi & Find Your Food",
   description:
@@ -18,7 +22,12 @@ export default function RootLayout({
     <html lang="id">
       <body>
         <ReactQueryProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <PWARegister />
+            <OfflineStatusBar />
+            {children}
+            <PWAInstallPrompt />
+          </AuthProvider>
         </ReactQueryProvider>
       </body>
     </html>
