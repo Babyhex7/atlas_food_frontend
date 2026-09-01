@@ -5,7 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Loader2, User, Shield, Camera, LogOut, Settings, Search,
   X, Upload, Image as ImageIcon, Eye, EyeOff, Lock, CheckCircle2,
-  Info, ArrowRight, AlertCircle,
+  Info, ArrowRight, AlertCircle, ClipboardList, Calendar, Flame, Utensils,
+  ChevronRight, FileText,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLogout } from "../hooks/useLogout";
@@ -17,8 +18,11 @@ import { cn } from "@/internal/lib/cn";
 import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
 import { changePassword, updateProfile, uploadProfilePhoto } from "../services/authService";
 import { useAuthStore } from "../store/authStore";
+import { getMySubmissions, getMySubmissionDetail } from "@/internal/domain/submission/services/submissionService";
+import type { SurveySubmission } from "@/internal/domain/submission/types/submission";
+import { AiRecommendationPanel } from "@/internal/domain/ai";
 
-type ActiveSection = "personal" | "security";
+type ActiveSection = "personal" | "history" | "security";
 type PhotoModal = "change" | "uploading" | null;
 type PasswordModal = "form" | "success" | null;
 
@@ -335,6 +339,356 @@ function PasswordSuccessModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+function RecallHistorySection() {
+  const [submissions, setSubmissions] = useState<SurveySubmission[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Detail modal state
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detailData, setDetailData] = useState<SurveySubmission | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    getMySubmissions(1, 50)
+      .then((data) => {
+        setSubmissions(data.submissions);
+        setTotal(data.total);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Gagal memuat riwayat survey");
+        setLoading(false);
+      });
+  }, []);
+
+  const handleOpenDetail = async (id: string) => {
+    setSelectedId(id);
+    setLoadingDetail(true);
+    setDetailData(null);
+    try {
+      const data = await getMySubmissionDetail(id);
+      setDetailData(data);
+    } catch {
+      const item = submissions.find((s) => s.id === id);
+      if (item) setDetailData(item);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const avgEnergy = submissions.length
+    ? Math.round(
+        submissions.reduce((acc, s) => acc + (s.total_energy || 0), 0) / submissions.length
+      )
+    : 0;
+
+  return (
+    <div className="card">
+      <div className="flex items-center justify-between py-5 px-6 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-md bg-primary-light text-primary flex items-center justify-center">
+            <ClipboardList size={18} />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-text-primary m-0">Riwayat Survey Recall</h2>
+            <p className="text-xs text-text-muted m-0">Daftar pengisian 24-hour food recall yang pernah Anda selesaikan.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6 flex flex-col gap-6">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-4 rounded-xl border border-border bg-surface-alt flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary-light text-primary flex items-center justify-center shrink-0">
+              <ClipboardList size={20} />
+            </div>
+            <div>
+              <p className="text-xs text-text-muted font-semibold uppercase tracking-wider m-0">Total Recall</p>
+              <p className="text-xl font-bold text-text-primary m-0">{total} Laporan</p>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl border border-border bg-surface-alt flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-warning-light text-warning flex items-center justify-center shrink-0">
+              <Flame size={20} />
+            </div>
+            <div>
+              <p className="text-xs text-text-muted font-semibold uppercase tracking-wider m-0">Rata-Rata Energi</p>
+              <p className="text-xl font-bold text-text-primary m-0">
+                {avgEnergy} <span className="text-xs font-normal text-text-muted">kkal/hari</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl border border-border bg-surface-alt flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-success-light text-success flex items-center justify-center shrink-0">
+              <Calendar size={20} />
+            </div>
+            <div>
+              <p className="text-xs text-text-muted font-semibold uppercase tracking-wider m-0">Terakhir Diisi</p>
+              <p className="text-sm font-bold text-text-primary m-0">
+                {submissions.length
+                  ? new Date(
+                      submissions[0].submitted_at || submissions[0].created_at || ""
+                    ).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "Belum ada"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* List Content */}
+        {loading ? (
+          <div className="py-12 flex flex-col items-center justify-center gap-2 text-text-muted">
+            <Loader2 size={24} className="animate-spin text-primary" />
+            <span className="text-sm">Memuat riwayat recall...</span>
+          </div>
+        ) : error ? (
+          <ErrorBanner message={error} />
+        ) : submissions.length === 0 ? (
+          <div className="py-12 flex flex-col items-center justify-center gap-3 text-center border-2 border-dashed border-border rounded-xl bg-surface-alt p-6">
+            <div className="w-12 h-12 rounded-full bg-border/50 text-text-muted flex items-center justify-center">
+              <ClipboardList size={24} />
+            </div>
+            <div>
+              <p className="font-semibold text-text-primary text-base m-0">Belum Ada Riwayat Survey</p>
+              <p className="text-sm text-text-muted m-0 mt-1 max-w-sm">
+                Anda belum pernah mengisi survey food recall. Akses tautan survey dari peneliti atau bergabung melalui halaman utama.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {submissions.map((sub) => (
+              <div
+                key={sub.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border border-border rounded-xl bg-surface hover:border-primary-border transition-all gap-4 shadow-sm"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary-light text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <Utensils size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-semibold text-text-primary text-base m-0">
+                        Recall{" "}
+                        {new Date(
+                          sub.submitted_at || sub.created_at || ""
+                        ).toLocaleDateString("id-ID", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full bg-surface-alt text-text-muted text-xs font-mono font-medium">
+                        ID: {sub.id.slice(0, 8)}...
+                      </span>
+                    </div>
+                    <p className="text-xs text-text-muted m-0 mt-1 flex items-center gap-3">
+                      <span>
+                        🕒{" "}
+                        {new Date(
+                          sub.submitted_at || sub.created_at || ""
+                        ).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}{" "}
+                        WIB
+                      </span>
+                      {sub.meal_count ? <span>· {sub.meal_count} Waktu Makan</span> : null}
+                      {sub.total_foods ? <span>· {sub.total_foods} Item Makanan</span> : null}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-border justify-between sm:justify-end">
+                  <div className="text-left sm:text-right">
+                    <p className="font-mono font-bold text-primary text-base m-0">
+                      {Math.round(sub.total_energy || (sub.daily_total?.energy ?? 0))}{" "}
+                      <span className="text-xs text-text-muted font-sans font-normal">kkal</span>
+                    </p>
+                    <p className="text-[11px] text-text-muted m-0 mt-0.5">
+                      P: {Math.round(sub.total_protein || (sub.daily_total?.protein ?? 0))}g · K:{" "}
+                      {Math.round(sub.total_carbs || (sub.daily_total?.carbs ?? 0))}g · L:{" "}
+                      {Math.round(sub.total_fat || (sub.daily_total?.fat ?? 0))}g
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => handleOpenDetail(sub.id)}
+                    className="btn btn-secondary btn-sm flex items-center gap-1.5 shrink-0"
+                  >
+                    <span>Detail</span>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Detail Modal */}
+      {selectedId && (
+        <ModalOverlay onClose={() => setSelectedId(null)}>
+          <div className="bg-surface rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+            <div className="sticky top-0 z-10 bg-surface flex items-center justify-between px-6 py-4 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary-light text-primary flex items-center justify-center">
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-text-primary m-0">Detail Riwayat Recall</h3>
+                  <p className="text-xs text-text-muted m-0">ID: {selectedId}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedId(null)}
+                className="p-1 rounded-md text-text-muted hover:bg-surface-alt"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 flex flex-col gap-6">
+              {loadingDetail ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-2 text-text-muted">
+                  <Loader2 size={24} className="animate-spin text-primary" />
+                  <span>Memuat detail makanan & analisis...</span>
+                </div>
+              ) : detailData ? (
+                <>
+                  {/* Daily Total Header Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface-alt p-4 rounded-xl border border-border">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                        Energi Total
+                      </span>
+                      <span className="font-mono text-lg font-bold text-primary">
+                        {Math.round(
+                          detailData.total_energy || (detailData.daily_total?.energy ?? 0)
+                        )}{" "}
+                        <span className="text-xs font-normal text-text-muted">kkal</span>
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                        Protein
+                      </span>
+                      <span className="font-mono text-lg font-bold text-text-primary">
+                        {Math.round(
+                          detailData.total_protein || (detailData.daily_total?.protein ?? 0)
+                        )}{" "}
+                        <span className="text-xs font-normal text-text-muted">g</span>
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                        Karbohidrat
+                      </span>
+                      <span className="font-mono text-lg font-bold text-text-primary">
+                        {Math.round(
+                          detailData.total_carbs || (detailData.daily_total?.carbs ?? 0)
+                        )}{" "}
+                        <span className="text-xs font-normal text-text-muted">g</span>
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                        Lemak
+                      </span>
+                      <span className="font-mono text-lg font-bold text-text-primary">
+                        {Math.round(
+                          detailData.total_fat || (detailData.daily_total?.fat ?? 0)
+                        )}{" "}
+                        <span className="text-xs font-normal text-text-muted">g</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Meals Breakdown */}
+                  {Array.isArray(detailData.meals_data) && detailData.meals_data.length > 0 ? (
+                    <div className="flex flex-col gap-4">
+                      <h4 className="font-semibold text-text-primary text-base m-0">
+                        Rincian Makanan per Waktu Makan
+                      </h4>
+                      {detailData.meals_data.map((meal, idx) => (
+                        <div
+                          key={idx}
+                          className="border border-border rounded-xl overflow-hidden bg-surface"
+                        >
+                          <div className="bg-surface-alt px-4 py-3 border-b border-border flex justify-between items-center">
+                            <span className="font-semibold text-sm text-text-primary flex items-center gap-2">
+                              <Utensils size={14} className="text-primary" />
+                              {meal.name} {meal.time ? `(${meal.time})` : ""}
+                            </span>
+                            {meal.meal_total ? (
+                              <span className="font-mono text-xs font-semibold text-primary">
+                                {Math.round(meal.meal_total.energy)} kkal
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <div className="divide-y divide-border">
+                            {meal.foods &&
+                              meal.foods.map((food, fIdx) => (
+                                <div
+                                  key={fIdx}
+                                  className="px-4 py-3 flex items-center justify-between text-sm"
+                                >
+                                  <div>
+                                    <p className="font-medium text-text-primary m-0">
+                                      {food.food_name}
+                                    </p>
+                                    {food.additionals && food.additionals.length > 0 ? (
+                                      <p className="text-xs text-text-muted m-0 mt-0.5">
+                                        Bahan tambahan:{" "}
+                                        {food.additionals.map((a) => a.name).join(", ")}
+                                      </p>
+                                    ) : null}
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="font-mono font-semibold text-text-primary block">
+                                      {food.portion_gram}g
+                                    </span>
+                                    {food.nutrients ? (
+                                      <span className="text-xs text-text-muted font-mono">
+                                        {Math.round(food.nutrients.energy)} kkal
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {/* AI Recommendation Panel */}
+                  <div className="border-t border-border pt-4">
+                    <AiRecommendationPanel submissionId={selectedId} />
+                  </div>
+                </>
+              ) : (
+                <p className="text-text-muted text-sm text-center py-6">
+                  Data detail tidak tersedia.
+                </p>
+              )}
+            </div>
+          </div>
+        </ModalOverlay>
+      )}
+    </div>
+  );
+}
+
 export function ProfileCard() {
   const { user, isAuthenticated } = useAuth();
   const logout = useLogout();
@@ -357,10 +711,6 @@ export function ProfileCard() {
   const [profileSaved, setProfileSaved] = useState(false);
   const profileHydrated = useRef(Boolean(user));
 
-  // On a hard refresh, `user` is still null on first render (session is being
-  // restored from /auth/me by AuthProvider) so the form above initializes
-  // empty. Sync it once the real user data arrives, without ever
-  // overwriting fields the user is actively editing.
   useEffect(() => {
     if (!user || profileHydrated.current) return;
     profileHydrated.current = true;
@@ -501,7 +851,7 @@ export function ProfileCard() {
       </div>
 
       {/* Two-column layout */}
-      <div className={`${CONTAINER_CLASS} flex-1 pt-6 pb-10 grid grid-cols-[280px_1fr] gap-6 items-start`}>
+      <div className={`${CONTAINER_CLASS} flex-1 pt-6 pb-10 grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 items-start`}>
         {/* ── Left sidebar ── */}
         <div className="flex flex-col gap-4">
 
@@ -555,6 +905,14 @@ export function ProfileCard() {
             </button>
 
             <button
+              onClick={() => setActiveSection("history")}
+              className={`profile-nav-item${activeSection === "history" ? " profile-nav-item--active" : ""}`}
+            >
+              <ClipboardList size={16} />
+              Riwayat Recall Saya
+            </button>
+
+            <button
               onClick={() => setActiveSection("security")}
               className={`profile-nav-item${activeSection === "security" ? " profile-nav-item--active" : ""}`}
             >
@@ -590,7 +948,7 @@ export function ProfileCard() {
         </div>
 
         {/* ── Right content ── */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 min-w-0">
 
           {/* Personal Information */}
           {activeSection === "personal" && (
@@ -613,7 +971,7 @@ export function ProfileCard() {
                     <CheckCircle2 size={14} /> Profil berhasil disimpan
                   </p>
                 )}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="form-group">
                     <label className="form-label">Full Name</label>
                     <input
@@ -679,6 +1037,9 @@ export function ProfileCard() {
               </div>
             </div>
           )}
+
+          {/* Recall History */}
+          {activeSection === "history" && <RecallHistorySection />}
 
           {/* Security */}
           {activeSection === "security" && (

@@ -226,7 +226,7 @@ export function Step3Portion({
             <div
               role="radiogroup"
               aria-label="Pilihan porsi"
-              className="grid grid-cols-2 gap-3 sm:grid-cols-3"
+              className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
             >
               {photos.map((photo) => {
                 const active = selectedPhoto?.id === photo.id;

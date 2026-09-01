@@ -36,18 +36,21 @@ export type MissingFood = {
 
 export type SurveySubmission = {
   id: string;
-  survey_id: string;
+  survey_id?: string;
   participant_id?: string | null;
   respondent_name?: string | null;
   respondent_email?: string | null;
-  meals_data: SubmissionMeal[];
+  meals_data?: SubmissionMeal[];
   missing_foods?: MissingFood[];
+  meal_count?: number;
+  total_foods?: number;
+  daily_total?: NutrientTotals;
   total_energy?: number;
   total_protein?: number;
   total_carbs?: number;
   total_fat?: number;
   submitted_at: string;
-  created_at: string;
+  created_at?: string;
 };
 
 export type CreateSubmissionRequest = {

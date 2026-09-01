@@ -67,3 +67,32 @@ export async function downloadSurveyExport(surveyId: string, surveyName?: string
   link.remove();
   URL.revokeObjectURL(url);
 }
+
+/**
+ * getMySubmissions — GET /api/v1/survey/my-submissions
+ * Ambil daftar riwayat recall milik user yang sedang login.
+ */
+export async function getMySubmissions(
+  page = 1,
+  limit = 20
+): Promise<SubmissionPage> {
+  const response = await axiosClient.get("/survey/my-submissions", {
+    params: { page, limit },
+  });
+  const data = response.data?.data ?? {};
+  const submissions: SurveySubmission[] = data.submissions ?? [];
+
+  return {
+    submissions,
+    total: data.pagination?.total ?? submissions.length,
+  };
+}
+
+/**
+ * getMySubmissionDetail — GET /api/v1/survey/my-submissions/:id
+ * Ambil detail 1 riwayat recall milik user.
+ */
+export async function getMySubmissionDetail(id: string): Promise<SurveySubmission> {
+  const response = await axiosClient.get(`/survey/my-submissions/${id}`);
+  return response.data?.data;
+}

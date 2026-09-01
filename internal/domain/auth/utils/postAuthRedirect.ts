@@ -8,8 +8,25 @@ export function getPostAuthPath(role: AuthRole): string {
 
 const BLOCKED_REDIRECT_PREFIXES = ["/login", "/register"];
 
-/** Validasi redirect URL internal — cegah open redirect & loop auth */
-export function getSafeRedirect(redirect: string | null, fallback: string): string {
+/** Validasi redirect URL internal — cegah open redirect, loop auth, & pelecehan RBAC */
+export function getSafeRedirect(
+  redirect: string | null,
+  fallback: string,
+  role?: AuthRole
+): string {
+  // Admin SELALU diarahkan ke Panel Admin (/admin/surveys) kecuali mengakses sub-halaman admin tertentu
+  if (role === "admin") {
+    if (redirect && redirect.startsWith("/admin")) {
+      return redirect;
+    }
+    return "/admin/surveys";
+  }
+
+  // Respondent / Customer DILARANG masuk ke route /admin/
+  if (role === "respondent" && redirect && redirect.startsWith("/admin")) {
+    return "/profile";
+  }
+
   if (!redirect || !redirect.startsWith("/") || redirect.startsWith("//")) {
     return fallback;
   }

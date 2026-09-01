@@ -32,15 +32,25 @@ export function StepShell({
   children,
   className,
   centered = false,
+  maxWidth = "wide",
 }: {
   children: ReactNode;
   className?: string;
   centered?: boolean;
+  maxWidth?: "normal" | "wide" | "full";
 }) {
+  const maxWClass =
+    maxWidth === "full"
+      ? "max-w-full"
+      : maxWidth === "normal"
+      ? "max-w-3xl"
+      : "max-w-5xl lg:max-w-6xl";
+
   return (
     <div
       className={cn(
-        "mx-auto flex w-full max-w-[45rem] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8",
+        "mx-auto flex w-full flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 transition-all duration-200",
+        maxWClass,
         centered && "items-center text-center",
         className
       )}
