@@ -338,6 +338,14 @@ export function routeCollabMessage(msg: CollabIncomingMessage) {
       canvasStore.syncStrokes(parsedStrokes);
       break;
     }
+    case "user_role_updated": {
+      const targetUserId = String(payload.target_user_id ?? msg.user_id ?? "");
+      const newRole = String(payload.new_role ?? "");
+      if (targetUserId && targetUserId === store.selfUserId && newRole) {
+        store.setSelfRoomRole(newRole as any);
+      }
+      break;
+    }
     case "error": {
       store.setLastError(String(payload.message ?? "Terjadi kesalahan kolaborasi"));
       break;
