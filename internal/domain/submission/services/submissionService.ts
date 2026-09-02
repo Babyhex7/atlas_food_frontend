@@ -4,24 +4,49 @@ import type { CreateSubmissionRequest, SurveySubmission } from "../types/submiss
 import { v4 as uuidv4 } from "uuid";
 import { OfflineSubmissionService } from "@/internal/domain/survey/services/offlineService";
 
+// ─── Batch Sync Types ──────────────────────────────────────────────────────────
+
+export type BatchSyncResultItem = {
+  local_id: string;
+  status: "SYNCED" | "SKIPPED" | "FAILED";
+  server_id?: string;
+  message?: string;
+};
+
+export type BatchSyncResponseData = {
+  results: BatchSyncResultItem[];
+  synced_count: number;
+  failed_count: number;
+};
+
+// ─── Submit Survey (Offline-First + Idempotency) ───────────────────────────────
+
 /**
  * submitSurvey — POST /api/v1/survey/submit
- * Uses Axios client with Idempotency-Key header and falls back to local IndexedDB queue when offline.
+ * Selalu generate localId (UUID) sebagai Idempotency-Key.
+ * Jika offline, data disimpan ke IndexedDB dan dikirim otomatis saat online kembali.
  */
-export async function submitSurvey(payload: CreateSubmissionRequest): Promise<{ submission_id: string; message: string }> {
+export async function submitSurvey(
+  payload: CreateSubmissionRequest
+): Promise<{ submission_id: string; message: string }> {
   const localId = payload.local_id || uuidv4();
   const payloadWithLocalId = { ...payload, local_id: localId };
 
-  // 1. If currently offline, queue directly into IndexedDB
+  // 1. Jika sedang offline — queue ke IndexedDB
   if (typeof navigator !== "undefined" && !navigator.onLine) {
-    await OfflineSubmissionService.enqueueSubmission(payload.survey_id, payloadWithLocalId, localId);
+    await OfflineSubmissionService.enqueueSubmission(
+      payload.survey_id,
+      payloadWithLocalId,
+      localId
+    );
     return {
       submission_id: localId,
-      message: "Data survei berhasil disimpan secara lokal (Offline Mode). Akan dikirim otomatis saat terhubung ke internet.",
+      message:
+        "Data survei berhasil disimpan secara lokal (Offline Mode). Akan dikirim otomatis saat terhubung ke internet.",
     };
   }
 
-  // 2. If online, attempt POST with Idempotency-Key header
+  // 2. Jika online — kirim ke backend dengan Idempotency-Key header
   try {
     const response = await axiosClient.post("/survey/submit", payloadWithLocalId, {
       headers: {
@@ -30,16 +55,32 @@ export async function submitSurvey(payload: CreateSubmissionRequest): Promise<{ 
     });
     return response.data.data;
   } catch (error: any) {
-    // If a network error occurred (e.g. signal dropped mid-request), fallback to offline queue
+    // 3. Network drop saat request berjalan — fallback ke offline queue
     if (!error.response && typeof navigator !== "undefined") {
-      await OfflineSubmissionService.enqueueSubmission(payload.survey_id, payloadWithLocalId, localId);
+      await OfflineSubmissionService.enqueueSubmission(
+        payload.survey_id,
+        payloadWithLocalId,
+        localId
+      );
       return {
         submission_id: localId,
-        message: "Koneksi terputus saat pengiriman. Data survei Anda telah disimpan secara lokal & akan disinkronkan otomatis.",
+        message:
+          "Koneksi terputus saat pengiriman. Data survei Anda telah disimpan secara lokal & akan disinkronkan otomatis.",
       };
     }
     throw error;
   }
+}
+
+/**
+ * submitBatchSurveys — POST /api/v1/survey/sync/batch
+ * Mengirim banyak submission offline sekaligus dalam 1 request.
+ */
+export async function submitBatchSurveys(
+  items: CreateSubmissionRequest[]
+): Promise<BatchSyncResponseData> {
+  const response = await axiosClient.post("/survey/sync/batch", { items });
+  return response.data.data;
 }
 
 export type SubmissionPage = {

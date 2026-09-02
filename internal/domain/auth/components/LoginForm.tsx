@@ -13,12 +13,13 @@ import { loginSchema, type LoginFormValues } from "@/internal/lib/validations";
 import { login } from "../services/authService";
 import { useAuth } from "../hooks/useAuth";
 import { getPostAuthPath, getSafeRedirect } from "../utils/postAuthRedirect";
+import { useToast } from "@/internal/components/ui/Toast";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSession } = useAuth();
-  const [errorMsg, setErrorMsg] = useState("");
+  const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -32,10 +33,10 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    setErrorMsg("");
     try {
       const response = await login(data);
       setSession(response);
+      toast.success("Login berhasil! 👋", `Selamat datang kembali, ${response.user.name || response.user.email}`);
       const redirect = searchParams.get("redirect");
       const target = getSafeRedirect(
         redirect,
@@ -44,11 +45,15 @@ export function LoginForm() {
       );
       router.push(target);
     } catch (err: any) {
-      setErrorMsg(err.message || "Gagal melakukan login. Periksa email & password Anda.");
+      toast.error(
+        "Login gagal",
+        err.message || "Periksa email & password Anda, lalu coba lagi."
+      );
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="w-full max-w-[440px] mx-auto p-8 bg-surface border border-border rounded-2xl shadow-xl">
@@ -102,12 +107,6 @@ export function LoginForm() {
             <span className="text-xs text-danger">{errors.password.message}</span>
           )}
         </div>
-
-        {errorMsg && (
-          <div className="alert alert-danger text-sm">
-            {errorMsg}
-          </div>
-        )}
 
         <Button type="submit" size="lg" isLoading={isLoading} className="w-full">
           Masuk

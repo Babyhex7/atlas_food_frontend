@@ -13,6 +13,7 @@ import { registerSchema, type RegisterFormValues } from "@/internal/lib/validati
 import { register as registerApi } from "../services/authService";
 import { useAuth } from "../hooks/useAuth";
 import { getPostAuthPath, getSafeRedirect } from "../utils/postAuthRedirect";
+import { useToast } from "@/internal/components/ui/Toast";
 
 function PasswordInput({
   id,
@@ -64,7 +65,7 @@ export function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSession } = useAuth();
-  const [errorMsg, setErrorMsg] = useState("");
+  const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -77,11 +78,11 @@ export function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
-    setErrorMsg("");
     try {
       const { confirmPassword, ...payload } = data;
       const response = await registerApi(payload);
       setSession(response);
+      toast.success("Akun berhasil dibuat! 🎉", `Selamat bergabung di Atlas Food, ${response.user.name || response.user.email}!`);
       const redirect = searchParams.get("redirect");
       const target = getSafeRedirect(
         redirect,
@@ -90,11 +91,15 @@ export function RegisterForm() {
       );
       router.push(target);
     } catch (err: any) {
-      setErrorMsg(err.message || "Gagal melakukan registrasi. Silakan coba lagi.");
+      toast.error(
+        "Registrasi gagal",
+        err.message || "Gagal membuat akun. Silakan coba lagi."
+      );
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="w-full max-w-[440px] mx-auto p-8 bg-surface border border-border rounded-2xl shadow-xl">
@@ -138,12 +143,6 @@ export function RegisterForm() {
           error={errors.confirmPassword?.message}
           registration={formRegister("confirmPassword")}
         />
-
-        {errorMsg && (
-          <div className="alert alert-danger text-sm">
-            {errorMsg}
-          </div>
-        )}
 
         <Button type="submit" size="lg" isLoading={isLoading} className="w-full">
           Daftar

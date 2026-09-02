@@ -23,7 +23,16 @@ export function useWebSocket(roomId: string | null) {
   const intentionalClose = useRef(false);
   const searchParams = useSearchParams();
   const inviteFromQuery = searchParams.get("invite")?.trim() || null;
-  // Invite per-room di sessionStorage — navigasi tanpa ?invite= tetap bawa role
+
+  // Persist invite token ke sessionStorage agar tetap ada setelah navigasi halaman
+  // (URL-nya bersih tapi token masih dibutuhkan saat reconnect/multi-tab).
+  useEffect(() => {
+    if (roomId && inviteFromQuery && typeof window !== "undefined") {
+      window.sessionStorage.setItem(`collab:invite:${roomId}`, inviteFromQuery);
+    }
+  }, [roomId, inviteFromQuery]);
+
+  // Invite per-room di sessionStorage — navigasi tanpa ?invite= tetap bawa role.
   const inviteFromStorage =
     typeof window !== "undefined" && roomId
       ? window.sessionStorage.getItem(`collab:invite:${roomId}`)?.trim() || null

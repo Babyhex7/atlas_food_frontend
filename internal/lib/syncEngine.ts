@@ -1,5 +1,6 @@
 import { apiClient } from "@/internal/lib/axios";
 import { OfflineSubmissionService } from "@/internal/domain/survey/services/offlineService";
+import { submitBatchSurveys } from "@/internal/domain/submission/services/submissionService";
 
 export class SyncEngine {
   private static isSyncing = false;
@@ -41,24 +42,53 @@ export class SyncEngine {
 
     try {
       const pendingItems = await OfflineSubmissionService.getPendingSubmissions();
+      if (pendingItems.length === 0) {
+        this.isSyncing = false;
+        await this.notifyListeners();
+        return { synced: 0, failed: 0 };
+      }
 
+      // Tandai semua item sebagai sedang SYNCING
       for (const item of pendingItems) {
-        try {
-          await OfflineSubmissionService.markSyncing(item.localId);
+        await OfflineSubmissionService.markSyncing(item.localId);
+      }
 
-          // Kirim ke Backend dengan Idempotency-Key header
-          await apiClient.post("/survey/submit", item.payload, {
-            headers: {
-              "Idempotency-Key": item.localId,
-            },
-          });
+      // Coba kirim sekaligus secara Batch Sync
+      try {
+        const batchPayload = pendingItems.map((item) => ({
+          ...item.payload,
+          local_id: item.localId,
+        }));
 
-          await OfflineSubmissionService.markSynced(item.localId);
-          synced++;
-        } catch (err: any) {
-          const errMsg = err?.response?.data?.message || err?.message || "Sync error";
-          await OfflineSubmissionService.markFailed(item.localId, errMsg);
-          failed++;
+        const batchRes = await submitBatchSurveys(batchPayload);
+
+        for (const resItem of batchRes.results) {
+          if (resItem.status === "SYNCED" || resItem.status === "SKIPPED") {
+            await OfflineSubmissionService.markSynced(resItem.local_id);
+            synced++;
+          } else {
+            await OfflineSubmissionService.markFailed(resItem.local_id, resItem.message || "Sync failed");
+            failed++;
+          }
+        }
+      } catch (batchErr) {
+        // Fallback: jika batch sync gagal/error, coba kirim per item dengan Idempotency-Key
+        console.warn("[SyncEngine] Batch sync failed, falling back to per-item sync:", batchErr);
+        for (const item of pendingItems) {
+          try {
+            await apiClient.post("/survey/submit", item.payload, {
+              headers: {
+                "Idempotency-Key": item.localId,
+              },
+            });
+
+            await OfflineSubmissionService.markSynced(item.localId);
+            synced++;
+          } catch (err: any) {
+            const errMsg = err?.response?.data?.message || err?.message || "Sync error";
+            await OfflineSubmissionService.markFailed(item.localId, errMsg);
+            failed++;
+          }
         }
       }
 
