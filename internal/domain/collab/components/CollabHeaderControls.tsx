@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Activity, DoorOpen, Loader2, Share2, Users } from "lucide-react";
 import { PresenceAvatars } from "./PresenceAvatars";
@@ -22,6 +22,11 @@ import { cn } from "@/internal/lib/cn";
  * merender null dan header biasa tidak berubah.
  */
 export function CollabHeaderControls({ className }: { className?: string }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const loginHref = useLoginHref();
   const { roomId, status, enableCollab, leaveRoom, canStart, followUser, unfollow, isViewer } =
     useCollab();
@@ -39,6 +44,8 @@ export function CollabHeaderControls({ className }: { className?: string }) {
 
   const connecting = status === "connecting" || status === "reconnecting";
   const canShare = !isViewer;
+
+  if (!mounted) return null;
 
   // Di luar sesi: satu ajakan saja, tidak ada kontrol yang belum ada gunanya.
   if (!roomId) {

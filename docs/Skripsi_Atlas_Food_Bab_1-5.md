@@ -54,15 +54,16 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 | Tabel 2.1 | Perbandingan sistem *dietary recall* terkomputerisasi | II |
 | Tabel 2.2 | *State of the art* penelitian terdahulu | II |
 | Tabel 3.1 | Alat dan bahan penelitian | III |
-| Tabel 3.2 | Kebutuhan fungsional sistem | III |
+| Tabel 3.2 | Kebutuhan fungsional sistem (termasuk modul katalog publik) | III |
 | Tabel 3.3 | Kebutuhan non-fungsional sistem | III |
 | Tabel 3.4 | Definisi aktor sistem | III |
 | Tabel 3.5 | Skenario *use case* UC-05 (Mengisi recall) | III |
 | Tabel 3.6 | Skenario *use case* UC-08 (Mengikuti layar rekan) | III |
-| Tabel 3.7 | Struktur tabel basis data | III |
-| Tabel 3.8 | Instrumen pengujian dan teknik analisis | III |
-| Tabel 3.9 | Interpretasi skor SUS | III |
-| Tabel 3.10 | Jadwal penelitian | III |
+| Tabel 3.7 | Struktur tabel basis data (termasuk kolom `photo_type`) | III |
+| Tabel 3.8 | Tipe foto porsi `series` dan `range` | III |
+| Tabel 3.9 | Instrumen pengujian dan teknik analisis | III |
+| Tabel 3.10 | Interpretasi skor SUS | III |
+| Tabel 3.11 | Jadwal penelitian | III |
 | Tabel 4.1 | Kontrak API sistem | IV |
 | Tabel 4.2 | Protokol pesan WebSocket | IV |
 | Tabel 4.3 | Parameter kendali transport real-time | IV |
@@ -96,6 +97,7 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 | Gambar 4.1 | Topologi *hub*–*room*–*client* | IV |
 | Gambar 4.2 | *Pipeline* analisis gizi LLM | IV |
 | Gambar 4.3–4.12 | Tangkapan layar implementasi `[⚠ LAMPIRKAN]` | IV |
+| Gambar 4.13–4.15 | Tangkapan layar modul *Find Your Food* (halaman utama, detail mode series, detail mode range) `[⚠ LAMPIRKAN]` | IV |
 
 ---
 
@@ -118,7 +120,8 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
   - [2.6 Kontrol Akses Berbasis Peran](#26-kontrol-akses-berbasis-peran)
   - [2.7 *Large Language Model* dan *Schema-Constrained Generation*](#27-large-language-model-dan-schema-constrained-generation)
   - [2.8 Estimasi Porsi Berbasis Foto](#28-estimasi-porsi-berbasis-foto)
-  - [2.9 *State of the Art*](#29-state-of-the-art)
+  - [2.9 Katalog Pangan Publik dan Estimasi Porsi Visual](#29-katalog-pangan-publik-dan-estimasi-porsi-visual)
+  - [2.10 *State of the Art*](#210-state-of-the-art)
 - [BAB III METODOLOGI PENELITIAN](#bab-iii-metodologi-penelitian)
 - [BAB IV HASIL DAN PEMBAHASAN](#bab-iv-hasil-dan-pembahasan)
 - [BAB V PENUTUP](#bab-v-penutup)
@@ -194,11 +197,12 @@ Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 
 ## 1.6 Ruang Lingkup Penelitian
 
-**Ruang lingkup fungsional** mencakup empat modul:
+**Ruang lingkup fungsional** mencakup **lima modul**:
 
 | Modul | Cakupan |
 |---|---|
 | Modul Responden | Autentikasi, pemilihan survei aktif, *wizard* recall enam langkah, pengiriman laporan, panel rekomendasi AI, halaman ringkasan |
+| Modul Katalog Publik (*Find Your Food*) | Pencarian makanan tanpa autentikasi, katalog 13 kategori, halaman detail makanan dengan foto porsi interaktif tipe *series* dan *range*, tabel berat per foto, informasi gizi per 100 g, navigasi antar makanan dalam kategori |
 | Modul Kolaborasi | Ruang sesi, kehadiran, kursor bersama, mode ikut, penyelarasan langkah, umpan aktivitas, undangan berperan. Diaktifkan pada halaman *recall* dan pencarian makanan; **tidak** pada portal admin |
 | Modul AI | Analisis gizi berbasis LLM, normalisasi keluaran, penyimpanan hasil, jejak audit |
 | Modul Admin | CRUD survei, makanan, zat gizi, kategori, metode porsi, set foto *as served*, CMS anotasi dengan penyimpanan otomatis, telaah dan ekspor *submission* ke CSV |
@@ -247,12 +251,13 @@ Komputerisasi R24J bertujuan menghilangkan ketergantungan pada pewawancara sekal
 | Aspek | ASA24 | Intake24 | Atlas Food (penelitian ini) |
 |---|---|---|---|
 | Mode pengisian | Mandiri | Mandiri | Mandiri **atau** berpendamping real-time |
-| Estimasi porsi | Foto & ukuran rumah tangga | > 2.400 foto porsi | Foto *as served* + berat manual |
+| Estimasi porsi | Foto & ukuran rumah tangga | > 2.400 foto porsi | Foto *as served* tipe `series`/`range` + berat manual |
 | Pengodean gizi | Otomatis | Otomatis | Otomatis (tabel komposisi internal) |
 | Kolaborasi real-time | Tidak ada | Tidak ada | **Ada** (kehadiran, kursor, mode ikut, langkah) |
 | Kontrol peran sesi | — | — | **Ada** (*owner*/*editor*/*viewer*, tiga lapis) |
-| Umpan balik ke responden | Terbatas | Terbatas | Rekomendasi berbasis LLM |
+| Umpan balik ke responden | Terbatas | Terbatas | Rekomendasi berbasis LLM berkendala skema |
 | CMS anotasi foto | Tidak dipublikasikan | Tidak dipublikasikan | **Ada** (poligon, draft→published) |
+| Katalog publik tanpa login | Tidak ada | Tidak ada | **Ada** (*Find Your Food*, pencarian + foto porsi visual) |
 | Basis pangan | Amerika Serikat | Britania Raya | Indonesia |
 
 Perbedaan pada dua baris bercetak tebal itulah yang menjadi celah penelitian.
@@ -328,9 +333,24 @@ Temuan tersebut secara langsung membentuk keputusan desain penelitian ini: **LLM
 
 Metode *as served* menyajikan serangkaian foto porsi dengan berat yang telah ditimbang; responden memilih foto yang paling menyerupai porsi yang dikonsumsinya. Metode ini menurunkan beban kognitif dibanding meminta estimasi berat secara langsung. Intake24 memakai pendekatan ini dengan basis foto berskala besar yang porsinya diturunkan dari survei diet nasional (Bradley et al., 2016).
 
+Penelitian ini mengenali dua tipe aset foto porsi berdasarkan karakteristik makanan, terinspirasi dari buku Atlas Makananku (BRIN × UPI):
+
+| Tipe (`photo_type`) | Deskripsi | Perilaku antarmuka |
+|---|---|---|
+| `series` | 4–8 foto bertahap dari porsi kecil ke besar (contoh: Nasi 50 g → 350 g, diberi kode A–H) | *Slider* atau *carousel* horizontal; klik thumbnail → foto menjadi tampilan utama dengan animasi transisi halus |
+| `range` | Variasi bentuk/ukuran alami yang tidak bertahap ketat (contoh: berbagai ukuran Ayam Goreng) | Grid *thumbnail*; klik → tampilan utama |
+
+Perbedaan tipe ini disimpan pada kolom `photo_type ENUM('series', 'range')` di tabel `foods`, sehingga antarmuka dapat memilih komponen visualisasi yang sesuai secara dinamis tanpa perubahan kode.
+
 Tantangan praktisnya adalah **pengelolaan aset**. Foto sajian majemuk (satu piring berisi nasi, lauk, dan sayur) tidak dapat dipetakan ke satu entri makanan. Penelitian ini menjawabnya dengan CMS anotasi: admin menggambar poligon area di atas foto, menautkan setiap area ke entri makanan, lalu menerbitkannya melalui siklus *draft* → *published*. Pendekatan ini memindahkan pengetahuan domain dari kode program ke basis data, sehingga penambahan aset tidak memerlukan penyebaran ulang aplikasi dan dapat dikerjakan ahli gizi non-pemrogram.
 
-## 2.9 *State of the Art*
+## 2.9 Katalog Pangan Publik dan Estimasi Porsi Visual
+
+Sistem R24J umumnya membatasi akses informasi pangan kepada pengguna yang sudah terdaftar dan terotentikasi. Namun terdapat kebutuhan yang lebih luas: peneliti gizi, tenaga kesehatan, dan masyarakat umum kerap perlu mencari referensi porsi makanan tanpa menjalani proses pendaftaran. Atlas Makananku (buku referensi porsi pangan Indonesia yang diterbitkan BRIN × UPI) menyediakan konten tersebut dalam bentuk cetak; versi interaktif berbasis web belum lazim tersedia.
+
+Penelitian ini menjawab celah tersebut dengan modul **Find Your Food** — katalog makanan yang dapat diakses publik tanpa autentikasi. Modul ini memanfaatkan data yang sudah ada di basis data (*endpoint* `/public/*`) dan menampilkan foto porsi secara interaktif sesuai tipe `series` atau `range`, disertai tabel berat dan informasi gizi. Penambahan modul ini tidak menambah beban pemeliharaan data karena menggunakan tabel yang sama dengan modul recall.
+
+## 2.10 *State of the Art*
 
 **Tabel 2.2 *State of the art* penelitian terdahulu**
 
@@ -440,7 +460,7 @@ Kriteria eksklusi: peserta yang tidak menyelesaikan seluruh rangkaian tugas peng
 | Layanan eksternal | Groq API | Model `llama3-8b-8192` | Pembangkitan rekomendasi gizi |
 | Perkakas | Visual Studio Code, Git, Postman | — | Pengodean, versi, uji API |
 | Bahan | Tabel komposisi pangan | `[⚠ SEBUTKAN sumber: TKPI/DKBM]` | Sumber nilai gizi |
-| | Foto porsi *as served* | `[⚠ SEBUTKAN sumber & jumlah]` | Estimasi porsi |
+| | Foto porsi *as served* (tipe `series` & `range`) | Terinspirasi Atlas Makananku (BRIN × UPI) | Estimasi porsi visual |
 | | Instrumen SUS | Brooke (1996), 10 butir | Pengukuran kebergunaan |
 
 ## 3.4 Metode Pengumpulan Data
@@ -466,6 +486,9 @@ Catatan metodologis: sebagian data kinerja **tidak memerlukan instrumentasi tamb
 |---|---|---|---|
 | F-01 | Sistem dapat mendaftarkan dan mengautentikasi pengguna dengan peran admin atau responden | Semua | Wajib |
 | F-02 | Sistem dapat menampilkan daftar survei berstatus aktif | Responden | Wajib |
+| F-02a | Sistem menyediakan halaman katalog publik (*Find Your Food*) yang dapat diakses tanpa autentikasi untuk mencari makanan dan melihat foto porsi interaktif | Publik (tanpa login) | Wajib |
+| F-02b | Halaman *Find Your Food* menampilkan 13 kategori makanan dan mendukung pencarian *full-text* minimal 3 karakter | Publik | Wajib |
+| F-02c | Halaman detail makanan menampilkan foto porsi sesuai `photo_type` (`series` dengan *slider* A–H, atau `range` dengan *grid*), tabel berat per foto, dan informasi gizi per 100 g | Publik | Wajib |
 | F-03 | Sistem dapat mendaftarkan responden sebagai partisipan survei dan menerbitkan token akses | Responden | Wajib |
 | F-04 | Sistem dapat menampilkan pilihan waktu makan sesuai konfigurasi survei beserta jam bawaan | Responden | Wajib |
 | F-05 | Sistem dapat mencari makanan dan minuman berdasarkan kata kunci minimal tiga karakter | Responden | Wajib |
@@ -941,12 +964,14 @@ erDiagram
 | `survey_submissions` | `id`, `survey_id`, `participant_id`, `meals_data` (JSON), `missing_foods` (JSON), `total_*` | Laporan *recall* final |
 | `ai_result_logs` | `id`, `submission_id` (**UNIQUE**), `input_payload`, `raw_response`, `overall_status`, `model_used`, `token_used`, `latency_ms` | Hasil analisis + jejak audit |
 | `categories` | `id`, `code`, `name`, `display_order` | Kategori makanan |
-| `foods` | `id`, `code`, `name`, `local_name`, `category_id` | Indeks **FULLTEXT** pada (`name`, `local_name`) |
+| `foods` | `id`, `code`, `name`, `local_name`, `category_id`, **`photo_type`** | Indeks **FULLTEXT** pada (`name`, `local_name`); `photo_type` ∈ {series, range} menentukan komponen visualisasi foto porsi |
 | `nutrient_types`, `nutrient_units`, `food_nutrients` | — | Nilai gizi per 100 g |
 | `food_portion_size_methods` | `food_id`, `method_type`, `config` (JSON) | `method_type` ∈ {as_served, guide_image, weight} |
-| `as_served_sets`, `as_served_images` | `set_id`, `weight_gram`, `image_url` | Aset foto porsi |
+| `as_served_sets`, `as_served_images` | `set_id`, `weight_gram`, `image_url`, `label` | Aset foto porsi; `label` berupa kode A–H untuk tipe *series* |
 | `food_images`, `food_areas` | poligon, status draft/published | CMS anotasi |
 | `locales` | `code`, `name` | Multi-bahasa (id, en) |
+
+**Catatan migrasi basis data.** Kolom `photo_type ENUM('series', 'range') DEFAULT 'series'` ditambahkan ke tabel `foods` melalui migrasi bernomor (`006_add_photo_type_to_foods.sql`) agar nilai lama secara otomatis dianggap bertipe `series` tanpa memerlukan pembaruan data secara massal. Pencarian pada *endpoint* publik dioptimalkan menggunakan `MATCH(name, local_name) AGAINST(? IN BOOLEAN MODE)` untuk memanfaatkan indeks `FULLTEXT` yang sudah ada, menggantikan operator `LIKE` yang tidak menggunakan indeks.
 
 **Justifikasi penggunaan kolom JSON.** Struktur satu laporan *recall* bersifat bersarang dan variatif: jumlah waktu makan, makanan, dan bahan tambahan berbeda tiap responden. Normalisasi penuh akan menghasilkan banyak tabel dengan *join* dalam untuk satu kali baca, padahal laporan **selalu dibaca sebagai satu kesatuan** dan tidak pernah dikueri per baris makanan. Total gizi tetap didenormalisasi ke kolom numerik agar agregasi lintas responden tetap murah. Konsekuensi metodologis yang menguntungkan: nilai gizi yang tersimpan merupakan *snapshot* pada saat pengisian, sehingga perubahan basis data makanan di kemudian hari tidak mengubah laporan historis.
 
@@ -1175,7 +1200,19 @@ flowchart LR
 
 `[⚠ LAMPIRKAN Gambar 4.11: tangkapan layar panel rekomendasi AI dalam keadaan belum dianalisis, memuat, berhasil, dan gagal]`
 
-### 4.1.4 Implementasi Modul Admin
+### 4.1.4 Implementasi Modul Katalog Publik (*Find Your Food*)
+
+Modul ini diimplementasikan sebagai seperangkat halaman Next.js yang dapat diakses tanpa autentikasi (`/find-food`, `/find-food/search`, `/find-food/[foodId]`, `/find-food/category/[code]`), memanfaatkan *endpoint* publik (`/public/*`) yang sudah ada di backend Go tanpa menambahkan tabel basis data baru.
+
+**Komponen utama:**
+- **`PortionPhotoViewer`** — komponen tunggal yang merender dua mode sesuai `photo_type`: mode *series* menampilkan *slider* horizontal dengan label A–H dan animasi transisi; mode *range* menampilkan *grid thumbnail*. Pada kedua mode, klik thumbnail mengubah tampilan utama (*main focus*) dengan berat porsi dan kode tampil langsung di bawah gambar.
+- **Pencarian *full-text*** — memanggil `GET /public/foods/search?q=` dengan *debounce* 300 ms; menggunakan `MATCH … AGAINST … IN BOOLEAN MODE` di sisi *repository* untuk memanfaatkan indeks `FULLTEXT` pada (`name`, `local_name`).
+- **Navigasi prev/next** — halaman detail menyediakan navigasi ke makanan sebelumnya dan berikutnya dalam kategori yang sama tanpa memuat ulang halaman penuh.
+- **Fitur Simpan (Bookmark)** — tersimpan di `localStorage` tanpa memerlukan login, sehingga pengguna anonim dapat menyimpan referensi porsi makanan.
+
+`[⚠ LAMPIRKAN Gambar 4.13–4.15: tangkapan layar halaman Find Your Food (landing), detail makanan mode series, detail makanan mode range]`
+
+### 4.1.5 Implementasi Modul Admin
 
 Portal admin mengimplementasikan F-27 sampai F-32 melalui enam kelompok rute: survei, makanan, kategori, set foto *as served*, metode porsi, dan anotasi.
 
@@ -1470,6 +1507,14 @@ Tiga mekanisme yang mendukung reproduktibilitas dan auditabilitas: keluaran berk
 
 `[⚠ ISI SETELAH SELURUH PENGUJIAN SELESAI: rangkum tingkat keberhasilan kotak-hitam, hasil kinerja terhadap target NF, skor SUS dan predikatnya, serta penilaian pakar]`
 
+### 4.7.5b Pembahasan Modul Katalog Publik
+
+Modul *Find Your Food* menjawab kebutuhan yang tidak terpenuhi oleh sistem sejenis: akses referensi porsi pangan tanpa registrasi. Desain pemisahan *endpoint* publik (`/public/*`) dari *endpoint* terotentikasi memungkinkan modul ini berjalan di atas data yang sama tanpa duplikasi pemeliharaan. Pemilihan `photo_type` sebagai atribut di tabel `foods` (bukan logika *hardcode* di antarmuka) berarti pengelola basis data dapat menentukan tampilan yang sesuai untuk setiap makanan tanpa penyebaran ulang aplikasi — prinsip yang sama dengan pemisahan *draft/published* pada CMS anotasi.
+
+Optimasi pencarian dari `LIKE` ke `MATCH … AGAINST IN BOOLEAN MODE` berdampak langsung pada responsivitas modul ini karena *endpoint* publik tidak memiliki caching query pada sisi server (berbeda dengan *endpoint* terautentikasi yang dapat memanfaatkan koneksi yang sudah terbangun). Indeks `FULLTEXT` yang sudah dirancang sejak awal pada `(name, local_name)` membuktikan nilai dari keputusan desain skema awal yang berorientasi ke depan.
+
+`[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK find-food bila kasus uji ditambahkan]`
+
 ### 4.7.6 Perbandingan dengan Sistem Terdahulu
 
 | Aspek | ASA24 | Intake24 | Atlas Food |
@@ -1478,10 +1523,12 @@ Tiga mekanisme yang mendukung reproduktibilitas dan auditabilitas: keluaran berk
 | Kontrol peran sesi | — | — | **Tiga lapis, *fail-closed*** |
 | Penyelarasan langkah *wizard* | — | — | **Ya** |
 | Umpan balik ke responden | Terbatas | Terbatas | **Rekomendasi LLM berkendala skema** |
+| Katalog porsi publik tanpa login | Tidak ada | Tidak ada | **Ada** (*Find Your Food*, tipe *series*/*range*) |
+| Tipe visualisasi foto porsi | Statis | Statis | **Dinamis** (`series` *slider*, `range` *grid*) |
 | Validasi terhadap standar emas | Ya | Ya (*doubly labelled water*) | **Belum** (di luar cakupan) |
 | Skala penggunaan | Nasional (AS) | Nasional (Britania Raya) | **Prototipe** |
 
-Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dimensi kolaborasi dan umpan balik, namun **belum tervalidasi secara gizi** dan belum diuji pada skala nasional seperti kedua sistem pembanding. Klaim penelitian ini terbatas pada ranah rekayasa perangkat lunak, bukan pada ranah validitas pengukuran asupan.
+Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dimensi kolaborasi, umpan balik, dan aksesibilitas publik, namun **belum tervalidasi secara gizi** dan belum diuji pada skala nasional seperti kedua sistem pembanding. Klaim penelitian ini terbatas pada ranah rekayasa perangkat lunak, bukan pada ranah validitas pengukuran asupan.
 
 ---
 ---
@@ -1513,7 +1560,9 @@ Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dime
 5. **Pengujian otomatis.** Belum terdapat berkas uji pada sisi antarmuka. Disarankan menambahkan uji unit untuk mesin keadaan `useRecallSession` dan perutean pesan kolaborasi, serta uji *end-to-end* berbasis Playwright agar cacat sejenis D-01 hingga D-08 terdeteksi otomatis.
 6. **Privasi data pada layanan LLM.** Laporan dikirim ke penyedia pihak ketiga. Disarankan menganonimkan nama responden sebelum pengiriman, atau mengevaluasi penggunaan model yang dijalankan secara lokal.
 7. **Pembersihan rute lama.** Terdapat rute *wizard* versi terdahulu yang tidak tertaut dari mana pun namun masih dapat dibuka langsung dan berperilaku berbeda; disarankan dihapus atau dialihkan.
-8. **Dukungan luring.** Penerapan *Progressive Web App* akan memungkinkan pengisian di wilayah dengan konektivitas buruk — kondisi yang lazim pada penelitian gizi lapangan.
+8. **Dukungan luring (*Progressive Web App*).** Rancangan arsitektur offline-first telah disiapkan (IndexedDB dengan Dexie.js, antrian sinkronisasi dengan *idempotency key*, Service Worker via Serwist, dan *endpoint* batch sync `POST /sync/batch`). Implementasi penuh akan memungkinkan pengisian recall di wilayah dengan konektivitas buruk — kondisi yang lazim pada penelitian gizi lapangan — dengan data terkirim otomatis saat koneksi kembali.
+9. **Perluasan tipe visualisasi porsi.** Tipe `guide` (satu foto dengan beberapa area overlay untuk makanan majemuk dalam satu piring) dapat diimplementasikan sebagai pelengkap tipe `series` dan `range` yang sudah ada, memanfaatkan infrastruktur CMS anotasi yang sudah tersedia.
+10. **Perluasan katalog publik.** Modul *Find Your Food* dapat diperkaya dengan fitur perbandingan porsi antar makanan dalam kategori, estimasi kalori interaktif berdasarkan pilihan porsi, dan integrasi dengan sumber data gizi nasional (TKPI/DKBM) secara langsung.
 
 ### 5.2.2 Saran Penelitian Lanjutan
 

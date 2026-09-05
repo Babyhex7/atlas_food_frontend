@@ -12,10 +12,14 @@ const STATIC_ASSETS = [
 // Install Event — Pre-cache critical static app shell
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn("[SW] Pre-cache partial warning:", err);
-      });
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of STATIC_ASSETS) {
+        try {
+          await cache.add(asset);
+        } catch (err) {
+          console.warn("[SW] Pre-cache partial warning for asset " + asset + ":", err);
+        }
+      }
     })
   );
   self.skipWaiting();
