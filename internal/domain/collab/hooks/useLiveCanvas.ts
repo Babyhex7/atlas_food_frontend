@@ -191,10 +191,17 @@ export function useLiveCanvas({ containerRef, send, targetImageId }: UseLiveCanv
     send("canvas_clear", { target_image_id: targetImageId });
   }, [canEdit, clearStrokes, targetImageId, send]);
 
-  // Cleanup timers saat unmount
+  // Cleanup timers saat unmount.
+  //
+  // Membaca ref.current DI DALAM cleanup memang disengaja di sini: yang harus
+  // dibatalkan adalah timer yang aktif pada saat unmount, bukan timer yang
+  // kebetulan terpasang saat effect ini dijalankan. Saran lint (menyalin
+  // ref.current ke variabel lokal) justru akan membatalkan id timer yang sudah
+  // basi dan membiarkan timer yang sebenarnya berjalan terus.
   useEffect(() => {
     return () => {
       if (batchIntervalRef.current) clearInterval(batchIntervalRef.current);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       if (laserFadeTimerRef.current) clearTimeout(laserFadeTimerRef.current);
     };
   }, []);

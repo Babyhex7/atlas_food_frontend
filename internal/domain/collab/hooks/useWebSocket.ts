@@ -92,8 +92,9 @@ export function useWebSocket(roomId: string | null) {
 
     if (!roomId) {
       intentionalClose.current = true;
-      wsRef.current?.close(1000, "no room");
+      const previous = wsRef.current;
       wsRef.current = null;
+      previous?.close(1000, "no room");
       store.setStatus("idle");
       store.setRoomId(null);
       return;
@@ -129,7 +130,19 @@ export function useWebSocket(roomId: string | null) {
 
       wsRef.current = ws;
 
+      /**
+       * Handler di bawah dipasang pada SATU socket tertentu. Saat effect
+       * dijalankan ulang (login selesai, token di-refresh, invite berubah),
+       * socket lama ditutup TAPI onclose-nya baru menyala beberapa saat
+       * kemudian — saat socket baru sudah terpasang. Tanpa penjaga ini,
+       * onclose milik socket lama menghapus wsRef.current milik socket baru
+       * (semua send() jadi no-op diam-diam) dan menimpa status jadi "closed"
+       * padahal koneksi barunya sehat.
+       */
+      const isCurrent = () => wsRef.current === ws;
+
       ws.onopen = () => {
+        if (!isCurrent()) return;
         reconnectAttempt.current = 0;
         store.setStatus("connected");
         store.setLastError(null);
@@ -143,6 +156,7 @@ export function useWebSocket(roomId: string | null) {
       };
 
       ws.onmessage = (event) => {
+        if (!isCurrent()) return;
         try {
           const msg = JSON.parse(String(event.data)) as CollabIncomingMessage;
           routeCollabMessage(msg);
@@ -152,10 +166,14 @@ export function useWebSocket(roomId: string | null) {
       };
 
       ws.onerror = () => {
+        if (!isCurrent()) return;
         store.setLastError("Koneksi kolaborasi bermasalah");
       };
 
       ws.onclose = (event) => {
+        // Socket ini sudah digantikan — jangan sentuh state milik socket aktif.
+        if (!isCurrent()) return;
+
         clearTimers();
         wsRef.current = null;
         if (intentionalClose.current || event.code === 1000) {
@@ -174,8 +192,11 @@ export function useWebSocket(roomId: string | null) {
     return () => {
       intentionalClose.current = true;
       clearTimers();
-      wsRef.current?.close(1000, "unmount");
+      const ws = wsRef.current;
+      // Lepas ref DULU: begitu wsRef.current bukan ws lagi, handler socket ini
+      // otomatis jadi no-op lewat isCurrent().
       wsRef.current = null;
+      ws?.close(1000, "unmount");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reconnect on room/token/invite
   }, [roomId, session?.access_token, session?.user?.id, inviteToken]);

@@ -4,7 +4,12 @@ import type { CreateSubmissionRequest } from "@/internal/domain/submission/types
 export interface OfflineQueueItem {
   id?: number;
   localId: string;
-  surveyAccessToken: string;
+  /**
+   * ID survei pemilik submission ini. Dulu bernama `surveyAccessToken`,
+   * padahal yang diisi pemanggil selalu `payload.survey_id` — namanya
+   * menyesatkan siapa pun yang membaca antrean ini.
+   */
+  surveyId: string;
   payload: CreateSubmissionRequest;
   createdAt: string;
   syncStatus: "PENDING" | "SYNCING" | "SYNCED" | "FAILED";
@@ -36,11 +41,31 @@ class AtlasFoodOfflineDatabase extends Dexie {
 
   constructor() {
     super("AtlasFoodOfflineDB");
+    // v1 memakai index bernama `surveyAccessToken`. v2 menggantinya dengan
+    // `surveyId`; Dexie memigrasikan data lama secara otomatis, isi baris
+    // tidak berubah — hanya nama field/indeksnya.
     this.version(1).stores({
       offlineQueue: "++id, &localId, surveyAccessToken, syncStatus, createdAt",
       cachedFoods: "&id, name, categoryCode",
       surveyDrafts: "&accessToken, updatedAt",
     });
+    this.version(2)
+      .stores({
+        offlineQueue: "++id, &localId, surveyId, syncStatus, createdAt",
+        cachedFoods: "&id, name, categoryCode",
+        surveyDrafts: "&accessToken, updatedAt",
+      })
+      .upgrade((tx) =>
+        tx
+          .table("offlineQueue")
+          .toCollection()
+          .modify((item: Record<string, unknown>) => {
+            if (item.surveyId === undefined && item.surveyAccessToken !== undefined) {
+              item.surveyId = item.surveyAccessToken;
+              delete item.surveyAccessToken;
+            }
+          })
+      );
   }
 }
 

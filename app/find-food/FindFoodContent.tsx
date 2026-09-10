@@ -50,12 +50,19 @@ function FindFoodBody() {
     enabled: canSearch,
   });
 
-  // Saat follow: mirror query leader ke search bar (awareness instan, ala Figma)
-  useEffect(() => {
-    if (!isFollowing || !remoteSearch?.query) return;
-    if (remoteSearch.userId !== followingUserId) return;
-    setSearchTerm(remoteSearch.query);
-  }, [isFollowing, followingUserId, remoteSearch]);
+  // Saat follow: mirror query leader ke search bar (awareness instan, ala Figma).
+  //
+  // Disesuaikan saat render (pola yang sama dengan blok ?q= di atas), bukan di
+  // dalam useEffect: dengan effect, search bar sempat merender nilai lama satu
+  // frame sebelum dikoreksi — terlihat sebagai kedipan saat mengikuti leader.
+  // Blok ini sengaja setelah blok ?q= supaya query leader menang selama follow.
+  const [prevRemoteSearch, setPrevRemoteSearch] = useState(remoteSearch);
+  if (remoteSearch !== prevRemoteSearch) {
+    setPrevRemoteSearch(remoteSearch);
+    if (isFollowing && remoteSearch?.query && remoteSearch.userId === followingUserId) {
+      setSearchTerm(remoteSearch.query);
+    }
+  }
 
   // Leader menulis ?q= ke URL + push viewport agar follower ikut (replaceState
   // tidak memicu useSearchParams Next.js, jadi broadcast eksplisit wajib).

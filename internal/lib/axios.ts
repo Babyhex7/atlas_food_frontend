@@ -1,16 +1,8 @@
-import axios from "axios";
-import {
-  clearAuthCookies,
-  getAccessToken,
-  getRefreshToken,
-  setAuthCookies,
-} from "@/internal/lib/cookies";
+import axios, { type AxiosRequestConfig } from "axios";
+import { getAccessToken } from "@/internal/lib/cookies";
+import { API_BASE_URL, redirectToLogin, refreshOnce } from "@/internal/lib/authRefresh";
 
-const BASE_URL =
-  process.env.API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "http://localhost:8080/api/v1";
+const BASE_URL = API_BASE_URL;
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -35,34 +27,37 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+type RetriableConfig = AxiosRequestConfig & { _retry?: boolean };
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as RetriableConfig | undefined;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Kegagalan /auth/refresh sendiri tidak boleh memicu refresh lagi.
+    const isRefreshCall = String(originalRequest?.url ?? "").includes("/auth/refresh");
+
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isRefreshCall
+    ) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = getRefreshToken();
-        if (!refreshToken) throw new Error("No refresh token");
-
-        const { data } = await axios.post(`${BASE_URL}/auth/refresh`, {
-          refresh_token: refreshToken,
-        });
-
-        const newAccessToken = data.data.access_token;
-        const newRefreshToken = data.data.refresh_token;
-        const expiresIn = data.data.expires_in ?? 86400;
-
-        setAuthCookies(newAccessToken, newRefreshToken, expiresIn);
-
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        // refreshOnce() dibagi dengan klien fetch di internal/pkg/api/apiClient.ts.
+        // Refresh token backend sekali pakai, jadi beberapa 401 berbarengan HARUS
+        // berbagi satu panggilan refresh — kalau tidak, yang kalah balapan
+        // membuang sesi user di tengah pengisian recall.
+        const newAccessToken = await refreshOnce();
+        originalRequest.headers = {
+          ...(originalRequest.headers ?? {}),
+          Authorization: `Bearer ${newAccessToken}`,
+        };
         return apiClient(originalRequest);
       } catch {
-        clearAuthCookies();
-        const redirect = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.href = `/login?redirect=${redirect}`;
+        redirectToLogin();
       }
     }
 

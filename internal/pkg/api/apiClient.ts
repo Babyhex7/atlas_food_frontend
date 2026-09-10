@@ -1,11 +1,8 @@
 import type { ApiResponse } from "../utils/response";
 import { getAccessToken } from "@/internal/lib/cookies";
+import { API_BASE_URL, redirectToLogin, refreshOnce } from "@/internal/lib/authRefresh";
 
-const API_BASE_URL =
-  process.env.API_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  "http://localhost:8080/api/v1";
+export { API_BASE_URL };
 
 export const API_ASSET_ORIGIN = API_BASE_URL.replace(/\/api\/v1\/?$/, "");
 
@@ -34,32 +31,76 @@ async function parseResponse<T>(response: Response, requestPath?: string): Promi
   return payload?.data as T;
 }
 
-export async function apiClient<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { token, headers, ...requestOptions } = options;
-  const authToken = token ?? getAccessToken();
+/**
+ * Jalankan request, dan kalau balasannya 401 coba sekali refresh token lalu ulangi.
+ *
+ * Klien ini dulu sama sekali tidak menangani 401, berbeda dengan klien axios di
+ * internal/lib/axios.ts. Akibatnya endpoint yang lewat sini gagal keras begitu
+ * access token kedaluwarsa, padahal refresh token-nya masih berlaku. Keduanya
+ * kini berbagi antrean refresh yang sama lewat refreshOnce().
+ *
+ * `explicitToken` yang dikirim pemanggil tidak pernah di-refresh: itu token
+ * milik pemanggil (mis. dari server component), bukan sesi browser.
+ */
+async function requestWithRefresh(
+  url: string,
+  init: RequestInit,
+  explicitToken: string | undefined,
+  path: string
+): Promise<Response> {
+  const authToken = explicitToken ?? getAccessToken();
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...requestOptions,
+  const withAuth = (token: string | null | undefined): RequestInit => ({
+    ...init,
     headers: {
-      "Content-Type": "application/json",
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      ...headers,
+      ...(init.headers ?? {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
+
+  const response = await fetch(url, withAuth(authToken));
+
+  const canRefresh =
+    response.status === 401 && !explicitToken && typeof window !== "undefined" && !path.includes("/auth/refresh");
+  if (!canRefresh) return response;
+
+  try {
+    const freshToken = await refreshOnce();
+    return await fetch(url, withAuth(freshToken));
+  } catch {
+    redirectToLogin();
+    return response;
+  }
+}
+
+export async function apiClient<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { token, headers, ...requestOptions } = options;
+
+  const response = await requestWithRefresh(
+    `${API_BASE_URL}${path}`,
+    {
+      ...requestOptions,
+      headers: {
+        "Content-Type": "application/json",
+        ...headers,
+      },
+    },
+    token,
+    path
+  );
 
   return parseResponse<T>(response, path);
 }
 
 export async function apiUpload<T>(path: string, formData: FormData, token?: string): Promise<T> {
-  const authToken = token ?? getAccessToken();
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    body: formData,
-    headers: {
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-    },
-  });
+  // Sengaja tanpa Content-Type: browser harus menyusunnya sendiri lengkap
+  // dengan boundary multipart.
+  const response = await requestWithRefresh(
+    `${API_BASE_URL}${path}`,
+    { method: "POST", body: formData },
+    token,
+    path
+  );
 
   return parseResponse<T>(response, path);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Activity, DoorOpen, Loader2, Share2, Users } from "lucide-react";
 import { PresenceAvatars } from "./PresenceAvatars";
@@ -9,6 +9,7 @@ import { useCollab } from "./CollabSession";
 import { useCollabStore } from "../store/collabStore";
 import { useLoginHref } from "../hooks/useLoginHref";
 import type { CollabConnectionStatus } from "../types/collab";
+import { useIsMounted } from "@/internal/hooks/useIsMounted";
 import { cn } from "@/internal/lib/cn";
 
 /**
@@ -22,10 +23,9 @@ import { cn } from "@/internal/lib/cn";
  * merender null dan header biasa tidak berubah.
  */
 export function CollabHeaderControls({ className }: { className?: string }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Kontrol ini bergantung pada state klien (cookie sesi + store kolaborasi),
+  // jadi tidak boleh dirender di server.
+  const mounted = useIsMounted();
 
   const loginHref = useLoginHref();
   const { roomId, status, enableCollab, leaveRoom, canStart, followUser, unfollow, isViewer } =

@@ -350,8 +350,9 @@ function RecallHistorySection() {
   const [detailData, setDetailData] = useState<SurveySubmission | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
+  // Tidak perlu setLoading(true) di sini: state awalnya memang true dan effect
+  // ini hanya jalan sekali saat mount.
   useEffect(() => {
-    setLoading(true);
     getMySubmissions(1, 50)
       .then((data) => {
         setSubmissions(data.submissions);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { ImagePlus, Pencil, Trash2, Upload } from "lucide-react";
 import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
@@ -141,7 +141,11 @@ export function FoodPhotosSection({ foodId, photoType }: FoodPhotosSectionProps)
         <ul className="list-none m-0 p-0 flex flex-col gap-3">
           {items.map((item) => (
             <PhotoCard
-              key={item.id}
+              // Key menyertakan updated_at supaya kartu di-mount ulang saat
+              // datanya berubah dari server. Ini menggantikan effect "reset
+              // state saat prop berubah" di dalam PhotoCard — cara React yang
+              // dianjurkan untuk mengulang state form dari nol.
+              key={`${item.id}:${item.updated_at ?? ""}`}
               photo={item}
               returnTo={returnTo}
               busy={
@@ -249,12 +253,6 @@ function PhotoCard({ photo, returnTo, busy, onSave, onDelete, onPublish, onUnpub
   const [cardError, setCardError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(photo.weight_gram <= 0);
-
-  useEffect(() => {
-    setLocalTitle(photo.title);
-    setLocalWeight(photo.weight_gram > 0 ? String(photo.weight_gram) : "");
-    if (photo.weight_gram > 0) setEditing(false);
-  }, [photo.id, photo.title, photo.weight_gram, photo.updated_at]);
 
   async function handleSave() {
     setCardError(null);
