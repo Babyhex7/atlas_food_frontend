@@ -5,6 +5,7 @@ import type { PortionPhoto } from "@/internal/types/food.types";
 import { getImageUrl, isGuideType } from "@/internal/lib/image";
 import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import { AnnotationHoverOverlay } from "@/internal/domain/annotation/components/AnnotationHoverOverlay";
+import { useCollab, LiveCanvasOverlay } from "@/internal/domain/collab";
 
 interface PortionPhotoViewerProps {
   photos: PortionPhoto[];
@@ -51,6 +52,7 @@ function GuidePhotoView({ photos }: { photos: PortionPhoto[] }) {
   // Foto guide: semua porsi ada dalam 1 gambar, image_url tiap label sama.
   // Tampilkan foto pertama sebagai hero, lalu tabel semua porsi di bawah.
   const guidePhoto = photos[0];
+  const { send } = useCollab();
 
   if (!guidePhoto) return null;
 
@@ -74,6 +76,10 @@ function GuidePhotoView({ photos }: { photos: PortionPhoto[] }) {
             className="w-full h-full object-contain animate-fade-in"
           />
           <AnnotationHoverOverlay foodImageId={guidePhoto.food_image_id} />
+          {/* Kanvas gambar bersama (toolbar "Live Annotation" milik CollabSession
+              hanyalah kontrol; tanpa elemen ini di sini, tidak ada permukaan yang
+              menangkap pointer sehingga menggambar tidak berpengaruh apa pun). */}
+          <LiveCanvasOverlay send={send} targetImageId={guidePhoto.id} />
 
           {/* Overlay semua label porsi */}
           <div className="absolute top-3 right-3 flex flex-wrap gap-1 justify-end max-w-[60%]">
@@ -143,6 +149,7 @@ function SeriesPhotoView({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeft, setShowLeft] = useState(false);
   const [showRight, setShowRight] = useState(false);
+  const { send } = useCollab();
 
   const checkArrows = useCallback(() => {
     const el = scrollRef.current;
@@ -193,6 +200,8 @@ function SeriesPhotoView({
             className="w-full h-full object-contain animate-fade-in"
           />
           <AnnotationHoverOverlay foodImageId={activePhoto?.food_image_id} />
+          {/* Kanvas gambar bersama — lihat catatan yang sama di GuidePhotoView. */}
+          <LiveCanvasOverlay send={send} targetImageId={activePhoto?.id} />
 
           {/* Navigasi panah kiri/kanan pada foto utama */}
           {activeIndex > 0 && (
