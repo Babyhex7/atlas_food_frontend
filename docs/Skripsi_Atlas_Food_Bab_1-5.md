@@ -12,6 +12,12 @@
 > **Wajib kamu isi sendiri:** hasil uji kotak-hitam (kolom "Hasil"), hasil UAT/SUS, hasil uji kinerja, tangkapan layar, dan identitas (nama, NIM, pembimbing, institusi).
 >
 > Perkiraan pekerjaan tersisa: 1 hari untuk menjalankan uji kotak-hitam, 1–2 minggu untuk UAT (≥ 20 responden), 1 hari untuk uji kinerja. Setelah itu dokumen ini siap jadi skripsi utuh.
+>
+> ### 💡 PROMPT UNTUK REVIEW & REVISI BAHASA (Gunakan di ChatGPT/Claude)
+> Jika kamu ingin memperbaiki tata bahasa dari draf ini agar lebih mengalir dan tidak kaku, *copy* prompt berikut dan *paste* per bab ke AI kesayanganmu:
+> 
+> *"Tolong bertindak sebagai akademisi dan editor profesional ahli. Saya akan memberikan draft skripsi/artikel ilmiah saya. Tugasmu adalah memeriksa dan merevisi teks ini dari awal sampai akhir dengan kriteria berikut: 1. Perbaiki tata bahasa agar sesuai PUEBI. Buat gaya bahasanya mengalir, enak dibaca, dan tidak kaku, namun tetap mempertahankan nada formal, objektif, dan akademis. 2. Pastikan transisi antar kalimat/paragraf mulus. 3. Evaluasi kedalaman materi, pastikan penjelasan bagan/tabel logis. Berikan versi revisinya dan poin-poin singkat kelemahan utamanya.*
+> *Ini draft materi saya: [PASTE TEKS BAB DI SINI]"*
 
 ---
 

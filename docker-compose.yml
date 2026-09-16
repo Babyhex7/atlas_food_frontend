@@ -1,0 +1,19 @@
+services:
+  # Next.js Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: atlas_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    networks:
+      - atlas-network
+
+networks:
+  atlas-network:
+    name: atlas-network
+    driver: bridge

@@ -1,0 +1,54 @@
+name: Frontend CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # ====================================================
+  # STAGE 1: CONTINUOUS INTEGRATION (CI)
+  # Automated Build & Docker Verification
+  # ====================================================
+  test-and-build:
+    name: 🧪 Run Build Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🐳 Test Build Docker Image
+        run: docker build -t atlas-food-frontend:test .
+
+  # ====================================================
+  # STAGE 2: CONTINUOUS DEPLOYMENT (CD)
+  # Auto Deploy to VPS Server via SSH
+  # ====================================================
+  deploy:
+    name: 🚀 Deploy to VPS Server
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔑 SSH to VPS and Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/atlas_food_frontend
+            git pull origin main
+            docker compose up -d --build
