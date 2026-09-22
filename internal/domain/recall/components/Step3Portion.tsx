@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   AlertCircle,
   ArrowRight,
@@ -40,6 +40,7 @@ interface Props {
   onFoodIndexChange: (index: number) => void;
   onContinue: () => void;
   onBack: () => void;
+  portionNextRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 /** Hasil fetch detail, disimpan bersama id makanan asalnya. */
@@ -72,6 +73,7 @@ export function Step3Portion({
   onFoodIndexChange,
   onContinue,
   onBack,
+  portionNextRef,
 }: Props) {
   const [fetched, setFetched] = useState<FetchedDetail | null>(null);
   const [selection, setSelection] = useState<PortionSelection | null>(null);
@@ -131,7 +133,7 @@ export function Step3Portion({
   const allPortioned = foods.every((f) => f.portion);
   const isLastFood = safeIndex >= foods.length - 1;
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     if (!currentFood || totalWeight <= 0) return;
     const usesCustom = customGram.trim() !== "";
     const portion: SelectedPortion = {
@@ -153,8 +155,36 @@ export function Step3Portion({
         image_label: portion.image_label,
       });
     }
-    if (!isLastFood) onFoodIndexChange(safeIndex + 1);
-  };
+  }, [currentFood, totalWeight, customGram, selectedPhoto, detail, onPortionSelected, isConnected, send]);
+
+  const handleNextStep3 = useCallback(() => {
+    if (canConfirm) {
+      handleConfirm();
+      const willBeAllPortioned = foods.every((f, i) => (i === safeIndex ? true : Boolean(f.portion)));
+      if (willBeAllPortioned) {
+        onContinue();
+      } else if (!isLastFood) {
+        onFoodIndexChange(safeIndex + 1);
+      }
+    } else if (currentFood?.portion) {
+      if (allPortioned) {
+        onContinue();
+      } else if (!isLastFood) {
+        onFoodIndexChange(safeIndex + 1);
+      }
+    } else if (allPortioned) {
+      onContinue();
+    }
+  }, [canConfirm, handleConfirm, foods, safeIndex, onContinue, isLastFood, onFoodIndexChange, currentFood, allPortioned]);
+
+  useEffect(() => {
+    if (portionNextRef) {
+      portionNextRef.current = handleNextStep3;
+    }
+    return () => {
+      if (portionNextRef) portionNextRef.current = null;
+    };
+  }, [portionNextRef, handleNextStep3]);
 
   if (!currentFood) {
     return (
@@ -342,20 +372,9 @@ export function Step3Portion({
         <Button variant="ghost" onClick={onBack}>
           Kembali
         </Button>
-        <div className="flex flex-wrap gap-3">
-          <Button variant="secondary" icon={Check} onClick={handleConfirm} disabled={!canConfirm}>
-            Simpan porsi ini
-          </Button>
-          <Button
-            icon={ArrowRight}
-            iconPosition="right"
-            onClick={onContinue}
-            disabled={!allPortioned}
-            title={allPortioned ? undefined : "Semua makanan harus punya porsi dulu"}
-          >
-            Lanjut
-          </Button>
-        </div>
+        <Button variant="secondary" icon={Check} onClick={handleConfirm} disabled={!canConfirm}>
+          Simpan porsi ini
+        </Button>
       </StepNav>
     </StepShell>
   );

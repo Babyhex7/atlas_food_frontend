@@ -486,19 +486,6 @@ export function Step2AddFood({
         <Button variant="ghost" onClick={onBack}>
           Kembali
         </Button>
-        <Button
-          icon={ArrowRight}
-          iconPosition="right"
-          onClick={onContinue}
-          disabled={!canContinue}
-          title={
-            canContinue
-              ? undefined
-              : "Tambahkan minimal satu makanan dari basis data untuk melanjutkan"
-          }
-        >
-          Lanjut
-        </Button>
       </StepNav>
     </StepShell>
   );

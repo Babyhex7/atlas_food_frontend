@@ -212,9 +212,6 @@ export function Step1SelectMeal({
         ) : (
           <span />
         )}
-        <Button icon={ArrowRight} iconPosition="right" onClick={onContinue} disabled={!canContinue}>
-          Lanjut
-        </Button>
       </StepNav>
     </StepShell>
   );

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Check, Info, Lightbulb } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Info, Lightbulb, Send } from "lucide-react";
 import { Step1SelectMeal } from "./Step1SelectMeal";
 import { Step2AddFood } from "./Step2AddFood";
 import { Step3Portion } from "./Step3Portion";
@@ -17,6 +17,7 @@ import {
   useCollab,
   useCollabStore,
 } from "@/internal/domain/collab";
+import { Button } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
 import type { RecallSession, RecallStep } from "../types/recall";
 
@@ -95,6 +96,9 @@ type WizardProps = {
 export function RecallWizard({ guest = false }: WizardProps) {
   const params = useParams();
   const router = useRouter();
+  const submitRef = useRef<(() => void) | null>(null);
+  const portionNextRef = useRef<(() => void) | null>(null);
+
   const accessToken = Array.isArray(params.accessToken)
     ? params.accessToken[0]
     : params.accessToken ?? "";
@@ -131,6 +135,33 @@ export function RecallWizard({ guest = false }: WizardProps) {
   const isDone = currentStep === "done";
   const isFinalStep = currentStep === "review";
   const tip = STEP_TIPS[currentStep];
+
+  let canContinueHeader = false;
+  if (currentStep === "select_meal") {
+    canContinueHeader = Boolean(session.current_meal.type);
+  } else if (currentStep === "add_food") {
+    canContinueHeader = foods.length > 0;
+  } else if (currentStep === "portion") {
+    canContinueHeader = foods.length > 0;
+  } else if (currentStep === "additional") {
+    canContinueHeader = true;
+  } else if (currentStep === "review") {
+    canContinueHeader =
+      session.meals.some((m) => m.foods.length > 0) &&
+      session.meals.every((m) =>
+        m.foods.every((f) => f.portion && f.portion.portion_gram > 0)
+      );
+  }
+
+  const handleHeaderNext = () => {
+    if (currentStep === "review") {
+      submitRef.current?.();
+    } else if (currentStep === "portion") {
+      portionNextRef.current?.();
+    } else {
+      nextStep();
+    }
+  };
 
   // ── Sinkronisasi langkah antar peserta ────────────────────────────────────
   // Seluruh wizard hidup di satu URL, jadi mirror berbasis path saja tidak cukup:
@@ -188,11 +219,23 @@ export function RecallWizard({ guest = false }: WizardProps) {
           </button>
         )}
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="hidden min-w-28 text-right text-xs font-semibold uppercase tracking-[0.08em] text-text-muted sm:inline">
               {isDone ? "Hasil" : `Langkah ${currentStepNumber} dari ${totalSteps}`}
             </span>
             <CollabHeaderControls />
+            {!isDone && (
+              <Button
+                size="sm"
+                icon={isFinalStep ? Send : ArrowRight}
+                iconPosition="right"
+                onClick={handleHeaderNext}
+                disabled={!canContinueHeader}
+                className="shrink-0"
+              >
+                {isFinalStep ? "Kirim" : "Lanjut"}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -343,6 +386,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
             <Step3Portion
               foods={foods}
               foodIndex={session.portion_food_index}
+              portionNextRef={portionNextRef}
               onPortionSelected={setPortion}
               onFoodIndexChange={setPortionFoodIndex}
               onContinue={nextStep}
@@ -362,6 +406,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
           {currentStep === "review" && (
             <Step5Review
               session={session}
+              submitRef={submitRef}
               onSubmitted={(submissionId) => {
                 setSubmissionId(submissionId);
                 goToStep("done");
