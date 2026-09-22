@@ -137,7 +137,7 @@ export default function AdminDashboardPage() {
           value={drafts.data?.total ?? 0}
           hint="Belum dipublikasikan ke responden"
           icon={FileWarning}
-          href="/admin/foods"
+          href="/admin/annotations"
           loading={drafts.isLoading}
         />
       </section>
