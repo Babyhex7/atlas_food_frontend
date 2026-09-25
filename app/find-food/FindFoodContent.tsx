@@ -1,90 +1,175 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+// [DIUBAH] Slicing ulang Find Food dan hasil pencarian.
+// Data tetap berasal dari endpoint publik backend yang sudah digunakan proyek.
+
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Search, ChevronRight, Loader2, UtensilsCrossed } from "lucide-react";
-import { searchFoodsPublic, getCategoriesPublic } from "@/internal/services/food.service";
+import {
+  ArrowRight,
+  ChevronDown,
+  Loader2,
+  Search,
+  SlidersHorizontal,
+  UtensilsCrossed,
+  X,
+} from "lucide-react";
+import {
+  searchFoodsPublic,
+  getCategoriesPublic,
+} from "@/internal/services/food.service";
 import { useDebounce } from "@/internal/hooks/use-debounce";
 import type { FoodSearchResult } from "@/internal/types/food.types";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
-import { CONTAINER_CLASS } from "@/internal/lib/layout";
-import { cn } from "@/internal/lib/cn";
 import {
   useCollab,
-  viewerLockProps,
   viewerLockLinkProps,
-  VIEWER_LOCK_CLASS,
+  viewerLockProps,
   VIEWER_LOCK_HINT,
   useCollabStore,
   withCollabParams,
 } from "@/internal/domain/collab";
+import styles from "./FindFoodContent.module.css";
+
+const MIN_SEARCH_LENGTH = 2;
+
+type PublicCategory = {
+  id: string;
+  code: string;
+  name: string;
+  icon?: string | null;
+};
+
+type PhotoFilter = "all" | "series" | "range";
+type FoodTypeFilter = "" | "food" | "drink";
 
 function FindFoodBody() {
   const searchParams = useSearchParams();
   const { send, isConnected, isViewer } = useCollab();
-  const followingUserId = useCollabStore((s) => s.followingUserId);
-  const remoteSearch = useCollabStore((s) => s.remoteSearch);
+  const followingUserId = useCollabStore((state) => state.followingUserId);
+  const remoteSearch = useCollabStore((state) => state.remoteSearch);
+
   const queryFromUrl = searchParams.get("q") ?? "";
-  const [searchTerm, setSearchTerm] = useState(queryFromUrl);
-  const [prevQuery, setPrevQuery] = useState(queryFromUrl);
-  if (queryFromUrl !== prevQuery) {
-    setPrevQuery(queryFromUrl);
-    setSearchTerm(queryFromUrl);
-  }
-  const debouncedSearch = useDebounce(searchTerm, 300);
-  const canSearch = debouncedSearch.trim().length >= 2;
   const roomParam = searchParams.get("room");
   const inviteParam = searchParams.get("invite");
   const isFollowing = Boolean(followingUserId);
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["public-categories"],
-    queryFn: getCategoriesPublic,
-  });
+  const remoteQuery =
+    isFollowing &&
+    remoteSearch?.query &&
+    remoteSearch.userId === followingUserId
+      ? remoteSearch.query
+      : null;
 
-  const { data: searchResults = [], isLoading: isSearching } = useQuery({
-    queryKey: ["public-search", debouncedSearch],
-    queryFn: () => searchFoodsPublic(debouncedSearch.trim()),
-    enabled: canSearch,
-  });
+  const sourceQuery = remoteQuery ?? queryFromUrl;
+  const [searchTerm, setSearchTerm] = useState(sourceQuery);
+  const [previousSourceQuery, setPreviousSourceQuery] =
+    useState(sourceQuery);
 
-  // Saat follow: mirror query leader ke search bar (awareness instan, ala Figma).
-  //
-  // Disesuaikan saat render (pola yang sama dengan blok ?q= di atas), bukan di
-  // dalam useEffect: dengan effect, search bar sempat merender nilai lama satu
-  // frame sebelum dikoreksi — terlihat sebagai kedipan saat mengikuti leader.
-  // Blok ini sengaja setelah blok ?q= supaya query leader menang selama follow.
-  const [prevRemoteSearch, setPrevRemoteSearch] = useState(remoteSearch);
-  if (remoteSearch !== prevRemoteSearch) {
-    setPrevRemoteSearch(remoteSearch);
-    if (isFollowing && remoteSearch?.query && remoteSearch.userId === followingUserId) {
-      setSearchTerm(remoteSearch.query);
-    }
+  // [DIUBAH] URL browser dan leader kolaborasi boleh menjadi sumber query.
+  if (sourceQuery !== previousSourceQuery) {
+    setPreviousSourceQuery(sourceQuery);
+    setSearchTerm(sourceQuery);
   }
 
-  // Leader menulis ?q= ke URL + push viewport agar follower ikut (replaceState
-  // tidak memicu useSearchParams Next.js, jadi broadcast eksplisit wajib).
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedPhotoType, setSelectedPhotoType] =
+    useState<PhotoFilter>("all");
+  const [selectedFoodType, setSelectedFoodType] =
+    useState<FoodTypeFilter>("");
+
+  const controlsLocked = isViewer || isFollowing;
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  const normalizedQuery = debouncedSearch.trim();
+  const canSearch = normalizedQuery.length >= MIN_SEARCH_LENGTH;
+
+  const {
+    data: categories = [],
+    isLoading: isCategoriesLoading,
+    isError: isCategoriesError,
+  } = useQuery<PublicCategory[]>({
+    queryKey: ["public-categories"],
+    queryFn: getCategoriesPublic,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const {
+    data: searchResults = [],
+    isFetching: isSearching,
+    isError: isSearchError,
+  } = useQuery<FoodSearchResult[]>({
+    queryKey: ["public-search", normalizedQuery, selectedFoodType],
+    queryFn: () =>
+      searchFoodsPublic(normalizedQuery, selectedFoodType, 100),
+    enabled: canSearch,
+    staleTime: 30 * 1000,
+  });
+
+  const filteredResults = useMemo(() => {
+    return searchResults.filter((food) => {
+      const categoryMatches =
+        selectedCategory === "all" ||
+        food.category?.code === selectedCategory;
+
+      const photoTypeMatches =
+        selectedPhotoType === "all" ||
+        food.photo_type === selectedPhotoType;
+
+      return categoryMatches && photoTypeMatches;
+    });
+  }, [searchResults, selectedCategory, selectedPhotoType]);
+
+  const hasActiveFilters =
+    selectedCategory !== "all" ||
+    selectedPhotoType !== "all" ||
+    selectedFoodType !== "";
+
+  const resetFilters = () => {
+    setSelectedCategory("all");
+    setSelectedPhotoType("all");
+    setSelectedFoodType("");
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    resetFilters();
+  };
+
+  // q tetap dapat dibagikan dan dipertahankan saat refresh/navigasi.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (isViewer || isFollowing) return;
+    if (typeof window === "undefined" || isViewer || isFollowing) return;
+
     const url = new URL(window.location.href);
-    const q = debouncedSearch.trim();
-    const current = url.searchParams.get("q") ?? "";
+    const currentQuery = url.searchParams.get("q") ?? "";
     let changed = false;
-    if (q.length >= 2) {
-      if (current !== q) {
-        url.searchParams.set("q", q);
-        changed = true;
-      }
-    } else if (url.searchParams.has("q")) {
+
+    if (
+      normalizedQuery.length >= MIN_SEARCH_LENGTH &&
+      currentQuery !== normalizedQuery
+    ) {
+      url.searchParams.set("q", normalizedQuery);
+      changed = true;
+    }
+
+    if (
+      normalizedQuery.length < MIN_SEARCH_LENGTH &&
+      url.searchParams.has("q")
+    ) {
       url.searchParams.delete("q");
       changed = true;
     }
+
     if (!changed) return;
-    const qs = url.searchParams.toString();
-    window.history.replaceState(null, "", `${url.pathname}${qs ? `?${qs}` : ""}`);
+
+    const queryString = url.searchParams.toString();
+    window.history.replaceState(
+      null,
+      "",
+      `${url.pathname}${queryString ? `?${queryString}` : ""}`
+    );
+
     if (isConnected) {
       send("viewport_update", {
         page: window.location.pathname,
@@ -93,196 +178,429 @@ function FindFoodBody() {
         scroll_y: window.scrollY,
       });
     }
-  }, [debouncedSearch, isViewer, isFollowing, isConnected, send]);
+  }, [normalizedQuery, isViewer, isFollowing, isConnected, send]);
 
   useEffect(() => {
-    // Viewer / follower tidak menyiarkan pencarian — layarnya mengikuti leader
     if (!isConnected || !canSearch || isViewer || isFollowing) return;
-    send("food_search", { query: debouncedSearch.trim(), filters: {} });
-  }, [debouncedSearch, canSearch, isConnected, isViewer, isFollowing, send]);
+
+    send("food_search", {
+      query: normalizedQuery,
+      filters: {},
+    });
+  }, [
+    normalizedQuery,
+    canSearch,
+    isConnected,
+    isViewer,
+    isFollowing,
+    send,
+  ]);
 
   return (
-    <>
-      {/* ── Hero banner ── */}
-      <div className="bg-primary text-white pt-10 pb-16 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.07] pointer-events-none bg-[radial-gradient(rgba(255,255,255,0.8)_1.5px,transparent_1.5px)] bg-[length:24px_24px]" />
+    <main className={styles.catalogPage}>
+      <section className={styles.heroSection} aria-labelledby="find-food-title">
+        <div className={styles.heroInner}>
+          <p className={styles.eyebrow}>Atlas Makananku</p>
 
-        <div className={cn(CONTAINER_CLASS, "relative z-[1] text-center")}>
-          <h1 className="text-[clamp(1.875rem,5vw,2.75rem)] font-bold font-sans text-white mb-3 mt-0 tracking-[-0.025em]">
-            Find Your Food
+          <h1 id="find-food-title">
+            Temukan Referensi Porsi Makanan
           </h1>
-          <p className="text-white/85 text-base mx-auto mb-8 max-w-[480px] leading-relaxed">
-            Temukan estimasi ukuran porsi dan kandungan gizi lengkap dari makanan Indonesia.
+
+          <p className={styles.heroDescription}>
+            Cari makanan berdasarkan nama atau kode untuk melihat referensi
+            visual porsi dan informasi gizinya.
           </p>
 
-          <div className="relative max-w-[600px] mx-auto">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
-              <Search size={18} className="text-text-muted" />
-            </div>
+          <div className={styles.searchPanel}>
+            <Search
+              size={22}
+              aria-hidden
+              className={styles.searchIcon}
+            />
+
             <input
-              type="text"
+              type="search"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(event) => setSearchTerm(event.target.value)}
               placeholder={
-                isViewer || isFollowing
+                controlsLocked
                   ? isFollowing
                     ? "Mengikuti pencarian rekan…"
                     : "Pencarian dikunci — mode Can view"
-                  : "Cari makanan (nama / kode, misal: Nasi, MP-01…)"
+                  : "Cari nama atau kode makanan, misal: nasi, MP-01"
               }
-              {...viewerLockProps(isViewer || isFollowing)}
-              className={cn(
-                "shadow-xl-focus-ring block w-full pl-12 pr-12 py-4 rounded-xl border-none bg-surface text-text-primary text-base outline-none shadow-xl transition-base font-sans box-border",
-                (isViewer || isFollowing) && "cursor-not-allowed opacity-60"
-              )}
+              {...viewerLockProps(controlsLocked)}
+              className={styles.searchInput}
+              aria-label="Cari makanan"
             />
-            {isSearching && (
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
-                <Loader2 size={18} className="animate-spin text-primary" />
-              </div>
-            )}
+
+            {isSearching ? (
+              <Loader2
+                size={20}
+                className={styles.searchLoader}
+                aria-label="Memuat hasil"
+              />
+            ) : normalizedQuery.length > 0 ? (
+              <button
+                type="button"
+                className={styles.clearSearchButton}
+                onClick={clearSearch}
+                disabled={controlsLocked}
+                aria-label="Hapus pencarian"
+              >
+                <X size={18} aria-hidden />
+              </button>
+            ) : null}
           </div>
+
+          <p className={styles.searchHint}>
+            Ketik minimal {MIN_SEARCH_LENGTH} karakter untuk menampilkan hasil
+            pencarian.
+          </p>
         </div>
-      </div>
+      </section>
 
-      <div className={cn(CONTAINER_CLASS, "-mt-8 relative z-10 pb-16 flex-1")}>
-        {isViewer && (
-          <div className="card mb-4 border-warning-border bg-warning-light p-4 text-sm text-warning">
-            {VIEWER_LOCK_HINT}
-          </div>
-        )}
+      <section className={styles.contentSection} aria-live="polite">
+        <div className={styles.contentInner}>
+          {isViewer ? (
+            <p className={styles.viewerNotice}>{VIEWER_LOCK_HINT}</p>
+          ) : null}
 
-        {debouncedSearch.trim().length > 0 && debouncedSearch.trim().length < 2 && (
-          <div className="card p-6 text-center text-text-muted text-sm">
-            Ketik minimal 2 karakter untuk mencari…
-          </div>
-        )}
+          {normalizedQuery.length > 0 && !canSearch ? (
+            <section className={styles.noticeCard}>
+              <Search size={22} aria-hidden />
+              <div>
+                <h2>Masukkan kata kunci yang lebih lengkap</h2>
+                <p>
+                  Ketik minimal {MIN_SEARCH_LENGTH} karakter untuk mencari
+                  makanan.
+                </p>
+              </div>
+            </section>
+          ) : null}
 
-        {debouncedSearch.trim().length === 0 && (
-          <div className="card animate-fade-in p-6">
-            <h2 className="text-lg font-semibold text-text-primary mb-5 mt-0 flex items-center gap-2">
-              <UtensilsCrossed size={20} className="text-primary" />
-              Kategori Makanan
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {categories.map((cat: { id: string; code: string; name: string; icon?: string }) => (
-                <Link
-                  key={cat.id}
-                  href={withCollabParams(`/find-food/category/${cat.code}`, {
-                    room: roomParam,
-                    invite: inviteParam,
-                  })}
-                  {...viewerLockLinkProps(isViewer)}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-4 rounded-xl border-[1.5px] border-border no-underline text-center transition-base bg-surface hover:border-primary-border hover:bg-primary-light hover:-translate-y-0.5 hover:shadow-sm",
-                    isViewer && VIEWER_LOCK_CLASS
-                  )}
-                >
-                  <span className="text-[2rem] leading-none">
-                    {cat.icon ? (
-                      <span>{cat.icon}</span>
-                    ) : (
-                      <UtensilsCrossed size={30} className="text-primary" />
-                    )}
-                  </span>
-                  <span className="text-sm font-medium text-text-primary">{cat.name}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {canSearch && (
-          <div className="card animate-fade-in p-6">
-            <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
-              <h2 className="text-lg font-semibold text-text-primary m-0">
-                Hasil: &ldquo;{debouncedSearch}&rdquo;
-              </h2>
-              <span className="badge badge-default">{searchResults.length} hasil</span>
-            </div>
-
-            {searchResults.length === 0 && !isSearching && (
-              <div className="text-center py-12 px-4">
-                <div className="flex justify-center mb-4">
-                  <Search size={48} className="text-text-muted" />
+          {normalizedQuery.length === 0 ? (
+            <section
+              className={styles.categoriesSection}
+              aria-labelledby="food-categories-title"
+            >
+              <div className={styles.sectionHeading}>
+                <div>
+                  <p className={styles.sectionEyebrow}>Jelajahi katalog</p>
+                  <h2 id="food-categories-title">Kategori Makanan</h2>
                 </div>
-                <h3 className="text-base font-semibold text-text-primary mb-2 mt-0">
-                  Makanan tidak ditemukan
-                </h3>
-                <p className="text-sm text-text-muted m-0">Coba gunakan kata kunci lain.</p>
-              </div>
-            )}
 
-            {searchResults.length > 0 && (
-              <div className="grid md:grid-cols-2 gap-3">
-                {searchResults.map((food: FoodSearchResult) => (
-                  <Link
-                    key={food.id}
-                    href={withCollabParams(`/find-food/${food.id}`, {
-                      room: roomParam,
-                      invite: inviteParam,
-                    })}
-                    {...viewerLockLinkProps(isViewer)}
-                    onClick={(e) => {
-                      if (isViewer) {
-                        e.preventDefault();
-                        return;
-                      }
-                      if (isConnected && !isFollowing) {
-                        send("food_select", {
-                          food_id: food.id,
-                          food_name: food.name,
-                        });
-                      }
-                    }}
-                    className={cn(
-                      "flex items-center gap-4 p-4 rounded-xl border-[1.5px] border-border no-underline bg-surface transition-base hover:border-primary-border hover:shadow-md hover:-translate-y-px",
-                      isViewer && VIEWER_LOCK_CLASS
-                    )}
-                  >
-                    <div className="w-12 h-12 rounded-lg bg-primary-light flex items-center justify-center shrink-0">
-                      {food.category?.icon ? (
-                        <span className="text-xl">{food.category.icon}</span>
-                      ) : (
-                        <UtensilsCrossed size={20} className="text-primary" />
+                <p>
+                  Pilih kategori untuk melihat daftar makanan dan referensi
+                  porsinya.
+                </p>
+              </div>
+
+              {isCategoriesLoading ? (
+                <div
+                  className={styles.categoryGrid}
+                  aria-label="Memuat kategori"
+                >
+                  {Array.from({ length: 12 }, (_, index) => (
+                    <span key={index} className={styles.categorySkeleton} />
+                  ))}
+                </div>
+              ) : isCategoriesError ? (
+                <section className={styles.noticeCard}>
+                  <UtensilsCrossed size={22} aria-hidden />
+                  <div>
+                    <h2>Kategori belum dapat dimuat</h2>
+                    <p>
+                      Periksa koneksi backend lalu coba muat ulang halaman ini.
+                    </p>
+                  </div>
+                </section>
+              ) : (
+                <div className={styles.categoryGrid}>
+                  {categories.map((category) => (
+                    <Link
+                      key={category.id}
+                      href={withCollabParams(
+                        `/find-food/category/${category.code}`,
+                        {
+                          room: roomParam,
+                          invite: inviteParam,
+                        }
                       )}
-                    </div>
+                      {...viewerLockLinkProps(isViewer)}
+                      className={`${styles.categoryCard} ${
+                        isViewer ? styles.lockedLink : ""
+                      }`}
+                    >
+                      <span className={styles.categoryCode}>
+                        {category.code}
+                      </span>
 
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-text-primary mb-1 mt-0 overflow-hidden text-ellipsis whitespace-nowrap">
-                        {food.name}
-                      </h3>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-mono font-semibold bg-surface-alt text-text-muted py-[1px] px-2 rounded-sm border border-border">
-                          {food.code}
-                        </span>
-                        {food.category?.name && (
-                          <span className="badge badge-default">{food.category.name}</span>
-                        )}
-                        {food.photo_type && (
-                          <span className="text-xs text-primary">
-                            · {food.photo_type === "series" ? "Foto Series" : "Foto Range"}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                      <span className={styles.categoryName}>
+                        {category.name}
+                      </span>
 
-                    <ChevronRight size={18} className="text-text-muted shrink-0" />
-                  </Link>
-                ))}
+                      <ArrowRight
+                        size={17}
+                        aria-hidden
+                        className={styles.categoryArrow}
+                      />
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </section>
+          ) : null}
+
+          {canSearch ? (
+            <section
+              className={styles.resultsSection}
+              aria-labelledby="search-results-title"
+            >
+              <div className={styles.resultsTopbar}>
+                <div>
+                  <p className={styles.sectionEyebrow}>Hasil pencarian</p>
+
+                  <h2 id="search-results-title">
+                    {isSearching
+                      ? "Mencari makanan…"
+                      : `Hasil untuk “${normalizedQuery}”`}
+                  </h2>
+                </div>
+
+                {!isSearching ? (
+                  <span className={styles.resultsCount}>
+                    {filteredResults.length} hasil
+                  </span>
+                ) : null}
               </div>
-            )}
-          </div>
-        )}
-      </div>
-    </>
+
+              <div className={styles.filterPanel}>
+                <div className={styles.filterTitle}>
+                  <SlidersHorizontal size={17} aria-hidden />
+                  <span>Filter hasil</span>
+                </div>
+
+                <label className={styles.selectField}>
+                  <span>Jenis data</span>
+
+                  <span className={styles.selectWrap}>
+                    <select
+                      value={selectedFoodType}
+                      onChange={(event) =>
+                        setSelectedFoodType(
+                          event.target.value as FoodTypeFilter
+                        )
+                      }
+                      disabled={controlsLocked}
+                    >
+                      <option value="">Semua data</option>
+                      <option value="food">Makanan</option>
+                      <option value="drink">Minuman</option>
+                    </select>
+
+                    <ChevronDown size={15} aria-hidden />
+                  </span>
+                </label>
+
+                <label className={styles.selectField}>
+                  <span>Kategori</span>
+
+                  <span className={styles.selectWrap}>
+                    <select
+                      value={selectedCategory}
+                      onChange={(event) =>
+                        setSelectedCategory(event.target.value)
+                      }
+                      disabled={controlsLocked}
+                    >
+                      <option value="all">Semua kategori</option>
+
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.code}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <ChevronDown size={15} aria-hidden />
+                  </span>
+                </label>
+
+                <label className={styles.selectField}>
+                  <span>Referensi visual</span>
+
+                  <span className={styles.selectWrap}>
+                    <select
+                      value={selectedPhotoType}
+                      onChange={(event) =>
+                        setSelectedPhotoType(
+                          event.target.value as PhotoFilter
+                        )
+                      }
+                      disabled={controlsLocked}
+                    >
+                      <option value="all">Semua tipe</option>
+                      <option value="series">Series</option>
+                      <option value="range">Range / Guide</option>
+                    </select>
+
+                    <ChevronDown size={15} aria-hidden />
+                  </span>
+                </label>
+
+                {hasActiveFilters ? (
+                  <button
+                    type="button"
+                    className={styles.resetFiltersButton}
+                    onClick={resetFilters}
+                    disabled={controlsLocked}
+                  >
+                    Reset filter
+                  </button>
+                ) : null}
+              </div>
+
+              {isSearchError ? (
+                <section className={styles.noticeCard}>
+                  <Search size={22} aria-hidden />
+                  <div>
+                    <h2>Hasil pencarian belum dapat dimuat</h2>
+                    <p>
+                      Pastikan backend Atlas Food aktif, lalu coba ulangi
+                      pencarian.
+                    </p>
+                  </div>
+                </section>
+              ) : null}
+
+              {!isSearchError &&
+              !isSearching &&
+              filteredResults.length === 0 ? (
+                <section className={styles.emptyState}>
+                  <span className={styles.emptyIcon}>
+                    <Search size={28} aria-hidden />
+                  </span>
+
+                  <h3>
+                    {searchResults.length === 0
+                      ? "Makanan tidak ditemukan"
+                      : "Tidak ada hasil yang sesuai dengan filter"}
+                  </h3>
+
+                  <p>
+                    {searchResults.length === 0
+                      ? "Coba gunakan nama lain, nama lokal, atau kode makanan."
+                      : "Ubah atau reset filter untuk melihat hasil lainnya."}
+                  </p>
+
+                  {hasActiveFilters ? (
+                    <button
+                      type="button"
+                      className={styles.emptyAction}
+                      onClick={resetFilters}
+                      disabled={controlsLocked}
+                    >
+                      Tampilkan semua hasil
+                    </button>
+                  ) : null}
+                </section>
+              ) : null}
+
+              {!isSearchError &&
+              (isSearching || filteredResults.length > 0) ? (
+                <div className={styles.foodGrid}>
+                  {isSearching && searchResults.length === 0
+                    ? Array.from({ length: 8 }, (_, index) => (
+                        <span key={index} className={styles.foodSkeleton} />
+                      ))
+                    : filteredResults.map((food) => {
+                        const foodHref = withCollabParams(
+                          `/find-food/${food.id}`,
+                          {
+                            room: roomParam,
+                            invite: inviteParam,
+                          },
+                          {
+                            q: normalizedQuery,
+                          }
+                        );
+
+                        return (
+                          <Link
+                            key={food.id}
+                            href={foodHref}
+                            {...viewerLockLinkProps(isViewer)}
+                            onClick={(event) => {
+                              if (isViewer) {
+                                event.preventDefault();
+                                return;
+                              }
+
+                              if (isConnected && !isFollowing) {
+                                send("food_select", {
+                                  food_id: food.id,
+                                  food_name: food.name,
+                                });
+                              }
+                            }}
+                            className={`${styles.foodCard} ${
+                              isViewer ? styles.lockedLink : ""
+                            }`}
+                          >
+                            <div className={styles.foodVisual} aria-hidden>
+                              <UtensilsCrossed size={27} />
+                              <span>{food.code}</span>
+                            </div>
+
+                            <div className={styles.foodInfo}>
+                              <div className={styles.foodMeta}>
+                                <span className={styles.foodCode}>
+                                  {food.code}
+                                </span>
+
+                                <span
+                                  className={`${styles.photoBadge} ${
+                                    food.photo_type === "series"
+                                      ? styles.seriesBadge
+                                      : styles.rangeBadge
+                                  }`}
+                                >
+                                  {food.photo_type === "series"
+                                    ? "Series"
+                                    : "Range / Guide"}
+                                </span>
+                              </div>
+
+                              <h3>{food.name}</h3>
+
+                              {food.local_name ? (
+                                <p>{food.local_name}</p>
+                              ) : null}
+
+                              <span className={styles.foodCategory}>
+                                {food.category?.name ?? "Tanpa kategori"}
+                                <ArrowRight size={15} aria-hidden />
+                              </span>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+        </div>
+      </section>
+    </main>
   );
 }
 
 export function FindFoodContent() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className={styles.pageShell}>
       <AppHeader />
+
       <Suspense fallback={null}>
         <FindFoodBody />
       </Suspense>
