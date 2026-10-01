@@ -130,7 +130,7 @@ export function CategoryForm() {
   }
 
   return (
-    <div className="p-6 px-8">
+    <div className="p-6">
       <div className="max-w-[640px]">
         <PageHeader
           title={isEdit ? "Ubah Kategori" : "Tambah Kategori"}

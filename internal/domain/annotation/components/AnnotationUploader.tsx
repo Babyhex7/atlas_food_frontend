@@ -105,12 +105,12 @@ export function AnnotationUploader() {
   }
 
   return (
-    <div className="p-6 px-8">
+    <div className="p-6">
       <div className="flex items-center gap-3 mb-6">
         <Link href={returnTo} className="btn btn-ghost btn-sm btn-icon" title="Kembali">
           <ArrowLeft size={16} />
         </Link>
-        <h1 className="text-2xl font-bold text-text-primary m-0">Gambar anotasi baru</h1>
+        <h1 className="text-[22px] font-semibold text-text-primary m-0 tracking-tight">Gambar anotasi baru</h1>
       </div>
 
       {!foodId && (

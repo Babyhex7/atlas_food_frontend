@@ -128,7 +128,7 @@ export function FoodForm() {
 
   return (
     <div className="pb-24">
-      <div className="p-6 px-8">
+      <div className="p-6">
         <div className={isEdit ? "max-w-220" : "max-w-160"}>
           <PageHeader
             title={isEdit ? "Edit Makanan" : "Tambah Makanan"}

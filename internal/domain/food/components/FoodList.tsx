@@ -76,7 +76,7 @@ export function FoodList() {
   const hasFilter = Boolean(debouncedSearch || category || photoType || isActive);
 
   return (
-    <div className="p-6 px-8">
+    <div className="p-6">
       <PageHeader
         title="Makanan"
         description={isLoading ? "Memuat…" : `${total} makanan di database`}

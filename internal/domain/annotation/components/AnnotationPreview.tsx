@@ -25,7 +25,7 @@ export function AnnotationPreview({ id }: AnnotationPreviewProps) {
 
   if (error || !image) {
     return (
-      <div className="p-6 px-8">
+      <div className="p-6">
         <div className="alert alert-danger">
           <span className="text-sm">
             {error instanceof Error ? error.message : "Gambar anotasi tidak ditemukan"}

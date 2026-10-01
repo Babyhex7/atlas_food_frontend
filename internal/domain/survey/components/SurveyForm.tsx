@@ -128,7 +128,7 @@ export function SurveyForm() {
   }
 
   return (
-    <div className="p-6 px-8">
+    <div className="p-6">
       <div className="max-w-[640px]">
         {/* Jalur naik ada di breadcrumb top bar — form ini cukup memakai
             "Batal" untuk keluar tanpa menyimpan. */}

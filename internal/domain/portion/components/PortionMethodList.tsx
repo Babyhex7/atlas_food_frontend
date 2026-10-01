@@ -37,9 +37,9 @@ export function PortionMethodList() {
   const list = methods ?? [];
 
   return (
-    <div className="p-6 px-8">
+    <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-text-primary mb-1">Metode Porsi</h1>
+        <h1 className="text-[22px] font-semibold text-text-primary mb-1 tracking-tight">Metode Porsi</h1>
         <p className="text-sm text-text-muted m-0">
           Cara responden memperkirakan porsi untuk setiap makanan
         </p>
