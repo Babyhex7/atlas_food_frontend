@@ -77,7 +77,7 @@ function StatusBadge({ status }: { status: string }) {
         STATUS_STYLE[status] ?? "bg-surface-alt text-text-muted border-border"
       )}
     >
-      {ANNOTATION_STATUS_LABEL[status] ?? status}
+      {ANNOTATION_STATUS_LABEL[status as keyof typeof ANNOTATION_STATUS_LABEL] ?? status}
     </span>
   );
 }

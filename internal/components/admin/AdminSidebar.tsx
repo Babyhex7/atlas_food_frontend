@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
 import {
   ClipboardList,
   FolderOpen,
@@ -14,7 +15,19 @@ import { useAuth } from "@/internal/domain/auth/hooks/useAuth";
 import { useLogout } from "@/internal/domain/auth/hooks/useLogout";
 import { cn } from "@/internal/lib/cn";
 
-const NAV_GROUPS = [
+export type AdminNavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  exact?: boolean;
+};
+
+export type AdminNavGroup = {
+  label: string;
+  items: AdminNavItem[];
+};
+
+const NAV_GROUPS: AdminNavGroup[] = [
   {
     label: "Main",
     items: [
@@ -30,10 +43,10 @@ const NAV_GROUPS = [
       { href: "/admin/annotations", label: "Anotasi", icon: ImageIcon },
     ],
   },
-] as const;
+];
 
 // Still export ADMIN_NAV for any consumers that flatten nav items
-export const ADMIN_NAV = NAV_GROUPS.flatMap((g) => g.items);
+export const ADMIN_NAV: AdminNavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
 export function AdminSidebar() {
   const pathname = usePathname();
