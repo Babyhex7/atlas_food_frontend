@@ -5,6 +5,7 @@ export { AnnotationUploader } from "./components/AnnotationUploader";
 export { AnnotationEditor } from "./components/AnnotationEditor";
 export { AnnotationPreview } from "./components/AnnotationPreview";
 export { AnnotatedFoodViewer } from "./components/AnnotatedFoodViewer";
+export { FoodAnnotationSection } from "./components/FoodAnnotationSection";
 
 export {
   useAnnotationList,

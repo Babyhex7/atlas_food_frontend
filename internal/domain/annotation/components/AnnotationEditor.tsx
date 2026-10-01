@@ -39,6 +39,7 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
   const reset = useAnnotationEditorStore((s) => s.reset);
   const renameArea = useAnnotationEditorStore((s) => s.renameArea);
   const setAreaFood = useAnnotationEditorStore((s) => s.setAreaFood);
+  const setAreaWeight = useAnnotationEditorStore((s) => s.setAreaWeight);
   const canUndo = useAnnotationEditorStore((s) => s.past.length > 0);
   const canRedo = useAnnotationEditorStore((s) => s.future.length > 0);
 
@@ -97,6 +98,7 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
         food_id: area.foodId,
         polygon: area.polygon,
         z_index: area.zIndex,
+        weight_gram: area.weightGram,
       })),
     };
 
@@ -237,6 +239,7 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
             onSelect={editor.selectArea}
             onRename={renameArea}
             onLinkFood={setAreaFood}
+            onWeightChange={setAreaWeight}
             onDelete={editor.deleteArea}
           />
         </div>

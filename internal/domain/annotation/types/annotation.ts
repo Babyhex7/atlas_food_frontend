@@ -18,6 +18,7 @@ export type FoodArea = {
   food_id: string | null;
   polygon: Point[];
   z_index: number;
+  weight_gram?: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -86,6 +87,7 @@ export type AreaInput = {
   food_id?: string | null;
   polygon: Point[];
   z_index: number;
+  weight_gram?: number | null;
 };
 
 export type ReplaceAreasRequest = {
@@ -115,6 +117,7 @@ export type DraftArea = {
   foodId: string | null;
   polygon: Point[];
   zIndex: number;
+  weightGram?: number | null;
 };
 
 export type EditorMode = "draw" | "edit";

@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { searchFoodsPublic } from "@/internal/domain/food/services/foodService";
+import { getFoodDetailPublic } from "@/internal/services/food.service";
 import type { SearchFoodResult } from "@/internal/domain/food/types/food";
 
 type AreaFoodPickerProps = {
   value: string | null;
-  onChange: (foodId: string | null) => void;
+  onChange: (foodId: string | null, foodName?: string) => void;
 };
 
 /**
@@ -20,6 +21,21 @@ export function AreaFoodPicker({ value, onChange }: AreaFoodPickerProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchFoodResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedName, setSelectedName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (value && !selectedName) {
+      let active = true;
+      getFoodDetailPublic(value)
+        .then((food) => {
+          if (active && food?.name) setSelectedName(food.name);
+        })
+        .catch(() => undefined);
+      return () => {
+        active = false;
+      };
+    }
+  }, [value, selectedName]);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -68,12 +84,15 @@ export function AreaFoodPicker({ value, onChange }: AreaFoodPickerProps) {
   if (value) {
     return (
       <div className="flex items-center justify-between gap-2 rounded-sm border border-border bg-surface-alt px-2 py-1.5">
-        <span className="text-xs font-mono truncate text-text-muted" title={value}>
-          {value}
+        <span className="text-xs truncate text-text-primary font-medium" title={selectedName || value}>
+          {selectedName ? `🍽️ ${selectedName}` : value}
         </span>
         <button
           type="button"
-          onClick={() => onChange(null)}
+          onClick={() => {
+            setSelectedName(null);
+            onChange(null);
+          }}
           className="btn btn-ghost btn-xs btn-icon shrink-0"
           title="Lepas tautan food"
         >
@@ -102,7 +121,8 @@ export function AreaFoodPicker({ value, onChange }: AreaFoodPickerProps) {
               <button
                 type="button"
                 onClick={() => {
-                  onChange(food.id);
+                  setSelectedName(food.name);
+                  onChange(food.id, food.name);
                   setQuery("");
                   setResults([]);
                 }}

@@ -62,6 +62,7 @@ export type AnnotationEditorState = {
 
   renameArea: (localId: string, name: string) => void;
   setAreaFood: (localId: string, foodId: string | null) => void;
+  setAreaWeight: (localId: string, weightGram: number | null) => void;
   deleteArea: (localId: string) => void;
 
   undo: () => void;
@@ -110,6 +111,7 @@ export const useAnnotationEditorStore = create<AnnotationEditorState>((set, get)
         imageId: image.id,
         width: image.width,
         height: image.height,
+        mode: (image.areas && image.areas.length > 0) ? "edit" : "draw",
         areas: (image.areas ?? []).map((area) => ({
           localId: area.id,
           serverId: area.id,
@@ -117,6 +119,7 @@ export const useAnnotationEditorStore = create<AnnotationEditorState>((set, get)
           foodId: area.food_id,
           polygon: area.polygon ?? [],
           zIndex: area.z_index,
+          weightGram: area.weight_gram ?? null,
         })),
       }),
 
@@ -148,6 +151,7 @@ export const useAnnotationEditorStore = create<AnnotationEditorState>((set, get)
         foodId: null,
         polygon: drawingPolygon,
         zIndex: areas.length,
+        weightGram: null,
       };
 
       commit((current) => [...current, area]);
@@ -210,6 +214,11 @@ export const useAnnotationEditorStore = create<AnnotationEditorState>((set, get)
         areas.map((area) => (area.localId === localId ? { ...area, foodId } : area))
       ),
 
+    setAreaWeight: (localId, weightGram) =>
+      commit((areas) =>
+        areas.map((area) => (area.localId === localId ? { ...area, weightGram } : area))
+      ),
+
     deleteArea: (localId) => {
       commit((areas) =>
         areas
@@ -254,6 +263,7 @@ export const useAnnotationEditorStore = create<AnnotationEditorState>((set, get)
         food_id: area.foodId,
         polygon: area.polygon,
         z_index: area.zIndex,
+        weight_gram: area.weightGram ?? null,
       })),
   };
 });

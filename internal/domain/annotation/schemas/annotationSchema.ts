@@ -18,6 +18,7 @@ export const areaSchema = z.object({
   name: z.string().trim().min(1, "Nama area wajib diisi").max(255, "Nama area maksimal 255 karakter"),
   foodId: z.string().nullable(),
   polygon: polygonSchema,
+  weightGram: z.number().nullable().optional(),
 });
 
 export const createAnnotationSchema = z.object({

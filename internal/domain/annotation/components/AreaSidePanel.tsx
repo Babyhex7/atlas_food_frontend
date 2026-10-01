@@ -11,17 +11,19 @@ type AreaSidePanelProps = {
   selectedLocalId: string | null;
   onSelect: (localId: string) => void;
   onRename: (localId: string, name: string) => void;
-  onLinkFood: (localId: string, foodId: string | null) => void;
+  onLinkFood: (localId: string, foodId: string | null, foodName?: string) => void;
+  onWeightChange: (localId: string, weight: number | null) => void;
   onDelete: (localId: string) => void;
 };
 
-/** Daftar area: nama, tautan food master, dan hapus (brief §8.1) */
+/** Daftar area: nama, tautan food master, berat gram, dan hapus (brief §8.1) */
 export function AreaSidePanel({
   areas,
   selectedLocalId,
   onSelect,
   onRename,
   onLinkFood,
+  onWeightChange,
   onDelete,
 }: AreaSidePanelProps) {
   if (areas.length === 0) {
@@ -83,8 +85,38 @@ export function AreaSidePanel({
             <div onClick={(event) => event.stopPropagation()}>
               <AreaFoodPicker
                 value={area.foodId}
-                onChange={(foodId) => onLinkFood(area.localId, foodId)}
+                onChange={(foodId, foodName) => {
+                  onLinkFood(area.localId, foodId, foodName);
+                  if (foodName && (/^Area \d+$/i.test(area.name.trim()) || area.name.trim() === "")) {
+                    onRename(area.localId, foodName);
+                  }
+                }}
               />
+            </div>
+
+            <div className="flex items-center gap-2 mt-2" onClick={(event) => event.stopPropagation()}>
+              <label htmlFor={`weight-${area.localId}`} className="text-xs text-text-muted shrink-0">
+                Porsi / Berat:
+              </label>
+              <div className="relative flex-1">
+                <input
+                  id={`weight-${area.localId}`}
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={area.weightGram ?? ""}
+                  onChange={(event) => {
+                    const val = event.target.value.trim();
+                    const num = Number(val);
+                    onWeightChange(area.localId, val === "" || isNaN(num) ? null : Math.max(0, num));
+                  }}
+                  placeholder="Misal 100"
+                  className="w-full text-xs py-1 px-2 pr-6 rounded border border-border bg-surface text-text-primary"
+                />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-text-muted pointer-events-none">
+                  g
+                </span>
+              </div>
             </div>
 
             <p
@@ -94,6 +126,7 @@ export function AreaSidePanel({
               )}
             >
               {area.polygon.length} titik
+              {area.weightGram != null && area.weightGram > 0 && ` · ${area.weightGram} g`}
               {tooFewPoints && ` — minimal ${MIN_POLYGON_POINTS} agar bisa dipublish`}
             </p>
           </div>

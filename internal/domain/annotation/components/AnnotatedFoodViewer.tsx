@@ -95,8 +95,13 @@ export function AnnotatedFoodViewer({ image, overlay = false, onAreaSelect }: An
 
         {overlay && highlighted && (
           <div className="absolute left-3 bottom-3 z-10 pointer-events-none animate-fade-in">
-            <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-black/75 text-white text-sm font-semibold shadow-md">
-              {highlighted.name}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/80 text-white text-sm font-semibold shadow-md backdrop-blur-sm">
+              <span>{highlighted.name}</span>
+              {highlighted.weight_gram != null && highlighted.weight_gram > 0 && (
+                <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/20 font-medium">
+                  {highlighted.weight_gram} g
+                </span>
+              )}
             </span>
           </div>
         )}
@@ -106,6 +111,11 @@ export function AnnotatedFoodViewer({ image, overlay = false, onAreaSelect }: An
         highlighted ? (
           <div className="flex items-center gap-2 p-3 rounded-md border border-border bg-surface">
             <span className="text-sm font-semibold text-text-primary">{highlighted.name}</span>
+            {highlighted.weight_gram != null && highlighted.weight_gram > 0 && (
+              <span className="text-xs font-medium text-text-muted bg-surface-alt px-2 py-0.5 rounded-md border border-border">
+                {highlighted.weight_gram} gram
+              </span>
+            )}
             {highlighted.food_id && (
               <a href={`/find-food/${highlighted.food_id}`} className="btn btn-outline btn-xs ml-auto">
                 Lihat detail gizi
@@ -114,7 +124,7 @@ export function AnnotatedFoodViewer({ image, overlay = false, onAreaSelect }: An
           </div>
         ) : (
           <p className="text-sm text-text-muted m-0">
-            Arahkan kursor ke bagian makanan untuk melihat namanya.
+            Arahkan kursor ke bagian makanan untuk melihat nama dan porsinya.
           </p>
         )
       )}

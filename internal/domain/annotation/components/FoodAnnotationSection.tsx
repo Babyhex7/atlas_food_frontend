@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/internal/lib/cn";
 import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
+import { Shapes } from "lucide-react";
 import { usePublishedAnnotation, usePublishedAnnotationsByFood } from "../hooks/useAnnotationQueries";
 import { AnnotatedFoodViewer } from "./AnnotatedFoodViewer";
 
@@ -28,8 +29,11 @@ export function FoodAnnotationSection({ foodId }: FoodAnnotationSectionProps) {
   if (isLoading || list.length === 0) return null;
 
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-base font-semibold text-text-primary m-0">Kenali bagiannya</h2>
+    <div className="card animate-slide-up p-6 flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <Shapes size={20} className="text-primary" />
+        <h2 className="text-lg font-semibold text-text-primary m-0">Kenali Bagian & Porsi Makanan</h2>
+      </div>
 
       {/* Pemilih gambar hanya muncul bila memang ada lebih dari satu */}
       {list.length > 1 && (
@@ -57,6 +61,6 @@ export function FoodAnnotationSection({ foodId }: FoodAnnotationSectionProps) {
       )}
 
       {image && <AnnotatedFoodViewer image={image} />}
-    </section>
+    </div>
   );
 }
