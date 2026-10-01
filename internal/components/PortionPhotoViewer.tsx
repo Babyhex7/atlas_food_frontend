@@ -3,13 +3,17 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { PortionPhoto } from "@/internal/types/food.types";
 import { getImageUrl, isGuideType } from "@/internal/lib/image";
-import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
+import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid, Eye, EyeOff, Shapes } from "lucide-react";
 import { AnnotationHoverOverlay } from "@/internal/domain/annotation/components/AnnotationHoverOverlay";
 import { useCollab, LiveCanvasOverlay } from "@/internal/domain/collab";
+import { usePublishedAnnotationsByFood } from "@/internal/domain/annotation/hooks/useAnnotationQueries";
+import { areaColor } from "@/internal/domain/annotation/constants/annotationStatus";
+import type { FoodImage } from "@/internal/domain/annotation/types/annotation";
 
 interface PortionPhotoViewerProps {
   photos: PortionPhoto[];
   photoType: "series" | "range";
+  foodId?: string;
   activeIndex?: number;
   onSelect?: (index: number) => void;
 }
@@ -47,12 +51,85 @@ function PhotoImg({
   );
 }
 
+// ─── Interactive Detected Area Chips Strip (Intake24 style) ───────────────────
+function DetectedAreasStrip({
+  areas,
+  selectedAreaId,
+  onSelectArea,
+}: {
+  areas: FoodImage["areas"];
+  selectedAreaId: string | null;
+  onSelectArea: (id: string | null) => void;
+}) {
+  if (!areas || areas.length === 0) return null;
+
+  return (
+    <div className="rounded-xl border border-border bg-surface-alt p-3.5 flex flex-col gap-2.5 animate-fade-in">
+      <div className="flex items-center justify-between text-xs font-medium text-text-muted flex-wrap gap-1">
+        <span className="flex items-center gap-1.5 font-semibold text-text-primary">
+          <Shapes size={14} className="text-primary" />
+          Kenali Bagian Makanan ({areas.length} bagian terdeteksi)
+        </span>
+        <span className="text-[11px] text-text-muted">Arahkan kursor atau klik untuk sorot area</span>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {areas.map((area, idx) => {
+          const color = areaColor(idx);
+          const isSelected = area.id === selectedAreaId;
+
+          return (
+            <button
+              key={area.id}
+              type="button"
+              onClick={() => onSelectArea(isSelected ? null : area.id)}
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-fast ${
+                isSelected
+                  ? "border-primary bg-primary text-white shadow-xs"
+                  : "border-border bg-surface text-text-secondary hover:border-primary/50 hover:bg-surface-alt"
+              }`}
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: isSelected ? "#ffffff" : color }}
+              />
+              <span>{area.name}</span>
+              {area.weight_gram != null && area.weight_gram > 0 && (
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold ${
+                    isSelected ? "bg-white/20 text-white" : "bg-surface-alt text-text-muted border border-border"
+                  }`}
+                >
+                  {area.weight_gram}g
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Tampilan Guide (range) — 1 foto besar, semua label sebagai overlay pill ──
-function GuidePhotoView({ photos }: { photos: PortionPhoto[] }) {
-  // Foto guide: semua porsi ada dalam 1 gambar, image_url tiap label sama.
-  // Tampilkan foto pertama sebagai hero, lalu tabel semua porsi di bawah.
+function GuidePhotoView({
+  photos,
+  foodId,
+  visiblePolygons,
+  setVisiblePolygons,
+  selectedAreaId,
+  setSelectedAreaId,
+}: {
+  photos: PortionPhoto[];
+  foodId?: string;
+  visiblePolygons: boolean;
+  setVisiblePolygons: (v: boolean) => void;
+  selectedAreaId: string | null;
+  setSelectedAreaId: (id: string | null) => void;
+}) {
   const guidePhoto = photos[0];
   const { send } = useCollab();
+  const [currentAreas, setCurrentAreas] = useState<FoodImage["areas"]>([]);
 
   if (!guidePhoto) return null;
 
@@ -72,14 +149,34 @@ function GuidePhotoView({ photos }: { photos: PortionPhoto[] }) {
         <div className="aspect-[4/3] md:aspect-[16/9] bg-muted/10 relative">
           <PhotoImg
             src={guidePhoto.image_url}
-            alt={`Guide foto — semua porsi`}
+            alt="Guide foto — semua porsi"
             className="w-full h-full object-contain animate-fade-in"
           />
-          <AnnotationHoverOverlay foodImageId={guidePhoto.food_image_id} />
-          {/* Kanvas gambar bersama (toolbar "Live Annotation" milik CollabSession
-              hanyalah kontrol; tanpa elemen ini di sini, tidak ada permukaan yang
-              menangkap pointer sehingga menggambar tidak berpengaruh apa pun). */}
+
+          {/* Interactive Polygons Overlay */}
+          <AnnotationHoverOverlay
+            foodImageId={guidePhoto.food_image_id}
+            foodId={foodId}
+            visiblePolygons={visiblePolygons}
+            selectedAreaId={selectedAreaId}
+            onAreaSelect={(area) => setSelectedAreaId(area.id)}
+            onLoadedAreas={setCurrentAreas}
+          />
+
           <LiveCanvasOverlay send={send} targetImageId={guidePhoto.id} />
+
+          {/* Toggle Polygon Visibility */}
+          {currentAreas.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setVisiblePolygons(!visiblePolygons)}
+              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-black/75 text-white border border-white/20 hover:bg-black/90 transition-fast shadow-md"
+              title={visiblePolygons ? "Sembunyikan batas area" : "Tampilkan batas area"}
+            >
+              {visiblePolygons ? <Eye size={12} className="text-primary" /> : <EyeOff size={12} />}
+              <span>{visiblePolygons ? "Area: ON" : "Area: OFF"}</span>
+            </button>
+          )}
 
           {/* Overlay semua label porsi */}
           <div className="absolute top-3 right-3 flex flex-wrap gap-1 justify-end max-w-[60%]">
@@ -103,6 +200,13 @@ function GuidePhotoView({ photos }: { photos: PortionPhoto[] }) {
           </div>
         </div>
       </div>
+
+      {/* Bagian makanan terdeteksi (Intake24 style) */}
+      <DetectedAreasStrip
+        areas={currentAreas}
+        selectedAreaId={selectedAreaId}
+        onSelectArea={setSelectedAreaId}
+      />
 
       {/* Tabel porsi */}
       <div>
@@ -139,17 +243,28 @@ function GuidePhotoView({ photos }: { photos: PortionPhoto[] }) {
 // ─── Tampilan Series — foto terpisah per ukuran, thumbnail scrollable ─────────
 function SeriesPhotoView({
   photos,
+  foodId,
   activeIndex,
   onSelect,
+  visiblePolygons,
+  setVisiblePolygons,
+  selectedAreaId,
+  setSelectedAreaId,
 }: {
   photos: PortionPhoto[];
+  foodId?: string;
   activeIndex: number;
   onSelect: (i: number) => void;
+  visiblePolygons: boolean;
+  setVisiblePolygons: (v: boolean) => void;
+  selectedAreaId: string | null;
+  setSelectedAreaId: (id: string | null) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeft, setShowLeft] = useState(false);
   const [showRight, setShowRight] = useState(false);
   const { send } = useCollab();
+  const [currentAreas, setCurrentAreas] = useState<FoodImage["areas"]>([]);
 
   const checkArrows = useCallback(() => {
     const el = scrollRef.current;
@@ -170,7 +285,6 @@ function SeriesPhotoView({
     };
   }, [checkArrows, photos]);
 
-  // Scroll thumbnail aktif ke tengah saat berubah
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -199,9 +313,31 @@ function SeriesPhotoView({
             alt={activePhoto?.label ?? "foto porsi"}
             className="w-full h-full object-contain animate-fade-in"
           />
-          <AnnotationHoverOverlay foodImageId={activePhoto?.food_image_id} />
-          {/* Kanvas gambar bersama — lihat catatan yang sama di GuidePhotoView. */}
+
+          {/* Interactive Polygons Overlay */}
+          <AnnotationHoverOverlay
+            foodImageId={activePhoto?.food_image_id}
+            foodId={foodId}
+            visiblePolygons={visiblePolygons}
+            selectedAreaId={selectedAreaId}
+            onAreaSelect={(area) => setSelectedAreaId(area.id)}
+            onLoadedAreas={setCurrentAreas}
+          />
+
           <LiveCanvasOverlay send={send} targetImageId={activePhoto?.id} />
+
+          {/* Toggle Polygon Visibility */}
+          {currentAreas.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setVisiblePolygons(!visiblePolygons)}
+              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-black/75 text-white border border-white/20 hover:bg-black/90 transition-fast shadow-md"
+              title={visiblePolygons ? "Sembunyikan batas area" : "Tampilkan batas area"}
+            >
+              {visiblePolygons ? <Eye size={12} className="text-primary" /> : <EyeOff size={12} />}
+              <span>{visiblePolygons ? "Area: ON" : "Area: OFF"}</span>
+            </button>
+          )}
 
           {/* Navigasi panah kiri/kanan pada foto utama */}
           {activeIndex > 0 && (
@@ -253,7 +389,14 @@ function SeriesPhotoView({
         </div>
       </div>
 
-      {/* Thumbnail strip */}
+      {/* Bagian makanan terdeteksi (Intake24 style) */}
+      <DetectedAreasStrip
+        areas={currentAreas}
+        selectedAreaId={selectedAreaId}
+        onSelectArea={setSelectedAreaId}
+      />
+
+      {/* Thumbnail strip porsi */}
       <div>
         <p className="text-sm font-medium text-muted-foreground mb-3">
           Pilih ukuran porsi:
@@ -307,7 +450,6 @@ function SeriesPhotoView({
 
                   {isActive && <div className="absolute inset-0 bg-primary/10" />}
 
-                  {/* Label + berat */}
                   <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1 py-[3px] flex items-center justify-between">
                     <span className="text-[10px] font-bold text-primary leading-none">
                       {photo.label}
@@ -330,18 +472,42 @@ function SeriesPhotoView({
 export function PortionPhotoViewer({
   photos,
   photoType,
+  foodId,
   activeIndex: controlledIndex,
   onSelect,
 }: PortionPhotoViewerProps) {
   const [internalIndex, setInternalIndex] = useState(0);
+  const [visiblePolygons, setVisiblePolygons] = useState(true);
+  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
+
   const activeIndex = controlledIndex !== undefined ? controlledIndex : internalIndex;
+
+  // Fallback: jika photos kosong tapi foodId punya published annotation
+  const { data: publishedImages } = usePublishedAnnotationsByFood(
+    (!photos || photos.length === 0) && foodId ? foodId : undefined
+  );
+
+  // Jika photos kosong tapi ada published images, susun synthetic photos
+  const effectivePhotos: PortionPhoto[] =
+    photos && photos.length > 0
+      ? photos
+      : (publishedImages ?? []).map((img, idx) => ({
+          id: img.id,
+          label: img.title || String.fromCharCode(65 + idx),
+          image_url: img.image_url,
+          thumbnail_url: img.thumbnail_url || img.image_url,
+          weight_gram: 0,
+          description: "",
+          food_image_id: img.id,
+        }));
 
   const handleSelect = (index: number) => {
     if (controlledIndex === undefined) setInternalIndex(index);
+    setSelectedAreaId(null);
     onSelect?.(index);
   };
 
-  if (!photos || photos.length === 0) {
+  if (!effectivePhotos || effectivePhotos.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed border-border">
         <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-20" />
@@ -352,15 +518,29 @@ export function PortionPhotoViewer({
 
   // "range" = guide image (satu foto semua ukuran)
   if (isGuideType(photoType)) {
-    return <GuidePhotoView photos={photos} />;
+    return (
+      <GuidePhotoView
+        photos={effectivePhotos}
+        foodId={foodId}
+        visiblePolygons={visiblePolygons}
+        setVisiblePolygons={setVisiblePolygons}
+        selectedAreaId={selectedAreaId}
+        setSelectedAreaId={setSelectedAreaId}
+      />
+    );
   }
 
   // "series" = foto terpisah per ukuran
   return (
     <SeriesPhotoView
-      photos={photos}
+      photos={effectivePhotos}
+      foodId={foodId}
       activeIndex={activeIndex}
       onSelect={handleSelect}
+      visiblePolygons={visiblePolygons}
+      setVisiblePolygons={setVisiblePolygons}
+      selectedAreaId={selectedAreaId}
+      setSelectedAreaId={setSelectedAreaId}
     />
   );
 }

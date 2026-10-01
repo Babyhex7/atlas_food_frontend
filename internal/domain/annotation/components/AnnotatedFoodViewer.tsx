@@ -3,21 +3,34 @@
 import { useState } from "react";
 import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
 import { areaColor } from "../constants/annotationStatus";
-import { toSvgPoints } from "../utils/polygonMath";
+import { polygonCentroid, toSvgPoints } from "../utils/polygonMath";
 import type { FoodImage } from "../types/annotation";
 
 type AnnotatedFoodViewerProps = {
   image: FoodImage;
-  /** Mode overlay di gallery: sembunyikan hint/klik, fokusakan hover area */
+  /** Mode overlay di gallery: sembunyikan border container/klik, fokuskan hover area */
   overlay?: boolean;
+  /** Apakah poligon terlihat jelas saat diam (default: true agar tidak membingungkan pengguna) */
+  visiblePolygons?: boolean;
+  /** Tampilkan label teks di atas poligon (default: true) */
+  showLabels?: boolean;
+  /** ID area yang sedang disorot/dipilih dari komponen luar (misal chip list) */
+  selectedAreaId?: string | null;
   onAreaSelect?: (area: FoodImage["areas"][number]) => void;
 };
 
 /**
- * Tampilan anotasi untuk responden — read-only.
- * Hover hanya di polygon area (bukan full image).
+ * Tampilan anotasi untuk responden dan pratinjau admin — read-only.
+ * Poligon kini tampak dengan jelas secara default (bukan 0% transparan).
  */
-export function AnnotatedFoodViewer({ image, overlay = false, onAreaSelect }: AnnotatedFoodViewerProps) {
+export function AnnotatedFoodViewer({
+  image,
+  overlay = false,
+  visiblePolygons = true,
+  showLabels = true,
+  selectedAreaId = null,
+  onAreaSelect,
+}: AnnotatedFoodViewerProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hoverId, setHoverId] = useState<string | null>(null);
 
@@ -26,7 +39,7 @@ export function AnnotatedFoodViewer({ image, overlay = false, onAreaSelect }: An
     : `${API_ASSET_ORIGIN}${image.image_url}`;
 
   const areas = image.areas ?? [];
-  const highlightedId = hoverId ?? activeId;
+  const highlightedId = hoverId ?? activeId ?? selectedAreaId;
   const highlighted = areas.find((area) => area.id === highlightedId) ?? null;
 
   function handleSelect(area: FoodImage["areas"][number]) {
@@ -51,28 +64,31 @@ export function AnnotatedFoodViewer({ image, overlay = false, onAreaSelect }: An
           aria-label={`Area makanan pada ${image.title}`}
         >
           {!overlay && (
-            <image href={src} x={0} y={0} width={image.width} height={image.height} />
+            <image href={src} xlinkHref={src} x={0} y={0} width={image.width} height={image.height} />
           )}
 
           {areas.map((area, index) => {
             const color = areaColor(index);
             const isHot = area.id === highlightedId;
 
+            // Jika visiblePolygons=true: poligon tampak dengan border halus dan fill transparan
+            // Jika isHot (hover/aktif): poligon menyala lebih tegas
+            const fillOpacity = isHot ? 0.35 : visiblePolygons ? 0.15 : 0;
+            const strokeOpacity = isHot ? 1 : visiblePolygons ? 0.85 : 0;
+            const strokeWidth = isHot ? 3 : 2;
+
             return (
               <polygon
                 key={area.id}
                 points={toSvgPoints(area.polygon)}
-                // Diam: polygon tak terlihat sama sekali — foto tampil apa adanya.
-                // fill tetap diisi warna (bukan "none") supaya area masih menangkap
-                // hover meski fill-opacity 0.
                 fill={color}
-                fillOpacity={isHot ? 0.1 : 0}
+                fillOpacity={fillOpacity}
                 stroke={color}
-                strokeOpacity={isHot ? 1 : 0}
-                strokeWidth={isHot ? 3 : 2}
+                strokeOpacity={strokeOpacity}
+                strokeWidth={strokeWidth}
                 strokeLinejoin="round"
                 className="cursor-pointer transition-[fill-opacity,stroke-opacity,stroke-width] duration-200 ease-out pointer-events-auto"
-                style={isHot ? { filter: `drop-shadow(0 0 5px ${color}99)` } : undefined}
+                style={isHot ? { filter: `drop-shadow(0 0 6px ${color}cc)` } : undefined}
                 tabIndex={0}
                 role="button"
                 aria-label={area.name}
@@ -91,14 +107,52 @@ export function AnnotatedFoodViewer({ image, overlay = false, onAreaSelect }: An
               />
             );
           })}
+
+          {/* Label area di tengah centroid masing-masing poligon */}
+          {showLabels &&
+            visiblePolygons &&
+            areas.map((area, index) => {
+              const centroid = polygonCentroid(area.polygon);
+              if (!centroid) return null;
+              const isHot = area.id === highlightedId;
+              const color = areaColor(index);
+
+              return (
+                <g key={`label-${area.id}`} className="pointer-events-none transition-opacity">
+                  <rect
+                    x={centroid[0] - 40}
+                    y={centroid[1] - 12}
+                    width={80}
+                    height={24}
+                    rx={12}
+                    fill="rgba(0, 0, 0, 0.75)"
+                    stroke={color}
+                    strokeWidth={isHot ? 2 : 1}
+                    className="backdrop-blur-sm"
+                  />
+                  <text
+                    x={centroid[0]}
+                    y={centroid[1] + 1}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="#ffffff"
+                    fontSize={11}
+                    fontWeight="600"
+                    className="select-none"
+                  >
+                    {area.name.length > 10 ? `${area.name.slice(0, 9)}…` : area.name}
+                  </text>
+                </g>
+              );
+            })}
         </svg>
 
         {overlay && highlighted && (
           <div className="absolute left-3 bottom-3 z-10 pointer-events-none animate-fade-in">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/80 text-white text-sm font-semibold shadow-md backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/85 text-white text-sm font-semibold shadow-md backdrop-blur-sm border border-white/20">
               <span>{highlighted.name}</span>
               {highlighted.weight_gram != null && highlighted.weight_gram > 0 && (
-                <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/20 font-medium">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-white font-medium">
                   {highlighted.weight_gram} g
                 </span>
               )}
@@ -109,10 +163,10 @@ export function AnnotatedFoodViewer({ image, overlay = false, onAreaSelect }: An
 
       {!overlay && (
         highlighted ? (
-          <div className="flex items-center gap-2 p-3 rounded-md border border-border bg-surface">
+          <div className="flex items-center gap-2 p-3 rounded-md border border-border bg-surface animate-fade-in">
             <span className="text-sm font-semibold text-text-primary">{highlighted.name}</span>
             {highlighted.weight_gram != null && highlighted.weight_gram > 0 && (
-              <span className="text-xs font-medium text-text-muted bg-surface-alt px-2 py-0.5 rounded-md border border-border">
+              <span className="text-xs font-semibold text-primary bg-primary-light px-2.5 py-0.5 rounded-full border border-primary/20">
                 {highlighted.weight_gram} gram
               </span>
             )}
@@ -123,8 +177,8 @@ export function AnnotatedFoodViewer({ image, overlay = false, onAreaSelect }: An
             )}
           </div>
         ) : (
-          <p className="text-sm text-text-muted m-0">
-            Arahkan kursor ke bagian makanan untuk melihat nama dan porsinya.
+          <p className="text-xs text-text-muted m-0">
+            Arahkan kursor atau klik bagian makanan untuk melihat rincian berat gram.
           </p>
         )
       )}

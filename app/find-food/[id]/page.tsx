@@ -12,7 +12,6 @@ import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
 import { isGuideType } from "@/internal/lib/image";
 import { useCollab, VIEWER_LOCK_CLASS, VIEWER_LOCK_HINT } from "@/internal/domain/collab";
-import { FoodAnnotationSection } from "@/internal/domain/annotation";
 
 function FoodDetailBody() {
   const params = useParams();
@@ -193,14 +192,12 @@ function FoodDetailBody() {
             <PortionPhotoViewer
               photos={food.portion_photos || []}
               photoType={food.photo_type}
+              foodId={foodId}
               activeIndex={activePhotoIndex}
               onSelect={handleSelectPhoto}
             />
           </div>
         </div>
-
-        {/* Anotasi polygon jika makanan memiliki gambar yang dianotasi */}
-        <FoodAnnotationSection foodId={foodId} />
 
         <div className="card animate-slide-up p-6 [animation-delay:80ms]">
           <div className="flex items-center justify-between mb-5 flex-wrap gap-2">

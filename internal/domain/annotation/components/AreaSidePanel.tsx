@@ -9,6 +9,7 @@ import { AreaFoodPicker } from "./AreaFoodPicker";
 type AreaSidePanelProps = {
   areas: DraftArea[];
   selectedLocalId: string | null;
+  targetWeightGram?: number;
   onSelect: (localId: string) => void;
   onRename: (localId: string, name: string) => void;
   onLinkFood: (localId: string, foodId: string | null, foodName?: string) => void;
@@ -20,12 +21,18 @@ type AreaSidePanelProps = {
 export function AreaSidePanel({
   areas,
   selectedLocalId,
+  targetWeightGram,
   onSelect,
   onRename,
   onLinkFood,
   onWeightChange,
   onDelete,
 }: AreaSidePanelProps) {
+  const totalWeight = areas.reduce((sum, a) => sum + (a.weightGram ?? 0), 0);
+  const hasTarget = typeof targetWeightGram === "number" && targetWeightGram > 0;
+  const isMatch = hasTarget && Math.abs(totalWeight - targetWeightGram) < 0.1;
+  const diff = hasTarget ? targetWeightGram - totalWeight : 0;
+
   if (areas.length === 0) {
     return (
       <div className="card">
@@ -41,6 +48,23 @@ export function AreaSidePanel({
 
   return (
     <div className="flex flex-col gap-2">
+      {hasTarget && (
+        <div
+          className={cn(
+            "rounded-md border p-2.5 text-xs flex items-center justify-between",
+            isMatch
+              ? "bg-success-light text-success border-success-border font-medium"
+              : "bg-warning-light text-warning border-warning-border"
+          )}
+        >
+          <span>
+            Bobot Area: <strong>{totalWeight.toFixed(1)}g</strong> / {targetWeightGram}g
+          </span>
+          <span className="font-semibold text-[11px]">
+            {isMatch ? "✓ Cocok" : `Kurang: ${diff > 0 ? `${diff.toFixed(1)}g` : `${Math.abs(diff).toFixed(1)}g lebih`}`}
+          </span>
+        </div>
+      )}
       {areas.map((area, index) => {
         const color = areaColor(index);
         const selected = area.localId === selectedLocalId;
