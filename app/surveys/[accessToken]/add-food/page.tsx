@@ -192,12 +192,16 @@ export default function AddFoodPage({ params }: { params: { accessToken: string 
       </div>
 
       {/* Footer */}
-      <div className="bg-surface border-t border-border py-4 px-6 flex justify-between items-center">
-        <button type="button" onClick={() => router.back()} className="text-sm font-medium text-text-muted bg-transparent border-none cursor-pointer">
-          ‹ Back
+      <div className="sticky bottom-0 z-40 bg-surface/95 backdrop-blur border-t border-border py-4 pl-16 pr-6 sm:px-6 flex justify-between items-center shadow-lg">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-text-secondary bg-surface-alt border border-border rounded-lg cursor-pointer transition-fast hover:bg-border/30 hover:text-text-primary"
+        >
+          ‹ Kembali
         </button>
-        <Button onClick={() => router.push(`/surveys/${params.accessToken}/portion`)}>
-          Continue ›
+        <Button onClick={() => router.push(`/surveys/${params.accessToken}/portion`)} className="px-6 py-2.5 font-bold shadow-sm">
+          Lanjut ke Estimasi Porsi ›
         </Button>
       </div>
     </div>

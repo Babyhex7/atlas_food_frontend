@@ -19,8 +19,8 @@ const MEAL_TYPES = [
 function WizardShell({ children, footer }: { children: React.ReactNode; footer: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-[820px] mx-auto p-8 px-6 flex flex-col gap-6">
+      <div className="flex-1 pb-24">
+        <div className="max-w-[820px] mx-auto p-6 sm:p-8 flex flex-col gap-6">
           {children}
         </div>
       </div>
@@ -45,19 +45,20 @@ function ProgressBar({ label, pct }: { label: string; pct: number }) {
   );
 }
 
-function WizardFooter({ onBack, onContinue, continueLabel = 'Continue ›', disabled = false }: {
+function WizardFooter({ onBack, onContinue, continueLabel = 'Lanjut ke Tambah Makanan ›', disabled = false }: {
   onBack?: () => void; onContinue?: () => void; continueLabel?: string; disabled?: boolean;
 }) {
   return (
-    <div className="bg-surface border-t border-border py-4 px-6 flex justify-between items-center">
+    <div className="sticky bottom-0 z-40 bg-surface/95 backdrop-blur border-t border-border py-4 pl-16 pr-6 sm:px-6 flex justify-between items-center shadow-lg">
       <button
         type="button"
         onClick={onBack}
-        className="text-sm font-medium text-text-muted bg-transparent border-none cursor-pointer transition-fast hover:text-text-primary"
+        suppressHydrationWarning
+        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-text-secondary bg-surface-alt border border-border rounded-lg cursor-pointer transition-fast hover:bg-border/30 hover:text-text-primary"
       >
-        ‹ Back
+        ‹ Kembali
       </button>
-      <Button onClick={onContinue} disabled={disabled}>
+      <Button onClick={onContinue} disabled={disabled} suppressHydrationWarning className="px-6 py-2.5 font-bold shadow-sm">
         {continueLabel}
       </Button>
     </div>
@@ -77,7 +78,7 @@ export default function SelectMealPage({ params }: { params: { accessToken: stri
         <WizardFooter
           onBack={() => router.back()}
           onContinue={() => router.push(`/surveys/${params.accessToken}/add-food`)}
-          continueLabel="Continue ›"
+          continueLabel="Lanjut ke Tambah Makanan ›"
         />
       }
     >
@@ -174,11 +175,16 @@ export default function SelectMealPage({ params }: { params: { accessToken: stri
       </div>
 
       {/* Guided banner */}
-      <div className="bg-[linear-gradient(135deg,var(--color-primary)_0%,#7B0011_100%)] rounded-xl p-6 text-white">
-        <p className="font-bold text-base mb-1 mt-0">Guided Nutrition</p>
-        <p className="text-sm opacity-85 m-0">
-          Each step in this survey has been designed by professional nutritionists to provide personalized recommendations.
-        </p>
+      <div className="bg-gradient-to-r from-primary to-[#7B0011] rounded-xl p-6 text-white shadow-md flex items-start gap-4">
+        <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
+          <Info className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <p className="font-bold text-base mb-1 mt-0 !text-white">Guided Nutrition</p>
+          <p className="text-sm !text-white/90 leading-relaxed m-0">
+            Each step in this survey has been designed by professional nutritionists to provide personalized recommendations.
+          </p>
+        </div>
       </div>
     </WizardShell>
   );

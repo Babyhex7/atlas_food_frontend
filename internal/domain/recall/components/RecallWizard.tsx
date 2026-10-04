@@ -142,7 +142,13 @@ export function RecallWizard({ guest = false }: WizardProps) {
   } else if (currentStep === "add_food") {
     canContinueHeader = foods.length > 0;
   } else if (currentStep === "portion") {
-    canContinueHeader = foods.length > 0;
+    const currentFood = foods[session.portion_food_index ?? 0];
+    canContinueHeader =
+      foods.length > 0 &&
+      Boolean(
+        (currentFood?.portion && currentFood.portion.portion_gram > 0) ||
+        foods.every((f) => f.portion && f.portion.portion_gram > 0)
+      );
   } else if (currentStep === "additional") {
     canContinueHeader = true;
   } else if (currentStep === "review") {
@@ -212,7 +218,13 @@ export function RecallWizard({ guest = false }: WizardProps) {
           <button
             type="button"
             className="inline-flex items-center gap-2 rounded-md text-sm font-semibold text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            onClick={() => (currentStep === "select_meal" ? router.back() : prevStep())}
+            onClick={() =>
+              currentStep === "select_meal"
+                ? session.meals.length > 0
+                  ? goToStep("review")
+                  : router.back()
+                : prevStep()
+            }
           >
             <ArrowLeft aria-hidden className="h-4 w-4" />
             Kembali
@@ -365,6 +377,13 @@ export function RecallWizard({ guest = false }: WizardProps) {
               onMealTypeChange={setMealType}
               onMealTimeChange={setMealTime}
               onContinue={nextStep}
+              onBack={() => {
+                if (session.meals.length > 0) {
+                  goToStep("review");
+                } else {
+                  router.back();
+                }
+              }}
             />
           )}
 

@@ -1,15 +1,9 @@
 "use client";
 
 /**
- * Primitif UI bersama untuk wizard recall.
- *
- * Semua utility Tailwind di sini memetakan ke design token di styles/globals.css
- * lewat jembatan di tailwind.config.js (bg-surface → var(--color-surface), dst),
- * jadi tampilannya tetap satu bahasa visual dengan halaman lain.
- *
- * Catatan skala: tailwind.config.js hanya mendefinisikan spacing 1,2,3,4,5,6,8,
- * 10,12,16. Nilai di luar itu ditulis sebagai arbitrary value agar tidak ada
- * class yang gagal resolve dan diam-diam kehilangan style.
+ * Clean, modern, production-ready UI Primitives for Atlas Food Recall.
+ * Strictly adheres to 4px multiplier spacing, restrained color palette,
+ * clear typography hierarchy, and zero decorative AI slop.
  */
 
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
@@ -17,17 +11,8 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/internal/lib/cn";
 import { ViewerLock } from "@/internal/domain/collab";
 
-/* ── Shell & header ──────────────────────────────────────────────────────── */
+/* ── Shell & Layout ──────────────────────────────────────────────────────── */
 
-/**
- * StepShell membungkus isi tiap langkah wizard.
- *
- * ViewerLock dipasang di sini — bukan di masing-masing step — supaya peserta
- * "Can view" terkunci total di seluruh langkah, termasuk langkah yang ditambahkan
- * nanti. Kalau digantung per komponen, cepat atau lambat ada kontrol baru yang
- * lupa dikunci. Di luar sesi kolaborasi ViewerLock meneruskan children apa adanya,
- * jadi wizard solo tidak terpengaruh sama sekali.
- */
 export function StepShell({
   children,
   className,
@@ -43,16 +28,16 @@ export function StepShell({
     maxWidth === "full"
       ? "max-w-full"
       : maxWidth === "normal"
-      ? "max-w-3xl"
-      : "max-w-5xl lg:max-w-6xl";
+        ? "max-w-3xl"
+        : "max-w-5xl";
 
   return (
     <div
       className={cn(
-        "mx-auto flex w-full flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 transition-all duration-200",
+        "mx-auto flex w-full flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8",
         maxWClass,
         centered && "items-center text-center",
-        className
+        className,
       )}
     >
       <ViewerLock className="flex flex-col gap-6">{children}</ViewerLock>
@@ -70,16 +55,25 @@ export function StepHeader({
   centered?: boolean;
 }) {
   return (
-    <header className={cn("flex flex-col gap-2", centered && "items-center text-center")}>
-      <h2 className="text-xl font-bold leading-tight text-text-primary sm:text-2xl">{title}</h2>
+    <header
+      className={cn(
+        "flex flex-col gap-1.5",
+        centered && "items-center text-center",
+      )}
+    >
+      <h1 className="text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
+        {title}
+      </h1>
       {subtitle ? (
-        <p className="max-w-[38rem] text-sm leading-relaxed text-text-muted">{subtitle}</p>
+        <p className="max-w-2xl text-sm leading-relaxed text-text-muted">
+          {subtitle}
+        </p>
       ) : null}
     </header>
   );
 }
 
-/* ── Card ────────────────────────────────────────────────────────────────── */
+/* ── Card Container ──────────────────────────────────────────────────────── */
 
 export function Card({
   children,
@@ -93,9 +87,9 @@ export function Card({
   return (
     <section
       className={cn(
-        "rounded-xl border border-border bg-surface shadow-card",
-        padded && "p-4 sm:p-5",
-        className
+        "rounded-lg border border-border bg-surface text-text-primary shadow-xs",
+        padded && "p-5 sm:p-6",
+        className,
       )}
     >
       {children}
@@ -103,19 +97,25 @@ export function Card({
   );
 }
 
-export function CardLabel({ icon: Icon, children }: { icon?: LucideIcon; children: ReactNode }) {
+export function CardLabel({
+  icon: Icon,
+  children,
+}: {
+  icon?: LucideIcon;
+  children: ReactNode;
+}) {
   return (
-    <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.07em] text-text-muted">
+    <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
       {Icon ? <Icon aria-hidden className="h-4 w-4 text-primary" /> : null}
       {children}
     </div>
   );
 }
 
-/* ── Banner ──────────────────────────────────────────────────────────────── */
+/* ── Informational Banners ───────────────────────────────────────────────── */
 
 const BANNER_TONES = {
-  info: "border-primary-border bg-primary-light text-primary",
+  info: "border-info-border bg-info-light text-info",
   success: "border-success-border bg-success-light text-success",
   warning: "border-warning-border bg-warning-light text-warning",
   danger: "border-danger-border bg-danger-light text-danger",
@@ -137,35 +137,37 @@ export function Banner({
   return (
     <div
       className={cn(
-        "flex gap-3 rounded-lg border p-3 text-xs leading-relaxed sm:p-4",
+        "flex gap-3 rounded-md border p-3.5 text-xs leading-relaxed sm:p-4",
         BANNER_TONES[tone],
-        className
+        className,
       )}
     >
-      {Icon ? <Icon aria-hidden className="mt-px h-4 w-4 shrink-0" /> : null}
+      {Icon ? <Icon aria-hidden className="mt-0.5 h-4 w-4 shrink-0" /> : null}
       <div className="flex-1">
-        {title ? <strong className="mb-1 block font-semibold">{title}</strong> : null}
+        {title ? (
+          <strong className="mb-1 block font-semibold">{title}</strong>
+        ) : null}
         {children}
       </div>
     </div>
   );
 }
 
-/* ── Button ──────────────────────────────────────────────────────────────── */
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
 
 const BUTTON_VARIANTS = {
   primary:
-    "bg-primary text-white shadow-sm hover:bg-primary-hover hover:shadow-md disabled:hover:bg-primary disabled:hover:shadow-sm",
+    "bg-primary text-white hover:bg-primary-hover active:bg-primary-active disabled:bg-border-strong disabled:text-text-placeholder disabled:border-transparent disabled:shadow-none disabled:hover:bg-border-strong disabled:cursor-not-allowed",
   secondary:
-    "border border-border bg-surface text-text-secondary hover:border-primary hover:bg-primary-light hover:text-primary",
-  ghost: "text-text-muted hover:text-text-primary",
-  danger: "bg-danger text-white hover:bg-danger-hover",
+    "border border-border bg-surface text-text-primary hover:bg-surface-alt active:bg-border/30 disabled:border-border disabled:bg-surface-alt disabled:text-text-placeholder disabled:cursor-not-allowed",
+  ghost: "text-text-muted hover:bg-surface-alt hover:text-text-primary disabled:text-text-placeholder disabled:cursor-not-allowed",
+  danger: "bg-danger text-white hover:bg-danger-hover active:bg-danger-active disabled:bg-border-strong disabled:text-text-placeholder disabled:cursor-not-allowed",
 } as const;
 
 const BUTTON_SIZES = {
-  sm: "h-8 px-3 text-xs",
-  md: "h-10 px-5 text-sm",
-  lg: "h-12 px-6 text-sm",
+  sm: "h-8 px-3 text-xs gap-1.5",
+  md: "h-10 px-4 text-sm gap-2",
+  lg: "h-11 px-5 text-sm gap-2",
 } as const;
 
 type ButtonProps = ComponentPropsWithoutRef<"button"> & {
@@ -189,27 +191,30 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      // Default "button": tanpa ini tombol di dalam form akan men-submit form.
       type={type}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all",
+        "inline-flex items-center justify-center rounded-md font-medium transition-colors duration-150",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        "disabled:cursor-not-allowed disabled:opacity-45",
+        "disabled:cursor-not-allowed disabled:opacity-100",
         BUTTON_VARIANTS[variant],
         BUTTON_SIZES[size],
         fullWidth && "w-full",
-        className
+        className,
       )}
       {...props}
     >
-      {Icon && iconPosition === "left" ? <Icon aria-hidden className="h-4 w-4 shrink-0" /> : null}
+      {Icon && iconPosition === "left" ? (
+        <Icon aria-hidden className="h-4 w-4 shrink-0" />
+      ) : null}
       {children}
-      {Icon && iconPosition === "right" ? <Icon aria-hidden className="h-4 w-4 shrink-0" /> : null}
+      {Icon && iconPosition === "right" ? (
+        <Icon aria-hidden className="h-4 w-4 shrink-0" />
+      ) : null}
     </button>
   );
 }
 
-/* ── Chip ────────────────────────────────────────────────────────────────── */
+/* ── Interactive Chips & Selectable Tiles ───────────────────────────────── */
 
 export function Chip({
   active,
@@ -222,12 +227,12 @@ export function Chip({
       type="button"
       aria-pressed={active}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs transition-all",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs transition-colors duration-150",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
         active
-          ? "border-primary bg-primary-light font-semibold text-primary"
-          : "border-border text-text-muted hover:border-primary-border hover:bg-primary-light hover:text-primary",
-        className
+          ? "border-primary bg-primary-light font-medium text-primary"
+          : "border-border bg-surface text-text-muted hover:border-border-strong hover:text-text-primary",
+        className,
       )}
       {...props}
     >
@@ -235,8 +240,6 @@ export function Chip({
     </button>
   );
 }
-
-/* ── Selectable tile (meal type, portion photo) ──────────────────────────── */
 
 export function SelectTile({
   active,
@@ -249,12 +252,12 @@ export function SelectTile({
       type="button"
       aria-pressed={active}
       className={cn(
-        "flex flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-all",
+        "flex flex-col items-center gap-2 rounded-lg border-2 p-3.5 text-center transition-all duration-150",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         active
-          ? "border-primary bg-primary-light shadow-sm"
-          : "border-border bg-surface hover:border-primary-border hover:bg-primary-light",
-        className
+          ? "border-primary bg-primary-light/50 text-primary"
+          : "border-border bg-surface hover:border-border-strong text-text-secondary hover:text-text-primary",
+        className,
       )}
       {...props}
     >
@@ -267,31 +270,39 @@ export function SelectTile({
 
 export function StepNav({ children }: { children: ReactNode }) {
   return (
-    <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
       {children}
     </div>
   );
 }
 
-/* ── States ──────────────────────────────────────────────────────────────── */
+/* ── Feedback States ─────────────────────────────────────────────────────── */
 
 export function LoadingState({ label }: { label: string }) {
   return (
     <div
       role="status"
-      className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface-alt p-8 text-sm text-text-muted"
+      className="flex flex-col items-center gap-3 rounded-lg border border-border bg-surface-alt p-8 text-sm text-text-muted"
     >
-      <span className="h-6 w-6 animate-spin rounded-full border-2 border-border-strong border-t-primary" />
-      {label}
+      <span className="h-5 w-5 animate-spin rounded-full border-2 border-border-strong border-t-primary" />
+      <span>{label}</span>
     </div>
   );
 }
 
-export function EmptyState({ icon: Icon, children }: { icon?: LucideIcon; children: ReactNode }) {
+export function EmptyState({
+  icon: Icon,
+  children,
+}: {
+  icon?: LucideIcon;
+  children: ReactNode;
+}) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border-strong bg-surface-alt p-8 text-center text-sm text-text-muted">
-      {Icon ? <Icon aria-hidden className="h-6 w-6 text-text-placeholder" /> : null}
-      {children}
+    <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border-strong bg-surface-alt p-8 text-center text-sm text-text-muted">
+      {Icon ? (
+        <Icon aria-hidden className="h-5 w-5 text-text-placeholder" />
+      ) : null}
+      <div className="max-w-md">{children}</div>
     </div>
   );
 }

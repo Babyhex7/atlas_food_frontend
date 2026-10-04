@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   AlertCircle,
   ArrowRight,
   Check,
-  ChevronLeft,
-  ChevronRight,
   ImageOff,
   Scale,
 } from "lucide-react";
@@ -96,11 +94,35 @@ export function Step3Portion({
   // tiba. Tidak ada setState sinkron di efek yang memicu cascading render.
   const loading = Boolean(currentFoodId) && !cachedDetail && !isFetchedForCurrent;
 
-  // Pilihan hanya berlaku untuk makanan yang sedang aktif — berpindah makanan
-  // otomatis mengosongkannya tanpa perlu efek reset.
+  const photos = useMemo(() => detail?.portion_photos ?? [], [detail]);
+  const savedPortion = currentFood?.portion;
+
+  // Cari foto yang cocok bila makanan aktif sudah memiliki porsi di session
+  const matchingSavedPhoto = useMemo(() => {
+    if (!savedPortion || savedPortion.method === "input") return null;
+    return (
+      photos.find(
+        (p) =>
+          (savedPortion.image_id && p.id === savedPortion.image_id) ||
+          (savedPortion.image_label && p.label === savedPortion.image_label) ||
+          (savedPortion.portion_gram && p.weight_gram === savedPortion.portion_gram)
+      ) ?? null
+    );
+  }, [savedPortion, photos]);
+
+  // Pilihan lokal hanya berlaku untuk makanan yang aktif; bila belum diedit lokal,
+  // ambil dari data tersimpan di session agar tidak hilang saat navigasi tab.
   const activeSelection = selection?.foodId === currentFoodId ? selection : null;
-  const selectedPhoto = activeSelection?.photo ?? null;
-  const customGram = activeSelection?.customGram ?? "";
+  const selectedPhoto = activeSelection ? activeSelection.photo : matchingSavedPhoto;
+  const customGram = activeSelection
+    ? activeSelection.customGram
+    : savedPortion?.method === "input"
+      ? String(savedPortion.portion_gram)
+      : "";
+
+  const totalWeight = activeSelection
+    ? calcTotalWeight(selectedPhoto, customGram)
+    : (savedPortion?.portion_gram ?? (selectedPhoto ? selectedPhoto.weight_gram : 0));
 
   // Muat detail makanan (nutrisi + foto porsi) saat makanan aktif berubah.
   useEffect(() => {
@@ -128,9 +150,13 @@ export function Step3Portion({
     };
   }, [currentFoodId, cachedDetail]);
 
-  const totalWeight = calcTotalWeight(selectedPhoto, customGram);
-  const canConfirm = totalWeight > 0;
-  const allPortioned = foods.every((f) => f.portion);
+  const currentFoodHasPortion =
+    totalWeight > 0 || Boolean(currentFood?.portion && currentFood.portion.portion_gram > 0);
+  const allPortioned = foods.every((f, i) =>
+    i === safeIndex
+      ? currentFoodHasPortion
+      : Boolean(f.portion && f.portion.portion_gram > 0)
+  );
   const isLastFood = safeIndex >= foods.length - 1;
 
   const handleConfirm = useCallback(() => {
@@ -157,25 +183,80 @@ export function Step3Portion({
     }
   }, [currentFood, totalWeight, customGram, selectedPhoto, detail, onPortionSelected, isConnected, send]);
 
-  const handleNextStep3 = useCallback(() => {
-    if (canConfirm) {
-      handleConfirm();
-      const willBeAllPortioned = foods.every((f, i) => (i === safeIndex ? true : Boolean(f.portion)));
-      if (willBeAllPortioned) {
-        onContinue();
-      } else if (!isLastFood) {
-        onFoodIndexChange(safeIndex + 1);
-      }
-    } else if (currentFood?.portion) {
-      if (allPortioned) {
-        onContinue();
-      } else if (!isLastFood) {
-        onFoodIndexChange(safeIndex + 1);
-      }
-    } else if (allPortioned) {
-      onContinue();
+  const handleSelectPhoto = useCallback((photo: PortionPhoto) => {
+    if (!currentFood) return;
+    setSelection({
+      foodId: currentFood.food.id,
+      photo,
+      customGram: "",
+    });
+    const portion: SelectedPortion = {
+      method: "simple_grid",
+      image_id: photo.id,
+      image_label: photo.label,
+      base_weight: photo.weight_gram,
+      quantity: 1,
+      fraction: 0,
+      total_quantity: 1,
+      portion_gram: photo.weight_gram,
+    };
+    onPortionSelected(currentFood.food.id, portion, detail ?? undefined);
+    if (isConnected) {
+      send("portion_set", {
+        food_id: currentFood.food.id,
+        food_name: currentFood.food.name,
+        portion_gram: photo.weight_gram,
+        image_label: photo.label,
+      });
     }
-  }, [canConfirm, handleConfirm, foods, safeIndex, onContinue, isLastFood, onFoodIndexChange, currentFood, allPortioned]);
+  }, [currentFood, onPortionSelected, detail, isConnected, send]);
+
+  const handleCustomGramChange = useCallback((val: string) => {
+    if (!currentFood) return;
+    setSelection({
+      foodId: currentFood.food.id,
+      photo: null,
+      customGram: val,
+    });
+    const parsed = Number.parseFloat(val);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      const gram = Math.min(parsed, MAX_PORTION_GRAM);
+      const portion: SelectedPortion = {
+        method: "input",
+        quantity: 1,
+        fraction: 0,
+        total_quantity: 1,
+        portion_gram: gram,
+      };
+      onPortionSelected(currentFood.food.id, portion, detail ?? undefined);
+      if (isConnected) {
+        send("portion_set", {
+          food_id: currentFood.food.id,
+          food_name: currentFood.food.name,
+          portion_gram: gram,
+        });
+      }
+    }
+  }, [currentFood, onPortionSelected, detail, isConnected, send]);
+
+  const handleNextStep3 = useCallback(() => {
+    if (!currentFoodHasPortion) return;
+
+    handleConfirm();
+
+    // Cari makanan pertama yang belum diisi porsinya
+    const unportionedIndex = foods.findIndex((f, i) =>
+      i === safeIndex ? !currentFoodHasPortion : !f.portion || f.portion.portion_gram <= 0
+    );
+
+    if (unportionedIndex === -1) {
+      // Semua makanan sudah lengkap diatur porsinya
+      onContinue();
+    } else {
+      // Masih ada makanan yang belum diisi porsi -> arahkan langsung ke makanan tersebut
+      onFoodIndexChange(unportionedIndex);
+    }
+  }, [currentFoodHasPortion, handleConfirm, foods, safeIndex, onContinue, onFoodIndexChange]);
 
   useEffect(() => {
     if (portionNextRef) {
@@ -195,15 +276,13 @@ export function Step3Portion({
           makanan.
         </EmptyState>
         <StepNav>
-          <Button variant="ghost" onClick={onBack}>
+          <Button variant="secondary" onClick={onBack}>
             Kembali
           </Button>
         </StepNav>
       </StepShell>
     );
   }
-
-  const photos = detail?.portion_photos ?? [];
 
   return (
     <StepShell>
@@ -266,13 +345,7 @@ export function Step3Portion({
                     role="radio"
                     aria-checked={active}
                     active={active}
-                    onClick={() =>
-                      setSelection({
-                        foodId: currentFood.food.id,
-                        photo,
-                        customGram: "",
-                      })
-                    }
+                    onClick={() => handleSelectPhoto(photo)}
                   >
                     <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg bg-surface-alt">
                       {photo.thumbnail_url || photo.image_url ? (
@@ -283,7 +356,7 @@ export function Step3Portion({
                             alt={photo.label}
                             className="h-full w-full object-cover"
                           />
-                          <LiveCanvasOverlay send={send} targetImageId={photo.id} />
+                          <LiveCanvasOverlay send={send} targetImageId={photo.id} className="absolute inset-0" />
                         </>
                       ) : (
                         <ImageOff aria-hidden className="h-6 w-6 text-text-placeholder" />
@@ -320,13 +393,7 @@ export function Step3Portion({
                   className="h-10 w-32 rounded-lg border border-border bg-surface px-3 text-center font-mono text-sm text-text-primary outline-none transition-colors focus:border-primary focus:shadow-focus"
                   placeholder="mis. 150"
                   value={customGram}
-                  onChange={(e) =>
-                    setSelection({
-                      foodId: currentFood.food.id,
-                      photo: null,
-                      customGram: e.target.value,
-                    })
-                  }
+                  onChange={(e) => handleCustomGramChange(e.target.value)}
                 />
                 <span className="text-sm text-text-muted">gram</span>
               </div>
@@ -343,37 +410,24 @@ export function Step3Portion({
             </div>
           </div>
 
-          {/* ── Navigasi antar makanan ───────────────────────────────── */}
-          <div className="flex items-center justify-between gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={ChevronLeft}
-              onClick={() => onFoodIndexChange(Math.max(0, safeIndex - 1))}
-              disabled={safeIndex === 0}
-            >
-              Sebelumnya
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={ChevronRight}
-              iconPosition="right"
-              onClick={() => onFoodIndexChange(Math.min(foods.length - 1, safeIndex + 1))}
-              disabled={isLastFood}
-            >
-              Berikutnya
-            </Button>
-          </div>
         </>
       )}
 
       <StepNav>
-        <Button variant="ghost" onClick={onBack}>
+        <Button variant="secondary" onClick={onBack}>
           Kembali
         </Button>
-        <Button variant="secondary" icon={Check} onClick={handleConfirm} disabled={!canConfirm}>
-          Simpan porsi ini
+        <Button
+          icon={ArrowRight}
+          iconPosition="right"
+          onClick={handleNextStep3}
+          disabled={!currentFoodHasPortion}
+        >
+          {allPortioned
+            ? "Lanjut ke Detail Tambahan"
+            : isLastFood
+              ? "Lanjut ke Makanan yang Belum Diisi"
+              : "Lanjut ke Makanan Berikutnya"}
         </Button>
       </StepNav>
     </StepShell>

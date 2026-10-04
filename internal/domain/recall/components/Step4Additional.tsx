@@ -96,7 +96,7 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
         <StepHeader title="Detail tambahan" />
         <EmptyState>Belum ada makanan pada waktu makan ini.</EmptyState>
         <StepNav>
-          <Button variant="ghost" onClick={onBack}>
+          <Button variant="secondary" onClick={onBack}>
             Kembali
           </Button>
           <Button icon={ArrowRight} iconPosition="right" onClick={onContinue}>
@@ -194,8 +194,15 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
       })}
 
       <StepNav>
-        <Button variant="ghost" onClick={handleBack}>
+        <Button variant="secondary" onClick={handleBack}>
           Kembali
+        </Button>
+        <Button
+          icon={ArrowRight}
+          iconPosition="right"
+          onClick={handleContinue}
+        >
+          Lanjut ke Tinjau
         </Button>
       </StepNav>
     </StepShell>

@@ -9,6 +9,25 @@ export function PWARegister() {
       return;
     }
 
+    // Di development / localhost, jangan pasang service worker karena Cache-First SW
+    // akan merusak Fast Refresh Turbopack dan menyajikan chunk JS basi.
+    if (process.env.NODE_ENV !== "production" || window.location.hostname === "localhost") {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const reg of registrations) {
+          reg.unregister();
+        }
+      });
+      if ("caches" in window) {
+        caches.keys().then((keys) => {
+          for (const key of keys) {
+            caches.delete(key);
+          }
+        });
+      }
+      const cleanupSync = SyncEngine.initAutoSync();
+      return () => cleanupSync();
+    }
+
     const registerSW = async () => {
       try {
         const registration = await navigator.serviceWorker.register("/sw.js", {

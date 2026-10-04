@@ -340,8 +340,16 @@ export function Step5Review({
       </p>
 
       <StepNav>
-        <Button variant="ghost" onClick={onBack} disabled={submitting}>
+        <Button variant="secondary" onClick={onBack} disabled={submitting}>
           Kembali
+        </Button>
+        <Button
+          icon={Send}
+          iconPosition="right"
+          onClick={handleSubmit}
+          disabled={!canSubmit || submitting}
+        >
+          {submitting ? "Mengirim..." : "Kirim Laporan Recall"}
         </Button>
       </StepNav>
     </StepShell>

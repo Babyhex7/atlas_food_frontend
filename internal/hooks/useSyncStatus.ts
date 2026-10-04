@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { SyncEngine } from "@/internal/lib/syncEngine";
 import { useToast } from "@/internal/components/ui/Toast";
 import { useOnlineStatus } from "@/internal/hooks/useOnlineStatus";
@@ -13,8 +13,15 @@ export function useSyncStatus() {
   const toast = useToast();
   const isOnline = useOnlineStatus();
 
+  const isFirstMount = useRef(true);
+
   // Toast saat online/offline berubah
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+
     if (!isOnline) {
       toast.offline(
         "Anda sedang offline",

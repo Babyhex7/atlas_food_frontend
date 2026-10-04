@@ -137,18 +137,22 @@ export default function PortionPage({ params }: { params: { accessToken: string 
       </div>
 
       {/* Footer */}
-      <div className="bg-surface border-t border-border py-4 px-6 flex justify-between items-center">
-        <button type="button" onClick={() => router.back()} className="text-sm font-medium text-text-muted bg-transparent border-none cursor-pointer">
-          ‹ Back
+      <div className="sticky bottom-0 z-40 bg-surface/95 backdrop-blur border-t border-border py-4 pl-16 pr-6 sm:px-6 flex justify-between items-center shadow-lg">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-text-secondary bg-surface-alt border border-border rounded-lg cursor-pointer transition-fast hover:bg-border/30 hover:text-text-primary"
+        >
+          ‹ Kembali
         </button>
         <div className="flex gap-3 items-center">
           {allFoods.length > 1 && (
-            <span className="text-xs text-text-muted">
+            <span className="text-xs text-text-muted font-mono font-medium">
               {currentIndex + 1} / {allFoods.length}
             </span>
           )}
-          <Button onClick={handleNext}>
-            {isLast ? 'Finish ›' : 'Next Food ›'}
+          <Button onClick={handleNext} className="px-6 py-2.5 font-bold shadow-sm">
+            {isLast ? 'Lanjut ke Tinjau ›' : 'Makanan Berikutnya ›'}
           </Button>
         </div>
       </div>
