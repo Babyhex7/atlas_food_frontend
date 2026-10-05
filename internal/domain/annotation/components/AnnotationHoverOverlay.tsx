@@ -20,30 +20,22 @@ type AnnotationHoverOverlayProps = {
  */
 export function AnnotationHoverOverlay({
   foodImageId,
-  foodId,
   visiblePolygons = true,
   selectedAreaId,
   onAreaSelect,
   onLoadedAreas,
 }: AnnotationHoverOverlayProps) {
-  // Ambil detail berdasarkan foodImageId jika ada
+  // Ambil detail anotasi terpublikasi khusus foto ini
   const detailQuery = usePublishedAnnotation(foodImageId || undefined);
-
-  // Fallback: jika foodImageId tidak ada di photo porsi lama, ambil dari published annotations milik foodId
-  const byFoodQuery = usePublishedAnnotationsByFood(!foodImageId && foodId ? foodId : undefined);
-
-  const fallbackImageId = byFoodQuery.data?.[0]?.id;
-  const fallbackDetailQuery = usePublishedAnnotation(
-    !foodImageId && fallbackImageId ? fallbackImageId : undefined
-  );
-
-  const image = foodImageId ? detailQuery.data : fallbackDetailQuery.data;
+  const image = foodImageId ? detailQuery.data : null;
 
   useEffect(() => {
-    if (image?.areas) {
+    if (image?.status === "published" && image?.areas) {
       onLoadedAreas?.(image.areas);
+    } else {
+      onLoadedAreas?.([]);
     }
-  }, [image?.areas, onLoadedAreas]);
+  }, [image?.status, image?.areas, onLoadedAreas]);
 
   if (!image || image.status !== "published") return null;
   if (!image.areas || image.areas.length === 0) return null;

@@ -201,7 +201,7 @@ export default function AdminDashboardPage() {
             label="Draft anotasi"
             value={drafts.data?.total ?? null}
             meta={`${published.data?.total ?? "–"} sudah dipublikasikan`}
-            href="/admin/annotations"
+            href="/admin/foods"
             loading={drafts.isLoading}
           />
         </div>
@@ -218,8 +218,8 @@ export default function AdminDashboardPage() {
           <SectionHeader
             title="Draft menunggu publikasi"
             count={drafts.data?.total}
-            href="/admin/annotations"
-            linkLabel="Kelola anotasi"
+            href="/admin/foods"
+            linkLabel="Kelola makanan"
           />
 
           {drafts.isLoading ? (

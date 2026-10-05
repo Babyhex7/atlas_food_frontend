@@ -40,7 +40,6 @@ const NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: "/admin/foods", label: "Makanan", icon: UtensilsCrossed },
       { href: "/admin/categories", label: "Kategori", icon: FolderOpen },
-      { href: "/admin/annotations", label: "Anotasi", icon: ImageIcon },
     ],
   },
 ];

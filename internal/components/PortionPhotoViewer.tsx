@@ -363,7 +363,7 @@ function SeriesPhotoView({
 
           {/* Overlay info porsi aktif */}
           {activePhoto && (
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 md:p-6">
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 md:p-6 pointer-events-none">
               <div className="flex items-end justify-between">
                 <div>
                   <h3 className="text-white font-sans font-bold text-2xl md:text-3xl mb-1">

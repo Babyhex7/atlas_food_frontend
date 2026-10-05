@@ -71,24 +71,30 @@ export function AnnotatedFoodViewer({
             const color = areaColor(index);
             const isHot = area.id === highlightedId;
 
-            // Jika visiblePolygons=true: poligon tampak dengan border halus dan fill transparan
-            // Jika isHot (hover/aktif): poligon menyala lebih tegas
-            const fillOpacity = isHot ? 0.35 : visiblePolygons ? 0.15 : 0;
-            const strokeOpacity = isHot ? 1 : visiblePolygons ? 0.85 : 0;
-            const strokeWidth = isHot ? 3 : 2;
+            // Sesuai permintaan: daleman poligon kosongan (fill kosong), pinggiran menyala blurry (neon glow)
+            const strokeOpacity = visiblePolygons || isHot ? 1 : 0;
+            const strokeWidth = isHot ? 3.5 : 2.5;
 
             return (
               <polygon
                 key={area.id}
                 points={toSvgPoints(area.polygon)}
-                fill={color}
-                fillOpacity={fillOpacity}
+                fill="transparent"
+                fillOpacity={0}
                 stroke={color}
                 strokeOpacity={strokeOpacity}
                 strokeWidth={strokeWidth}
                 strokeLinejoin="round"
-                className="cursor-pointer transition-[fill-opacity,stroke-opacity,stroke-width] duration-200 ease-out pointer-events-auto"
-                style={isHot ? { filter: `drop-shadow(0 0 6px ${color}cc)` } : undefined}
+                strokeLinecap="round"
+                className="cursor-pointer transition-[stroke-width,stroke-opacity] duration-200 ease-out pointer-events-auto"
+                style={{
+                  pointerEvents: "all",
+                  filter: isHot
+                    ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 0 3px ${color})`
+                    : visiblePolygons
+                    ? `drop-shadow(0 0 5px ${color}) drop-shadow(0 0 2px ${color})`
+                    : "none",
+                }}
                 tabIndex={0}
                 role="button"
                 aria-label={area.name}
