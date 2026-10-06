@@ -50,8 +50,14 @@ self.addEventListener("fetch", (event) => {
   // Skip non-GET requests (e.g. POST /survey/submit — handled by IndexedDB offline queue)
   if (request.method !== "GET") return;
 
-  // Skip API requests and WebSocket connections from Service Worker HTTP cache
-  if (url.pathname.startsWith("/api/") || url.protocol === "ws:" || url.protocol === "wss:") {
+  // Never intercept or cache Turbopack / Next.js chunks or HMR web sockets
+  if (
+    url.pathname.startsWith("/_next/") ||
+    url.pathname.includes("__next") ||
+    url.pathname.startsWith("/api/") ||
+    url.protocol === "ws:" ||
+    url.protocol === "wss:"
+  ) {
     return;
   }
 
@@ -74,13 +80,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache-First for static assets (images, fonts, scripts, stylesheets)
+  // Cache-First for media & static uploads only (never dynamic JS bundles)
   if (
-    url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/uploads/") ||
     request.destination === "image" ||
-    request.destination === "style" ||
-    request.destination === "script" ||
     request.destination === "font"
   ) {
     event.respondWith(

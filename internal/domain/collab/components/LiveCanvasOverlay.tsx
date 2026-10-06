@@ -186,7 +186,9 @@ export function LiveCanvasOverlay({ send, targetImageId, className = "" }: LiveC
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-full ${className}`}
+      className={`absolute inset-0 w-full h-full ${
+        isDrawingMode && canEdit ? "pointer-events-auto" : "pointer-events-none"
+      } ${className}`}
       style={{ touchAction: isDrawingMode && canEdit ? "none" : "auto" }}
     >
       <canvas

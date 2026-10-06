@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   AlertCircle,
   ClipboardList,
@@ -26,6 +26,7 @@ interface Props {
   onBack: () => void;
   onEditPortions: () => void;
   onAddMealTime: () => void;
+  submitRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 function buildSubmitPayload(session: RecallSession): CreateSubmissionRequest {
@@ -125,6 +126,7 @@ export function Step5Review({
   onBack,
   onEditPortions,
   onAddMealTime,
+  submitRef,
 }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -155,7 +157,7 @@ export function Step5Review({
     { energy: 0, protein: 0, carbs: 0, fat: 0 }
   );
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     const err = validateSession(session);
     if (err) {
       setError(err);
@@ -177,7 +179,16 @@ export function Step5Review({
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [session, isConnected, send, onSubmitted]);
+
+  useEffect(() => {
+    if (submitRef) {
+      submitRef.current = handleSubmit;
+    }
+    return () => {
+      if (submitRef) submitRef.current = null;
+    };
+  }, [submitRef, handleSubmit]);
 
   return (
     <StepShell>
@@ -329,8 +340,16 @@ export function Step5Review({
       </p>
 
       <StepNav>
-        <Button variant="ghost" onClick={onBack} disabled={submitting}>
+        <Button variant="secondary" onClick={onBack} disabled={submitting}>
           Kembali
+        </Button>
+        <Button
+          icon={Send}
+          iconPosition="right"
+          onClick={handleSubmit}
+          disabled={!canSubmit || submitting}
+        >
+          {submitting ? "Mengirim..." : "Kirim Laporan Recall"}
         </Button>
       </StepNav>
     </StepShell>

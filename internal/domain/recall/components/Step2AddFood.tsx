@@ -482,8 +482,14 @@ export function Step2AddFood({
         </div>
       ) : null}
 
+      {missingFoods.length > 0 && addedFoods.length === 0 ? (
+        <p className="text-center text-xs text-warning">
+          Catatan manual tersimpan. Tambahkan minimal 1 makanan atau minuman dari pencarian basis data untuk melanjutkan ke estimasi porsi.
+        </p>
+      ) : null}
+
       <StepNav>
-        <Button variant="ghost" onClick={onBack}>
+        <Button variant="secondary" onClick={onBack}>
           Kembali
         </Button>
         <Button
@@ -491,13 +497,8 @@ export function Step2AddFood({
           iconPosition="right"
           onClick={onContinue}
           disabled={!canContinue}
-          title={
-            canContinue
-              ? undefined
-              : "Tambahkan minimal satu makanan dari basis data untuk melanjutkan"
-          }
         >
-          Lanjut
+          Lanjut ke Estimasi Porsi
         </Button>
       </StepNav>
     </StepShell>

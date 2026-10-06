@@ -27,7 +27,9 @@ type Props = {
 export function ViewerLock({ children, hint = true, className }: Props) {
   const { isViewer } = useCollab();
 
-  if (!isViewer) return <>{children}</>;
+  if (!isViewer) {
+    return className ? <div className={className}>{children}</div> : <>{children}</>;
+  }
 
   return (
     <>

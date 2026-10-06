@@ -12,7 +12,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <>
       {children}
       <Toaster
-        position="bottom-right"
+        position="top-right"
         richColors
         closeButton
         theme="dark"

@@ -36,9 +36,11 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
     setFoodAdditionals((prev) => {
       const existing = prev[foodId] ?? [];
       if (existing.some((a) => a.name === name)) return prev;
+      const nextItems = [...existing, { name, amount: `0${unit}`, amount_value: 0, unit }];
+      onSetAdditionals(foodId, nextItems);
       return {
         ...prev,
-        [foodId]: [...existing, { name, amount: `0${unit}`, amount_value: 0, unit }],
+        [foodId]: nextItems,
       };
     });
   };
@@ -48,19 +50,27 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
     // total gizi, jadi dijepit di 0 ke atas.
     const parsed = Number.parseFloat(value);
     const numVal = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-    setFoodAdditionals((prev) => ({
-      ...prev,
-      [foodId]: (prev[foodId] ?? []).map((a) =>
+    setFoodAdditionals((prev) => {
+      const nextItems = (prev[foodId] ?? []).map((a) =>
         a.name === additionalName ? { ...a, amount: `${numVal}${unit}`, amount_value: numVal } : a
-      ),
-    }));
+      );
+      onSetAdditionals(foodId, nextItems);
+      return {
+        ...prev,
+        [foodId]: nextItems,
+      };
+    });
   };
 
   const removeAdditional = (foodId: string, name: string) => {
-    setFoodAdditionals((prev) => ({
-      ...prev,
-      [foodId]: (prev[foodId] ?? []).filter((a) => a.name !== name),
-    }));
+    setFoodAdditionals((prev) => {
+      const nextItems = (prev[foodId] ?? []).filter((a) => a.name !== name);
+      onSetAdditionals(foodId, nextItems);
+      return {
+        ...prev,
+        [foodId]: nextItems,
+      };
+    });
   };
 
   /** Simpan seluruh bahan tambahan ke session sebelum berpindah langkah. */
@@ -86,7 +96,7 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
         <StepHeader title="Detail tambahan" />
         <EmptyState>Belum ada makanan pada waktu makan ini.</EmptyState>
         <StepNav>
-          <Button variant="ghost" onClick={onBack}>
+          <Button variant="secondary" onClick={onBack}>
             Kembali
           </Button>
           <Button icon={ArrowRight} iconPosition="right" onClick={onContinue}>
@@ -184,14 +194,15 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
       })}
 
       <StepNav>
-        <Button variant="ghost" onClick={handleBack}>
+        <Button variant="secondary" onClick={handleBack}>
           Kembali
         </Button>
-        {/* Langkah ini opsional, jadi cukup satu tombol lanjut: kosongkan saja
-            bila tidak ada bahan tambahan. Tombol "Lewati" terpisah dihapus
-            karena perilakunya identik dan hanya menimbulkan keraguan. */}
-        <Button icon={ArrowRight} iconPosition="right" onClick={handleContinue}>
-          Lanjut
+        <Button
+          icon={ArrowRight}
+          iconPosition="right"
+          onClick={handleContinue}
+        >
+          Lanjut ke Tinjau
         </Button>
       </StepNav>
     </StepShell>
