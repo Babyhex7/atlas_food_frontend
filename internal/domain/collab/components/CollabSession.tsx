@@ -17,6 +17,7 @@ import { ActivityFeed } from "./ActivityFeed";
 import { LiveCursorOverlay } from "./LiveCursorOverlay";
 import { CursorChatOverlay } from "./CursorChatOverlay";
 import { CanvasToolbar } from "./CanvasToolbar";
+import { LiveCanvasOverlay } from "./LiveCanvasOverlay";
 import { useWebSocket, type CollabSend } from "../hooks/useWebSocket";
 import { useLiveCursor } from "../hooks/useLiveCursor";
 import { useCursorChat } from "../hooks/useCursorChat";
@@ -283,6 +284,7 @@ export function CollabSession({
         onLocalCancel={cancelCursorChat}
         remoteBubbles={cursorChatBubbles}
       />
+      <LiveCanvasOverlay send={send} isGlobal />
       <CanvasToolbar />
       <ActivityFeed />
       {children}

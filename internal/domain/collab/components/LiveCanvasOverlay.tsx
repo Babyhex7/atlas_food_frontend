@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLiveCanvas } from "../hooks/useLiveCanvas";
 import type { CollabSend } from "../hooks/useWebSocket";
 import type { CanvasStroke, LaserPoint } from "../types/collab";
@@ -9,12 +9,69 @@ interface LiveCanvasOverlayProps {
   send: CollabSend;
   targetImageId?: string;
   className?: string;
+  /**
+   * Jika true, canvas mencakup seluruh area konten halaman (viewport)
+   * secara dinamis, DENGAN MENGEKSEKUSI/MENGECUALIKAN header/topbar dan footer
+   * agar navigasi dan kontrol tetap dapat diakses bebas tanpa terkena coretan.
+   */
+  isGlobal?: boolean;
 }
 
-export function LiveCanvasOverlay({ send, targetImageId, className = "" }: LiveCanvasOverlayProps) {
+export function LiveCanvasOverlay({
+  send,
+  targetImageId,
+  className = "",
+  isGlobal = false,
+}: LiveCanvasOverlayProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
+
+  // Batas atas (di bawah header) dan batas bawah (di atas footer)
+  const [bounds, setBounds] = useState({ top: 56, bottom: 0 });
+
+  useEffect(() => {
+    if (!isGlobal) return;
+
+    const measureBounds = () => {
+      // 1. Ukur batas bawah header (topbar)
+      const headerEl = document.querySelector("header");
+      let top = 56;
+      if (headerEl) {
+        const rect = headerEl.getBoundingClientRect();
+        top = Math.max(0, Math.round(rect.bottom));
+      }
+
+      // 2. Ukur batas atas footer (jika ada footer yang sedang terlihat di layar)
+      const footerEl = document.querySelector("footer");
+      let bottom = 0;
+      if (footerEl) {
+        const rect = footerEl.getBoundingClientRect();
+        if (rect.top < window.innerHeight) {
+          bottom = Math.max(0, Math.round(window.innerHeight - rect.top));
+        }
+      }
+
+      setBounds((prev) => {
+        if (prev.top === top && prev.bottom === bottom) return prev;
+        return { top, bottom };
+      });
+    };
+
+    measureBounds();
+    window.addEventListener("resize", measureBounds, { passive: true });
+    window.addEventListener("scroll", measureBounds, { passive: true });
+
+    // Pantau perubahan DOM (misal: CollabStatusStrip muncul/hilang di header)
+    const observer = new MutationObserver(measureBounds);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+
+    return () => {
+      window.removeEventListener("resize", measureBounds);
+      window.removeEventListener("scroll", measureBounds);
+      observer.disconnect();
+    };
+  }, [isGlobal]);
 
   const {
     canEdit,
@@ -186,10 +243,17 @@ export function LiveCanvasOverlay({ send, targetImageId, className = "" }: LiveC
   return (
     <div
       ref={containerRef}
-      className={`absolute inset-0 w-full h-full ${
+      className={`${
+        isGlobal
+          ? "fixed left-0 right-0 z-40 overflow-hidden"
+          : `absolute inset-0 w-full h-full ${className}`
+      } ${
         isDrawingMode && canEdit ? "pointer-events-auto" : "pointer-events-none"
-      } ${className}`}
-      style={{ touchAction: isDrawingMode && canEdit ? "none" : "auto" }}
+      }`}
+      style={{
+        ...(isGlobal ? { top: `${bounds.top}px`, bottom: `${bounds.bottom}px` } : {}),
+        touchAction: isDrawingMode && canEdit ? "none" : "auto",
+      }}
     >
       <canvas
         ref={canvasRef}
@@ -197,7 +261,9 @@ export function LiveCanvasOverlay({ send, targetImageId, className = "" }: LiveC
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className={`absolute inset-0 w-full h-full z-30 transition-opacity duration-150 ${
+        className={`absolute inset-0 w-full h-full ${
+          isGlobal ? "z-40" : "z-30"
+        } transition-opacity duration-150 ${
           isDrawingMode && canEdit ? "cursor-crosshair pointer-events-auto" : "pointer-events-none"
         } ${isCanvasVisible ? "opacity-100" : "opacity-0"}`}
       />

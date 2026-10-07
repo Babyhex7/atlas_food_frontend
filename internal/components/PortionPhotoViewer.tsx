@@ -5,7 +5,7 @@ import type { PortionPhoto } from "@/internal/types/food.types";
 import { getImageUrl, isGuideType } from "@/internal/lib/image";
 import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid, Eye, EyeOff, Shapes } from "lucide-react";
 import { AnnotationHoverOverlay } from "@/internal/domain/annotation/components/AnnotationHoverOverlay";
-import { useCollab, LiveCanvasOverlay } from "@/internal/domain/collab";
+import { useCollab } from "@/internal/domain/collab";
 import { usePublishedAnnotationsByFood } from "@/internal/domain/annotation/hooks/useAnnotationQueries";
 import { areaColor } from "@/internal/domain/annotation/constants/annotationStatus";
 import type { FoodImage } from "@/internal/domain/annotation/types/annotation";
@@ -162,8 +162,6 @@ function GuidePhotoView({
             onAreaSelect={(area) => setSelectedAreaId(area.id)}
             onLoadedAreas={setCurrentAreas}
           />
-
-          <LiveCanvasOverlay send={send} targetImageId={guidePhoto.id} />
 
           {/* Toggle Polygon Visibility */}
           {currentAreas.length > 0 && (
@@ -323,8 +321,6 @@ function SeriesPhotoView({
             onAreaSelect={(area) => setSelectedAreaId(area.id)}
             onLoadedAreas={setCurrentAreas}
           />
-
-          <LiveCanvasOverlay send={send} targetImageId={activePhoto?.id} />
 
           {/* Toggle Polygon Visibility */}
           {currentAreas.length > 0 && (

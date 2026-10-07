@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useCanvasStore } from "../store/canvasStore";
 import { useCollabStore } from "../store/collabStore";
+import { useCollab } from "./CollabSession";
 import { canEditRoom } from "../lib/messageRouter";
 import type { CanvasTool } from "../types/collab";
 import {
@@ -28,6 +29,7 @@ interface CanvasToolbarProps {
 export function CanvasToolbar({ onClear }: CanvasToolbarProps) {
   // Sidebar kanan terbuka secara default atau bisa dibuka-tutup
   const [isOpen, setIsOpen] = useState(false);
+  const { send } = useCollab();
 
   const {
     activeTool,
@@ -56,6 +58,7 @@ export function CanvasToolbar({ onClear }: CanvasToolbarProps) {
 
   const handleClear = () => {
     clearStrokes();
+    send("canvas_clear", {});
     if (onClear) onClear();
   };
 
@@ -72,7 +75,7 @@ export function CanvasToolbar({ onClear }: CanvasToolbarProps) {
           type="button"
           onClick={() => setIsOpen(true)}
           title="Buka Panel Live Annotation"
-          className="fixed right-0 top-36 z-40 flex items-center gap-2 rounded-l-xl bg-slate-900/90 hover:bg-slate-800 text-white px-3 py-2.5 shadow-xl border-y border-l border-slate-700 backdrop-blur-md transition-all duration-200 hover:pr-4 cursor-pointer select-none"
+          className="fixed right-0 top-36 z-[70] flex items-center gap-2 rounded-l-xl bg-slate-900/90 hover:bg-slate-800 text-white px-3 py-2.5 shadow-xl border-y border-l border-slate-700 backdrop-blur-md transition-all duration-200 hover:pr-4 cursor-pointer select-none"
         >
           <span className="relative flex h-2 w-2">
             {isDrawingMode && (
@@ -94,7 +97,7 @@ export function CanvasToolbar({ onClear }: CanvasToolbarProps) {
       {/* ── Collapsible Right Sidebar ───────────────────────────────────── */}
       <aside
         aria-label="Panel Live Annotation"
-        className={`fixed top-14 bottom-0 right-0 z-40 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-md text-white border-l border-slate-700/80 shadow-2xl flex flex-col font-sans transition-transform duration-300 ease-in-out ${
+        className={`fixed top-14 bottom-0 right-0 z-[70] w-72 sm:w-80 bg-slate-900/95 backdrop-blur-md text-white border-l border-slate-700/80 shadow-2xl flex flex-col font-sans transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "translate-x-full pointer-events-none"
         }`}
       >
