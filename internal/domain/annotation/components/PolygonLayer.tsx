@@ -46,11 +46,17 @@ export function PolygonLayer({
           <g key={area.localId}>
             <polygon
               points={toSvgPoints(area.polygon)}
-              fill={color}
-              fillOpacity={selected ? 0.35 : 0.18}
+              fill="transparent"
+              fillOpacity={0}
               stroke={color}
-              strokeWidth={zoomAdjusted(selected ? 3 : 2, zoom)}
+              strokeWidth={zoomAdjusted(selected ? 3.5 : 2.5, zoom)}
               strokeLinejoin="round"
+              strokeLinecap="round"
+              style={{
+                filter: selected
+                  ? `drop-shadow(0 0 6px ${color}) drop-shadow(0 0 2px ${color})`
+                  : `drop-shadow(0 0 3px ${color}cc)`,
+              }}
               // Saat menggambar, polygon lama harus tembus klik. Tanpa ini,
               // area baru yang menimpa area lama mustahil digambar karena
               // setiap klik tertangkap polygon di bawahnya.

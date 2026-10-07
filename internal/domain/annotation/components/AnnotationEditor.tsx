@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye } from "lucide-react";
 import { useAnnotationDetail } from "../hooks/useAnnotationQueries";
 import { usePublishAnnotation, useUnpublishAnnotation } from "../hooks/useAnnotationMutations";
 import { useAnnotationAutosave } from "../hooks/useAnnotationAutosave";
 import { useAnnotationEditorStore } from "../store/annotationEditorStore";
 import { usePolygonEditor } from "../hooks/usePolygonEditor";
 import { useCanvasTransform } from "../hooks/useCanvasTransform";
+import { useFoodPhotos } from "@/internal/domain/food/hooks/useFoodPhotoQueries";
 import { AnnotationCanvas } from "./AnnotationCanvas";
 import { AreaSidePanel } from "./AreaSidePanel";
 import { AutosaveIndicator } from "./AutosaveIndicator";
@@ -51,6 +52,13 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
   const unpublish = useUnpublishAnnotation(id);
 
   const [publishError, setPublishError] = useState<string | null>(null);
+
+  // Ambil daftar foto porsi saudara dari makanan yang sama (untuk navigasi cepat)
+  const { data: foodPhotosData } = useFoodPhotos(image?.primary_food_id ?? undefined);
+  const siblingPhotos = foodPhotosData?.items ?? [];
+  const currentIndex = siblingPhotos.findIndex((p) => p.id === id);
+  const prevPhoto = currentIndex > 0 ? siblingPhotos[currentIndex - 1] : null;
+  const nextPhoto = currentIndex >= 0 && currentIndex < siblingPhotos.length - 1 ? siblingPhotos[currentIndex + 1] : null;
 
   // Muat data server ke store sekali per gambar. Sengaja bergantung pada
   // image.id, bukan objek image: refetch yang menghasilkan objek baru tidak
@@ -119,7 +127,7 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
 
   if (error || !image) {
     return (
-      <div className="p-6 px-8">
+      <div className="p-6">
         <div className="alert alert-danger">
           <span className="text-sm">
             {error instanceof Error ? error.message : "Gambar anotasi tidak ditemukan"}
@@ -131,7 +139,7 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
 
   return (
     <div className="p-6 px-8 flex flex-col gap-4">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Link href={backHref} className="btn btn-ghost btn-sm btn-icon" title="Kembali ke makanan">
           <ArrowLeft size={16} />
         </Link>
@@ -139,9 +147,55 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
           <h1 className="text-xl font-bold text-text-primary m-0 truncate">{image.title}</h1>
           <p className="text-xs text-text-muted m-0">
             {image.width} × {image.height} px · {editor.areas.length} area
+            {image.weight_gram != null && image.weight_gram > 0 && ` · ${image.weight_gram} gram`}
           </p>
         </div>
-        <div className="ml-auto">
+
+        {/* Switcher Antar Foto Porsi Makanan (Zero Context Switch) */}
+        {siblingPhotos.length > 1 && (
+          <div className="flex items-center gap-1 bg-surface-alt border border-border rounded-lg p-1 text-xs">
+            <span className="text-text-muted px-2 font-medium">Porsi:</span>
+            {prevPhoto && (
+              <button
+                type="button"
+                onClick={async () => {
+                  await autosave.flush();
+                  window.location.href = `/admin/annotations/${prevPhoto.id}?returnTo=${encodeURIComponent(backHref)}`;
+                }}
+                className="btn btn-ghost btn-xs text-text-secondary"
+                title={`Pindah ke ${prevPhoto.title}`}
+              >
+                ← {prevPhoto.title}
+              </button>
+            )}
+            <span className="px-2 py-0.5 rounded bg-surface font-semibold text-primary border border-border shadow-xs">
+              {image.title} ({currentIndex + 1}/{siblingPhotos.length})
+            </span>
+            {nextPhoto && (
+              <button
+                type="button"
+                onClick={async () => {
+                  await autosave.flush();
+                  window.location.href = `/admin/annotations/${nextPhoto.id}?returnTo=${encodeURIComponent(backHref)}`;
+                }}
+                className="btn btn-ghost btn-xs text-primary font-semibold"
+                title={`Pindah ke ${nextPhoto.title}`}
+              >
+                {nextPhoto.title} →
+              </button>
+            )}
+          </div>
+        )}
+
+        <div className="ml-auto flex items-center gap-2.5">
+          <Link
+            href={`/admin/annotations/${id}/preview`}
+            className="btn btn-outline btn-sm text-xs gap-1.5"
+            title="Lihat pratinjau seperti tampilan responden"
+          >
+            <Eye size={13} />
+            Pratinjau
+          </Link>
           <AutosaveIndicator
             state={autosave.state}
             lastSavedAt={autosave.lastSavedAt}
@@ -236,6 +290,7 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
           <AreaSidePanel
             areas={editor.areas}
             selectedLocalId={editor.selectedLocalId}
+            targetWeightGram={image.weight_gram ?? undefined}
             onSelect={editor.selectArea}
             onRename={renameArea}
             onLinkFood={setAreaFood}

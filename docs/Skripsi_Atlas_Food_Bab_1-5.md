@@ -13,6 +13,10 @@
 >
 > Perkiraan pekerjaan tersisa: 1 hari untuk menjalankan uji kotak-hitam, 1–2 minggu untuk UAT (≥ 20 responden), 1 hari untuk uji kinerja. Setelah itu dokumen ini siap jadi skripsi utuh.
 >
+> ### 🔄 PEMBARUAN 6 Oktober 2026 — penyelarasan dengan kode
+> Draf dicocokkan ulang dengan kode `atlas_food_backend` dan `atlas_food_frontend`. Yang ditambahkan: dukungan luring/PWA (Subbab 2.10, 4.1.6, 4.7.5c, Gambar 3.11), kanvas langsung dan obrolan kursor (4.1.2, 4.7.5d), profil–autentikasi–pemantauan (4.1.7), kebutuhan F-34…F-48 dan NF-16…NF-20, kasus uji UK-69…UK-103, serta pembanding myfood24. Yang dikoreksi: versi Go, model dan parameter Groq, perilaku tipe foto `range`, rute katalog, nama berkas migrasi, pembersihan ruang, dan saran yang ternyata sudah diimplementasikan.
+> **Tiga hal yang harus kamu putuskan/periksa:** (1) katalog *Find Your Food* di kode masih di balik login — lihat kotak ⚠ pada Subbab 4.1.4; (2) rujukan Carter 2015, Moshfegh 2008, Subar 2012 dan isi kolom myfood24 ditulis dari ingatan dan **wajib diverifikasi**; (3) F-44 (ubah peran selama sesi) baru ada di lapis layanan.
+>
 > ### 💡 PROMPT UNTUK REVIEW & REVISI BAHASA (Gunakan di ChatGPT/Claude)
 > Jika kamu ingin memperbaiki tata bahasa dari draf ini agar lebih mengalir dan tidak kaku, *copy* prompt berikut dan *paste* per bab ke AI kesayanganmu:
 > 
@@ -39,7 +43,7 @@
 
 ## ABSTRAK
 
-*Dietary recall* 24 jam (R24J) merupakan metode baku penilaian asupan gizi individu, namun kualitas datanya sangat bergantung pada pendampingan enumerator terlatih yang mahal dan terbatas secara geografis. Sistem R24J terkomputerisasi yang telah mapan bersifat mandiri penuh sehingga menghilangkan peran pendampingan tersebut. Penelitian ini merancang dan membangun Atlas Food, sistem survei R24J berbasis web yang memungkinkan pendampingan jarak jauh secara real-time tanpa mengorbankan kepemilikan data responden. Sistem dikembangkan menggunakan metode *Waterfall* dengan arsitektur terpisah antara antarmuka berbasis Next.js dan layanan Go yang menyediakan REST API sekaligus *hub* WebSocket. Tiga kontribusi teknis dihasilkan: (1) mekanisme sinkronisasi langkah *wizard* lintas pengguna pada aplikasi satu halaman melalui perluasan atribut `step` pada pesan *viewport*; (2) model otorisasi peran per-ruang berlapis tiga yang menegakkan peran *owner*, *editor*, dan *viewer* pada lapis antarmuka, klien, dan server secara *fail-closed*; serta (3) *pipeline* rekomendasi gizi berbasis *large language model* dengan keluaran berkendala skema, penyimpanan hasil per-*submission*, dan jejak audit model, token, serta latensi. Pengujian fungsional melalui penelusuran alur *end-to-end* menemukan dan memperbaiki sebelas cacat, lima di antaranya tergolong kehilangan data senyap atau kebuntuan alur. `[⚠ ISI SETELAH PENGUJIAN: hasil uji kotak-hitam, skor SUS, dan latensi sinkronisasi]`
+*Dietary recall* 24 jam (R24J) merupakan metode baku penilaian asupan gizi individu, namun kualitas datanya sangat bergantung pada pendampingan enumerator terlatih yang mahal dan terbatas secara geografis. Sistem R24J terkomputerisasi yang telah mapan bersifat mandiri penuh sehingga menghilangkan peran pendampingan tersebut. Penelitian ini merancang dan membangun Atlas Food, sistem survei R24J berbasis web yang memungkinkan pendampingan jarak jauh secara real-time tanpa mengorbankan kepemilikan data responden. Sistem dikembangkan menggunakan metode *Waterfall* dengan arsitektur terpisah antara antarmuka berbasis Next.js dan layanan Go yang menyediakan REST API sekaligus *hub* WebSocket. Tiga kontribusi teknis dihasilkan: (1) mekanisme sinkronisasi langkah *wizard* lintas pengguna pada aplikasi satu halaman melalui perluasan atribut `step` pada pesan *viewport*; (2) model otorisasi peran per-ruang berlapis tiga yang menegakkan peran *owner*, *editor*, dan *viewer* pada lapis antarmuka, klien, dan server secara *fail-closed*; serta (3) *pipeline* rekomendasi gizi berbasis *large language model* dengan keluaran berkendala skema, penyimpanan hasil per-*submission*, dan jejak audit model, token, serta latensi. Sebagai pendukung, sistem dilengkapi mode luring (*offline-first*) berbasis *Progressive Web App* dengan antrean IndexedDB dan sinkronisasi idempoten, serta kanvas anotasi langsung di atas foto porsi sebagai sarana penunjuk bagi pendamping. Pengujian fungsional melalui penelusuran alur *end-to-end* menemukan dan memperbaiki sebelas cacat, lima di antaranya tergolong kehilangan data senyap atau kebuntuan alur. `[⚠ ISI SETELAH PENGUJIAN: hasil uji kotak-hitam, skor SUS, dan latensi sinkronisasi]`
 
 **Kata kunci:** *dietary recall* 24 jam, kolaborasi real-time, WebSocket, *large language model*, sistem informasi gizi
 
@@ -47,7 +51,7 @@
 
 ## ABSTRACT
 
-The 24-hour dietary recall (24HR) is a reference method for assessing individual nutrient intake, yet its data quality depends heavily on trained enumerator assistance, which is costly and geographically constrained. Established computerised 24HR systems are fully self-administered and therefore eliminate that assistance entirely. This study designs and develops Atlas Food, a web-based 24HR survey system enabling remote real-time assistance without compromising respondent data ownership. The system was developed using the Waterfall method with a decoupled architecture between a Next.js interface and a Go service providing both a REST API and a WebSocket hub. Three technical contributions are produced: (1) a cross-user wizard step synchronisation mechanism for single-page applications through an extended `step` attribute on viewport messages; (2) a three-layer per-room authorisation model enforcing owner, editor, and viewer roles at the interface, client, and server layers in a fail-closed manner; and (3) a large-language-model-based nutrition recommendation pipeline with schema-constrained output, per-submission result caching, and an audit trail of model, token, and latency. Functional testing through end-to-end walkthrough identified and fixed eleven defects, five classified as silent data loss or flow deadlock. `[⚠ FILL AFTER TESTING]`
+The 24-hour dietary recall (24HR) is a reference method for assessing individual nutrient intake, yet its data quality depends heavily on trained enumerator assistance, which is costly and geographically constrained. Established computerised 24HR systems are fully self-administered and therefore eliminate that assistance entirely. This study designs and develops Atlas Food, a web-based 24HR survey system enabling remote real-time assistance without compromising respondent data ownership. The system was developed using the Waterfall method with a decoupled architecture between a Next.js interface and a Go service providing both a REST API and a WebSocket hub. Three technical contributions are produced: (1) a cross-user wizard step synchronisation mechanism for single-page applications through an extended `step` attribute on viewport messages; (2) a three-layer per-room authorisation model enforcing owner, editor, and viewer roles at the interface, client, and server layers in a fail-closed manner; and (3) a large-language-model-based nutrition recommendation pipeline with schema-constrained output, per-submission result caching, and an audit trail of model, token, and latency. In support of these, the system provides an offline-first mode built as a Progressive Web App with an IndexedDB queue and idempotent synchronisation, and a live annotation canvas over portion photographs that serves as a pointing aid for the assistant. Functional testing through end-to-end walkthrough identified and fixed eleven defects, five classified as silent data loss or flow deadlock. `[⚠ FILL AFTER TESTING]`
 
 **Keywords:** 24-hour dietary recall, real-time collaboration, WebSocket, large language model, nutrition information system
 
@@ -59,6 +63,7 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 |---|---|---|
 | Tabel 2.1 | Perbandingan sistem *dietary recall* terkomputerisasi | II |
 | Tabel 2.2 | *State of the art* penelitian terdahulu | II |
+| Tabel 2.3 | Tipe foto porsi `series` dan `range` | II |
 | Tabel 3.1 | Alat dan bahan penelitian | III |
 | Tabel 3.2 | Kebutuhan fungsional sistem (termasuk modul katalog publik) | III |
 | Tabel 3.3 | Kebutuhan non-fungsional sistem | III |
@@ -66,10 +71,9 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 | Tabel 3.5 | Skenario *use case* UC-05 (Mengisi recall) | III |
 | Tabel 3.6 | Skenario *use case* UC-08 (Mengikuti layar rekan) | III |
 | Tabel 3.7 | Struktur tabel basis data (termasuk kolom `photo_type`) | III |
-| Tabel 3.8 | Tipe foto porsi `series` dan `range` | III |
-| Tabel 3.9 | Instrumen pengujian dan teknik analisis | III |
-| Tabel 3.10 | Interpretasi skor SUS | III |
-| Tabel 3.11 | Jadwal penelitian | III |
+| Tabel 3.8 | Instrumen pengujian dan teknik analisis | III |
+| Tabel 3.9 | Interpretasi skor SUS | III |
+| Tabel 3.10 | Jadwal penelitian | III |
 | Tabel 4.1 | Kontrak API sistem | IV |
 | Tabel 4.2 | Protokol pesan WebSocket | IV |
 | Tabel 4.3 | Parameter kendali transport real-time | IV |
@@ -82,6 +86,8 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 | Tabel 4.10 | Hasil pengujian kinerja real-time | IV |
 | Tabel 4.11 | Karakteristik responden UAT | IV |
 | Tabel 4.12 | Hasil kuesioner SUS | IV |
+| Tabel 4.13 | Siklus status antrean luring | IV |
+| Tabel 4.14 | Hasil pengujian kotak-hitam dukungan luring, kanvas langsung, katalog, dan profil | IV |
 | Tabel 5.1 | Pemetaan rumusan masalah dan kesimpulan | V |
 
 ---
@@ -100,10 +106,12 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 | Gambar 3.8 | *Class diagram* domain inti | III |
 | Gambar 3.9 | *Entity Relationship Diagram* | III |
 | Gambar 3.10 | Diagram keadaan *wizard* enam langkah | III |
+| Gambar 3.11 | *Sequence diagram* pengiriman luring dan sinkronisasi idempoten | III |
 | Gambar 4.1 | Topologi *hub*–*room*–*client* | IV |
 | Gambar 4.2 | *Pipeline* analisis gizi LLM | IV |
 | Gambar 4.3–4.12 | Tangkapan layar implementasi `[⚠ LAMPIRKAN]` | IV |
 | Gambar 4.13–4.15 | Tangkapan layar modul *Find Your Food* (halaman utama, detail mode series, detail mode range) `[⚠ LAMPIRKAN]` | IV |
+| Gambar 4.16–4.18 | Tangkapan layar bilah status luring, kanvas langsung di atas foto porsi, dan obrolan kursor `[⚠ LAMPIRKAN]` | IV |
 
 ---
 
@@ -127,7 +135,8 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
   - [2.7 *Large Language Model* dan *Schema-Constrained Generation*](#27-large-language-model-dan-schema-constrained-generation)
   - [2.8 Estimasi Porsi Berbasis Foto](#28-estimasi-porsi-berbasis-foto)
   - [2.9 Katalog Pangan Publik dan Estimasi Porsi Visual](#29-katalog-pangan-publik-dan-estimasi-porsi-visual)
-  - [2.10 *State of the Art*](#210-state-of-the-art)
+  - [2.10 Aplikasi Web Progresif dan Arsitektur *Offline-First*](#210-aplikasi-web-progresif-dan-arsitektur-offline-first)
+  - [2.11 *State of the Art*](#211-state-of-the-art)
 - [BAB III METODOLOGI PENELITIAN](#bab-iii-metodologi-penelitian)
 - [BAB IV HASIL DAN PEMBAHASAN](#bab-iv-hasil-dan-pembahasan)
 - [BAB V PENUTUP](#bab-v-penutup)
@@ -192,7 +201,7 @@ Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 ## 1.5 Batasan Penelitian
 
 1. Sistem berbasis web responsif; tidak dikembangkan aplikasi seluler *native*.
-2. Kolaborasi bersifat *awareness* (kehadiran, kursor, *viewport*, langkah, aktivitas, kunci entitas) — **bukan** penyuntingan bersama satu dokumen. Isian *recall* tidak direplikasi antar peserta. Batasan ini merupakan keputusan desain yang dilandasi validitas data *self-report*, diuraikan pada Subbab 3.6.
+2. Kolaborasi bersifat *awareness* (kehadiran, kursor, *viewport*, langkah, aktivitas, kunci entitas) — **bukan** penyuntingan bersama satu dokumen. Isian *recall* tidak direplikasi antar peserta. Batasan ini merupakan keputusan desain yang dilandasi validitas data *self-report*, diuraikan pada Subbab 2.5. Kanvas langsung (coretan, bentuk, dan penunjuk laser di atas foto porsi) termasuk lapisan *awareness* ini: coretan bersifat sementara, hanya disimpan di memori ruang, dan tidak pernah menjadi bagian dari laporan.
 3. *Hub* kolaborasi, kunci entitas, dan token undangan disimpan di memori proses (*in-memory*); sistem belum mendukung penyebaran multi-instans.
 4. Fitur kolaborasi hanya aktif pada halaman pengisian *recall* dan halaman pencarian makanan. Portal admin **tidak** dilengkapi kolaborasi real-time maupun penguncian entitas pada versi 1, meskipun mekanismenya telah tersedia pada lapis layanan.
 5. Perhitungan nilai gizi terbatas pada empat zat gizi makro: energi, protein, karbohidrat, dan lemak.
@@ -200,20 +209,24 @@ Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 7. Rekomendasi LLM bersifat informatif dan tidak divalidasi sebagai nasihat medis.
 8. Validasi akurasi asupan terhadap metode penimbangan makanan (*weighed food record*) berada di luar cakupan.
 9. Pengujian keamanan terbatas pada verifikasi mekanisme otorisasi yang dirancang; tidak dilakukan uji penetrasi menyeluruh.
+10. Dukungan luring terbatas pada **pengiriman laporan**: laporan yang dikirim tanpa koneksi diantrekan di peramban dan disinkronkan saat koneksi pulih. Pencarian makanan, pemuatan foto porsi yang belum pernah dibuka, kolaborasi real-time, dan analisis LLM tetap memerlukan koneksi. *Service worker* hanya didaftarkan pada *build* produksi di luar `localhost`.
+11. Halaman web katalog *Find Your Food* pada versi 1 berada di balik login karena dipasangi sesi kolaborasi yang memerlukan identitas pengguna; yang benar-benar terbuka tanpa token adalah *endpoint* API `/public/*`-nya (lihat catatan pada Subbab 4.1.4).
+12. Perubahan peran peserta secara real-time oleh pemilik ruang (`update_user_role`) tersedia pada lapis layanan dan ditangani klien saat diterima, tetapi belum memiliki kontrol antarmuka untuk memicunya pada versi 1.
 
 ## 1.6 Ruang Lingkup Penelitian
 
-**Ruang lingkup fungsional** mencakup **lima modul**:
+**Ruang lingkup fungsional** mencakup **lima modul** dan satu kemampuan lintas modul:
 
 | Modul | Cakupan |
 |---|---|
-| Modul Responden | Autentikasi, pemilihan survei aktif, *wizard* recall enam langkah, pengiriman laporan, panel rekomendasi AI, halaman ringkasan |
-| Modul Katalog Publik (*Find Your Food*) | Pencarian makanan tanpa autentikasi, katalog 13 kategori, halaman detail makanan dengan foto porsi interaktif tipe *series* dan *range*, tabel berat per foto, informasi gizi per 100 g, navigasi antar makanan dalam kategori |
-| Modul Kolaborasi | Ruang sesi, kehadiran, kursor bersama, mode ikut, penyelarasan langkah, umpan aktivitas, undangan berperan. Diaktifkan pada halaman *recall* dan pencarian makanan; **tidak** pada portal admin |
+| Modul Responden | Autentikasi (registrasi, login, penyegaran token), pemilihan survei aktif, *wizard* recall enam langkah, pengiriman laporan, panel rekomendasi AI, halaman ringkasan, halaman profil (ubah data diri, foto, kata sandi, dan riwayat laporan milik sendiri) |
+| Modul Katalog (*Find Your Food*) | Pencarian makanan melalui *endpoint* publik tanpa token, katalog 13 kategori, halaman detail makanan dengan foto porsi interaktif tipe *series* dan *range* (foto panduan), area poligon terbitan di atas foto, tabel berat per foto, informasi gizi per 100 g, navigasi antar makanan dalam kategori, penanda simpan (*bookmark*) |
+| Modul Kolaborasi | Ruang sesi, kehadiran, kursor bersama, mode ikut, penyelarasan langkah, umpan aktivitas, undangan berperan, **kanvas langsung** di atas foto porsi (pensil, persegi, lingkaran, penunjuk laser, penghapus), dan **obrolan kursor**. Diaktifkan pada halaman *recall* dan katalog makanan; **tidak** pada portal admin |
 | Modul AI | Analisis gizi berbasis LLM, normalisasi keluaran, penyimpanan hasil, jejak audit |
-| Modul Admin | CRUD survei, makanan, zat gizi, kategori, metode porsi, set foto *as served*, CMS anotasi dengan penyimpanan otomatis, telaah dan ekspor *submission* ke CSV |
+| Modul Admin | Dasbor, CRUD survei (termasuk gandakan dan terbitkan ulang token), makanan, zat gizi, kategori, metode porsi, set foto *as served*, foto makanan terpadu, unggah gambar, CMS anotasi dengan penyimpanan otomatis, telaah dan ekspor *submission* ke CSV |
+| Dukungan Luring (lintas modul) | *Progressive Web App* yang dapat dipasang, *service worker* untuk kerangka aplikasi dan aset gambar, antrean laporan di IndexedDB, sinkronisasi otomatis saat koneksi pulih, dan pencegahan duplikat melalui kunci idempotensi |
 
-**Ruang lingkup teknis.** Antarmuka: Next.js (App Router), React, TypeScript, Tailwind CSS, Zustand, TanStack Query. Layanan: Go 1.21, Gin, GORM, `gorilla/websocket`. Basis data: MySQL 8. Model bahasa: Groq API (bawaan `llama3-8b-8192`).
+**Ruang lingkup teknis.** Antarmuka: Next.js (App Router), React, TypeScript, Tailwind CSS, Zustand, TanStack Query, Dexie (IndexedDB), *Service Worker*. Layanan: Go 1.22, Gin, GORM, `gorilla/websocket`, `gin-metrics` (Prometheus). Basis data: MySQL 8. Model bahasa: Groq API (bawaan `llama-3.3-70b-versatile`, dapat diganti melalui variabel lingkungan `GROQ_MODEL`). Penyebaran: Docker Compose (layanan, MySQL, Prometheus, Grafana).
 
 **Ruang lingkup pengujian.** Pengujian kotak-hitam terhadap seluruh kebutuhan fungsional; pengujian kinerja terhadap latensi dan *throughput* kolaborasi; pengujian penerimaan pengguna menggunakan *System Usability Scale*.
 
@@ -221,7 +234,7 @@ Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 
 **BAB I PENDAHULUAN** memuat latar belakang, rumusan masalah, tujuan, manfaat, batasan, ruang lingkup, dan sistematika penulisan.
 
-**BAB II TINJAUAN PUSTAKA** menguraikan landasan teori mengenai metode R24J, sistem R24J terkomputerisasi, *computer-supported cooperative work*, komunikasi real-time, model konsistensi data kolaboratif, kontrol akses berbasis peran, *large language model*, estimasi porsi berbasis foto, serta posisi penelitian ini terhadap penelitian terdahulu.
+**BAB II TINJAUAN PUSTAKA** menguraikan landasan teori mengenai metode R24J, sistem R24J terkomputerisasi, *computer-supported cooperative work*, komunikasi real-time, model konsistensi data kolaboratif, kontrol akses berbasis peran, *large language model*, estimasi porsi berbasis foto, katalog pangan, aplikasi web progresif dan arsitektur *offline-first*, serta posisi penelitian ini terhadap penelitian terdahulu.
 
 **BAB III METODOLOGI PENELITIAN** memaparkan desain penelitian, populasi dan sampel, alat dan bahan, tahapan pengembangan, analisis kebutuhan, perancangan sistem, teknik pengumpulan data, teknik pengujian, dan jadwal penelitian.
 
@@ -246,27 +259,33 @@ Praktik R24J modern umumnya menerapkan **pendekatan lintasan berganda** (*multip
 
 ## 2.2 Sistem *Dietary Recall* Terkomputerisasi
 
-Komputerisasi R24J bertujuan menghilangkan ketergantungan pada pewawancara sekaligus mengotomatiskan pengodean makanan menjadi nilai gizi. Dua sistem menjadi rujukan utama.
+Komputerisasi R24J bertujuan menghilangkan ketergantungan pada pewawancara sekaligus mengotomatiskan pengodean makanan menjadi nilai gizi. Tiga sistem menjadi pembanding dalam penelitian ini: ASA24 dan Intake24 sebagai rujukan utama, serta myfood24 sebagai pembanding tambahan.
 
-**ASA24** (*Automated Self-Administered 24-Hour Dietary Assessment Tool*) dikembangkan National Cancer Institute sebagai perkakas berbasis web gratis untuk mengumpulkan *recall* yang terkode otomatis. Sistem ini terdiri atas aplikasi Responden untuk memasukkan data dan aplikasi Peneliti untuk mengelola logistik studi serta memperoleh data pada tingkat zat gizi dan makanan (National Cancer Institute, 2012). Pemisahan dua aplikasi ini sejalan dengan pemisahan modul Responden dan modul Admin pada penelitian ini.
+**ASA24** (*Automated Self-Administered 24-Hour Dietary Assessment Tool*) dikembangkan National Cancer Institute sebagai perkakas berbasis web gratis untuk mengumpulkan *recall* yang terkode otomatis. Alur wawancaranya diadaptasi dari *Automated Multiple-Pass Method* (AMPM) milik USDA, yaitu metode lintasan berganda yang terbukti menekan bias pelaporan asupan energi (Moshfegh et al., 2008; Subar et al., 2012) `[⚠ VERIFIKASI kedua rujukan ini pada sumber aslinya sebelum dipakai]`. Sistem ini terdiri atas aplikasi Responden untuk memasukkan data dan aplikasi Peneliti untuk mengelola logistik studi serta memperoleh data pada tingkat zat gizi dan makanan (National Cancer Institute, 2012). Pemisahan dua aplikasi ini sejalan dengan pemisahan modul Responden dan modul Admin pada penelitian ini.
 
 **Intake24** merupakan sistem R24J daring berbasis metode lintasan berganda otomatis yang menyediakan lebih dari 2.400 foto makanan untuk lebih dari 100 jenis makanan, dengan ukuran porsi diturunkan dari *UK National Diet and Nutrition Surveys* (Bradley et al., 2016). Validasi terhadap 167 responden berusia 11–24 tahun menunjukkan kesesuaian yang baik antara Intake24 dan *recall* yang dipandu pewawancara (Bradley et al., 2016). Uji lapangan berikutnya melaporkan sistem ini ramah pengguna, menyenangkan, serta mudah diikuti dan dipahami; lebih dari 75% pengguna merasa asupannya tertangkap akurat, meskipun hanya 60% peserta yang bersedia ikut berhasil menyelesaikan setidaknya satu *recall* (Bradley et al., 2018). Validitas asupan energi Intake24 juga telah diuji terhadap pengukuran pengeluaran energi total menggunakan *doubly labelled water* pada 98 orang dewasa Inggris berusia 40–65 tahun (Foster et al., 2019).
 
+**myfood24** (*Measure Your Food on One Day*) dikembangkan di University of Leeds sebagai perkakas R24J daring untuk populasi Britania Raya, dengan basis data pangan bermerek yang besar dan foto porsi sebagai alat bantu estimasi (Carter et al., 2015) `[⚠ VERIFIKASI rincian fitur dan angka pada publikasi aslinya; isi sel myfood24 pada Tabel 2.1 dan tabel Subbab 4.7.6 ditulis konservatif dan perlu dicocokkan]`. Sama seperti dua sistem sebelumnya, rancangannya berpusat pada pengisian oleh satu pengguna dalam satu sesi.
+
 **Tabel 2.1 Perbandingan sistem *dietary recall* terkomputerisasi**
 
-| Aspek | ASA24 | Intake24 | Atlas Food (penelitian ini) |
-|---|---|---|---|
-| Mode pengisian | Mandiri | Mandiri | Mandiri **atau** berpendamping real-time |
-| Estimasi porsi | Foto & ukuran rumah tangga | > 2.400 foto porsi | Foto *as served* tipe `series`/`range` + berat manual |
-| Pengodean gizi | Otomatis | Otomatis | Otomatis (tabel komposisi internal) |
-| Kolaborasi real-time | Tidak ada | Tidak ada | **Ada** (kehadiran, kursor, mode ikut, langkah) |
-| Kontrol peran sesi | — | — | **Ada** (*owner*/*editor*/*viewer*, tiga lapis) |
-| Umpan balik ke responden | Terbatas | Terbatas | Rekomendasi berbasis LLM berkendala skema |
-| CMS anotasi foto | Tidak dipublikasikan | Tidak dipublikasikan | **Ada** (poligon, draft→published) |
-| Katalog publik tanpa login | Tidak ada | Tidak ada | **Ada** (*Find Your Food*, pencarian + foto porsi visual) |
-| Basis pangan | Amerika Serikat | Britania Raya | Indonesia |
+| Aspek | ASA24 | Intake24 | myfood24 | Atlas Food (penelitian ini) |
+|---|---|---|---|---|
+| Pengembang | National Cancer Institute (AS) | Newcastle University (Britania Raya) | University of Leeds (Britania Raya) | Penelitian ini |
+| Mode pengisian | Mandiri | Mandiri | Mandiri | Mandiri **atau** berpendamping real-time |
+| Alur wawancara | Lintasan berganda (adaptasi AMPM) | Lintasan berganda otomatis | Pencarian dan pencatatan per waktu makan | *Wizard* enam langkah yang memetakan lintasan berganda |
+| Estimasi porsi | Foto & ukuran rumah tangga | > 2.400 foto porsi | Foto porsi & ukuran kemasan | Foto *as served* tipe `series`/`range` + berat manual |
+| Pengodean gizi | Otomatis | Otomatis | Otomatis | Otomatis (tabel komposisi internal, dihitung ulang di server) |
+| Kolaborasi real-time | Tidak ada | Tidak ada | Tidak ada | **Ada** (kehadiran, kursor, mode ikut, langkah) |
+| Penunjuk visual bersama pada foto porsi | Tidak ada | Tidak ada | Tidak ada | **Ada** (kanvas langsung: coretan, bentuk, laser) |
+| Kontrol peran sesi | — | — | — | **Ada** (*owner*/*editor*/*viewer*, tiga lapis) |
+| Umpan balik ke responden | Terbatas | Terbatas | Ringkasan gizi | Rekomendasi berbasis LLM berkendala skema |
+| CMS anotasi foto | Tidak dipublikasikan | Tidak dipublikasikan | Tidak dipublikasikan | **Ada** (poligon, draft→published) |
+| Katalog porsi interaktif di luar alur survei | Tidak ada | Tidak ada | Tidak ada | **Ada** (*Find Your Food*; API publik tanpa token) |
+| Pengiriman saat luring | Tidak didokumentasikan | Tidak didokumentasikan | Tidak didokumentasikan | **Ada** (antrean IndexedDB + sinkronisasi idempoten) |
+| Basis pangan | Amerika Serikat | Britania Raya | Britania Raya | Indonesia |
 
-Perbedaan pada dua baris bercetak tebal itulah yang menjadi celah penelitian.
+Keterangan "tidak ada" dan "tidak didokumentasikan" merujuk pada apa yang dilaporkan dalam publikasi rujukan, bukan hasil pengujian langsung terhadap sistem pembanding. Perbedaan pada baris **kolaborasi real-time** dan **kontrol peran sesi** itulah yang menjadi celah penelitian; baris lain yang bercetak tebal merupakan fitur pendukung.
 
 ## 2.3 *Computer-Supported Cooperative Work* dan *Workspace Awareness*
 
@@ -281,7 +300,7 @@ Unsur pengetahuan dalam kerangka tersebut lazim diringkas sebagai pertanyaan *si
 | Kehadiran | Siapa yang ada di sini? | Daftar `presence_list`, avatar peserta |
 | Identitas | Siapa yang melakukan itu? | `user_id` + warna deterministik per pengguna |
 | Lokasi | Di mana mereka bekerja? | Kursor bersama, `viewport_sync`, **langkah *wizard*** |
-| Aksi | Apa yang sedang mereka lakukan? | Indikator "sedang mencari", umpan aktivitas |
+| Aksi | Apa yang sedang mereka lakukan? | Indikator "sedang mencari", umpan aktivitas, coretan dan penunjuk laser pada kanvas langsung, obrolan kursor |
 | Jangkauan | Apa yang dapat mereka lihat? | Mode ikut (*follow mode*) |
 | Kepemilikan | Siapa yang boleh mengubah? | Peran per-ruang *owner*/*editor*/*viewer* |
 
@@ -319,9 +338,9 @@ Untuk kebutuhan penyuntingan bersama yang secara potensial ada — yaitu penyunt
 
 Seorang responden dapat menjadi *owner* di ruangnya sendiri sekaligus *viewer* di ruang rekan; peran ruang tidak pernah menaikkan hak akses *endpoint* REST.
 
-Prinsip keamanan yang diterapkan adalah **fail-closed** (gagal-tertutup): ketika status izin belum diketahui, sistem menolak, bukan mengizinkan. Prinsip ini menutup celah waktu antara terbukanya koneksi dan tibanya informasi peran dari server — celah yang pada implementasi awal sistem ini terbukti dapat dieksploitasi (Subbab 4.6, cacat D-11 pada kategori otorisasi).
+Prinsip keamanan yang diterapkan adalah **fail-closed** (gagal-tertutup): ketika status izin belum diketahui, sistem menolak, bukan mengizinkan. Prinsip ini menutup celah waktu antara terbukanya koneksi dan tibanya informasi peran dari server — celah yang pada implementasi awal sistem ini terbukti dapat dieksploitasi (Subbab 4.3, cacat D-11 pada kategori otorisasi).
 
-Penegakan juga dilakukan **berlapis** (*defense in depth*): satu lapis pertahanan yang gagal tidak langsung membuka akses. Rincian tiga lapis yang digunakan disajikan pada Subbab 4.4.
+Penegakan juga dilakukan **berlapis** (*defense in depth*): satu lapis pertahanan yang gagal tidak langsung membuka akses. Rincian tiga lapis yang digunakan disajikan pada Subbab 4.1.2.
 
 ## 2.7 *Large Language Model* dan *Schema-Constrained Generation*
 
@@ -333,7 +352,7 @@ Penegakan juga dilakukan **berlapis** (*defense in depth*): satu lapis pertahana
 
 Temuan tersebut secara langsung membentuk keputusan desain penelitian ini: **LLM tidak digunakan untuk menghitung nilai gizi**. Perhitungan gizi dilakukan secara deterministik dari tabel komposisi pangan dengan rumus `(nilai per 100 g ÷ 100) × berat porsi`. LLM hanya bertugas menyusun **interpretasi naratif dan saran** di atas angka yang sudah pasti tersebut. Pembagian peran ini menempatkan LLM pada wilayah yang menjadi kekuatannya (bahasa) dan menjauhkannya dari wilayah yang terbukti lemah (kuantifikasi).
 
-**Risiko yang harus dimitigasi:** halusinasi, saran yang tidak aman secara klinis, dan pengiriman data kesehatan ke penyedia pihak ketiga. Mitigasi yang diterapkan diuraikan pada Subbab 4.3 dan 5.2.
+**Risiko yang harus dimitigasi:** halusinasi, saran yang tidak aman secara klinis, dan pengiriman data kesehatan ke penyedia pihak ketiga. Mitigasi yang diterapkan diuraikan pada Subbab 4.1.3 dan 5.2.
 
 ## 2.8 Estimasi Porsi Berbasis Foto
 
@@ -341,10 +360,12 @@ Metode *as served* menyajikan serangkaian foto porsi dengan berat yang telah dit
 
 Penelitian ini mengenali dua tipe aset foto porsi berdasarkan karakteristik makanan, terinspirasi dari buku Atlas Makananku (BRIN × UPI):
 
+**Tabel 2.3 Tipe foto porsi `series` dan `range`**
+
 | Tipe (`photo_type`) | Deskripsi | Perilaku antarmuka |
 |---|---|---|
-| `series` | 4–8 foto bertahap dari porsi kecil ke besar (contoh: Nasi 50 g → 350 g, diberi kode A–H) | *Slider* atau *carousel* horizontal; klik thumbnail → foto menjadi tampilan utama dengan animasi transisi halus |
-| `range` | Variasi bentuk/ukuran alami yang tidak bertahap ketat (contoh: berbagai ukuran Ayam Goreng) | Grid *thumbnail*; klik → tampilan utama |
+| `series` | 4–8 foto terpisah dan bertahap dari porsi kecil ke besar (contoh: Nasi 50 g → 350 g, diberi kode A–H) | Satu foto utama dengan deret *thumbnail* yang dapat digulir horizontal; klik *thumbnail* → foto menjadi tampilan utama dengan animasi transisi halus |
+| `range` | **Foto panduan** (*guide image*): satu foto yang memuat seluruh variasi ukuran sekaligus (contoh: berbagai ukuran Ayam Goreng dalam satu bingkai) | Satu foto besar dengan label kode dan berat setiap ukuran sebagai *overlay*; bila foto tersebut memiliki anotasi terbitan, area poligon tiap ukuran dapat ditampilkan/disembunyikan dan dipilih |
 
 Perbedaan tipe ini disimpan pada kolom `photo_type ENUM('series', 'range')` di tabel `foods`, sehingga antarmuka dapat memilih komponen visualisasi yang sesuai secara dinamis tanpa perubahan kode.
 
@@ -354,9 +375,19 @@ Tantangan praktisnya adalah **pengelolaan aset**. Foto sajian majemuk (satu piri
 
 Sistem R24J umumnya membatasi akses informasi pangan kepada pengguna yang sudah terdaftar dan terotentikasi. Namun terdapat kebutuhan yang lebih luas: peneliti gizi, tenaga kesehatan, dan masyarakat umum kerap perlu mencari referensi porsi makanan tanpa menjalani proses pendaftaran. Atlas Makananku (buku referensi porsi pangan Indonesia yang diterbitkan BRIN × UPI) menyediakan konten tersebut dalam bentuk cetak; versi interaktif berbasis web belum lazim tersedia.
 
-Penelitian ini menjawab celah tersebut dengan modul **Find Your Food** — katalog makanan yang dapat diakses publik tanpa autentikasi. Modul ini memanfaatkan data yang sudah ada di basis data (*endpoint* `/public/*`) dan menampilkan foto porsi secara interaktif sesuai tipe `series` atau `range`, disertai tabel berat dan informasi gizi. Penambahan modul ini tidak menambah beban pemeliharaan data karena menggunakan tabel yang sama dengan modul recall.
+Penelitian ini menjawab celah tersebut dengan modul **Find Your Food** — katalog makanan yang terpisah dari alur pengisian survei. Modul ini memanfaatkan data yang sudah ada di basis data melalui *endpoint* `/public/*` yang tidak mensyaratkan token, dan menampilkan foto porsi secara interaktif sesuai tipe `series` atau `range`, disertai tabel berat dan informasi gizi. Penambahan modul ini tidak menambah beban pemeliharaan data karena menggunakan tabel yang sama dengan modul recall. Status akses halaman webnya pada versi 1 dijelaskan pada Subbab 4.1.4.
 
-## 2.10 *State of the Art*
+## 2.10 Aplikasi Web Progresif dan Arsitektur *Offline-First*
+
+Pengumpulan data gizi di lapangan kerap berlangsung di wilayah dengan konektivitas yang tidak stabil. Aplikasi web biasa gagal total pada kondisi ini: halaman tidak termuat, dan — yang lebih merugikan — laporan yang sudah selesai diisi hilang ketika pengiriman gagal.
+
+***Progressive Web App*** (PWA) adalah aplikasi web yang memanfaatkan tiga komponen peramban untuk berperilaku mendekati aplikasi terpasang: **manifes aplikasi** yang membuatnya dapat dipasang ke layar utama, ***service worker*** yaitu skrip latar yang mencegat permintaan jaringan dan dapat melayaninya dari *cache*, serta **penyimpanan sisi klien** seperti IndexedDB untuk data terstruktur. `[⚠ TAMBAHKAN rujukan: spesifikasi W3C Service Workers dan Web App Manifest, atau buku ajar PWA yang dipakai kampusmu]`
+
+Arsitektur ***offline-first*** memperlakukan ketiadaan jaringan sebagai keadaan normal, bukan galat. Data ditulis lebih dahulu ke penyimpanan lokal, lalu disinkronkan ke server ketika koneksi tersedia. Dua strategi *cache* yang lazim dipakai dan diterapkan pada penelitian ini adalah ***network-first*** (utamakan jaringan, jatuh ke *cache* bila gagal) untuk halaman, dan ***cache-first*** untuk aset yang jarang berubah seperti gambar.
+
+Pola ini membawa satu persoalan baru: **pengiriman ganda**. Ketika klien mengirim laporan lalu koneksi putus sebelum balasan tiba, klien tidak dapat membedakan "permintaan tidak sampai" dari "permintaan sampai tetapi balasannya hilang". Mengirim ulang pada kasus kedua menghasilkan laporan duplikat — cacat serius pada data penelitian. Solusi bakunya adalah **kunci idempotensi** (*idempotency key*): klien membangkitkan pengenal unik untuk setiap laporan sebelum pengiriman pertama dan menyertakannya pada setiap percobaan; server menyimpan pengenal itu dengan kendala unik dan mengembalikan hasil yang sama bila pengenal yang sama datang lagi. Dengan demikian pengiriman ulang menjadi aman berapa kali pun diulang. `[⚠ TAMBAHKAN rujukan mengenai idempotensi pada sistem terdistribusi]`
+
+## 2.11 *State of the Art*
 
 **Tabel 2.2 *State of the art* penelitian terdahulu**
 
@@ -366,17 +397,20 @@ Penelitian ini menjawab celah tersebut dengan modul **Find Your Food** — katal
 | 2 | Bradley et al. (2016) | Validasi Intake24 pada remaja | Lintasan berganda otomatis, > 2.400 foto porsi | Kesesuaian baik dengan *recall* berpewawancara (n = 167, usia 11–24) | Tidak ada dukungan kolaborasi |
 | 3 | Bradley et al. (2018) | Uji lapangan Intake24 | Survei nasional Skotlandia | Ramah pengguna; > 75% merasa asupan tertangkap akurat; **60%** menyelesaikan ≥ 1 *recall* | Hambatan penyelesaian belum ditangani lewat pendampingan |
 | 4 | Foster et al. (2019) | Validitas & reliabilitas Intake24 | *Doubly labelled water*, n = 98 dewasa | Validitas asupan energi terukur terhadap standar emas | Ranah validasi gizi, bukan rekayasa kolaborasi |
-| 5 | Gutwin & Greenberg (2002) | Kerangka *workspace awareness* | Teori deskriptif CSCW | Kerangka tiga bagian; *awareness* menurunkan usaha koordinasi | Diterapkan pada *groupware* berbasis dokumen, bukan instrumen survei |
-| 6 | Shapiro et al. (2011) | CRDT | Tipe data replikasi bebas konflik | Jaminan konvergensi tanpa sinkronisasi jarak jauh | Ditujukan untuk *co-editing*; tidak sesuai instrumen *self-report* |
-| 7 | Fette & Melnikov (2011) | Protokol WebSocket | RFC 6455 | Kanal dua arah penuh di atas satu koneksi TCP | Protokol dasar; pola penerapan domain tidak dibahas |
-| 8 | *Am. J. Clin. Nutr.* (2025) | Evaluasi 3 LLM untuk estimasi gizi dari foto | ChatGPT-4o, Claude 3.5, Gemini 1.5 | Akurasi setara *self-report* tradisional; *underestimation* sistematis pada porsi besar | LLM belum layak untuk kuantifikasi presisi → perlu pembagian peran yang tepat |
-| **9** | **Penelitian ini (2026)** | **R24J kolaboratif + LLM** | **Next.js, Go, WebSocket, Groq** | **Sinkronisasi langkah *wizard*; otorisasi tiga lapis; LLM berkendala skema** | **—** |
+| 5 | Carter et al. (2015) `[⚠ VERIFIKASI]` | Pengembangan myfood24 | Perkakas R24J daring, basis data pangan bermerek, foto porsi | Perkakas layak dipakai untuk populasi Britania Raya | Satu pengguna per sesi; tidak ada pendampingan real-time |
+| 6 | Gutwin & Greenberg (2002) | Kerangka *workspace awareness* | Teori deskriptif CSCW | Kerangka tiga bagian; *awareness* menurunkan usaha koordinasi | Diterapkan pada *groupware* berbasis dokumen, bukan instrumen survei |
+| 7 | Shapiro et al. (2011) | CRDT | Tipe data replikasi bebas konflik | Jaminan konvergensi tanpa sinkronisasi jarak jauh | Ditujukan untuk *co-editing*; tidak sesuai instrumen *self-report* |
+| 8 | Fette & Melnikov (2011) | Protokol WebSocket | RFC 6455 | Kanal dua arah penuh di atas satu koneksi TCP | Protokol dasar; pola penerapan domain tidak dibahas |
+| 9 | *Am. J. Clin. Nutr.* (2025) | Evaluasi 3 LLM untuk estimasi gizi dari foto | ChatGPT-4o, Claude 3.5, Gemini 1.5 | Akurasi setara *self-report* tradisional; *underestimation* sistematis pada porsi besar | LLM belum layak untuk kuantifikasi presisi → perlu pembagian peran yang tepat |
+| **10** | **Penelitian ini (2026)** | **R24J kolaboratif + LLM** | **Next.js, Go, WebSocket, Groq, PWA** | **Sinkronisasi langkah *wizard*; otorisasi tiga lapis; LLM berkendala skema; pengiriman luring idempoten** | **—** |
 
-**Posisi penelitian.** Baris 1–4 menegaskan bahwa komputerisasi R24J telah mapan dan tervalidasi, namun seluruhnya bersifat mandiri penuh. Baris 5–7 menyediakan landasan teknis kolaborasi real-time yang matang, tetapi belum pernah diterapkan pada instrumen survei gizi. Baris 8 menetapkan batas peran yang tepat bagi LLM di ranah gizi. Penelitian ini menggabungkan ketiga aliran tersebut dan menyumbang tiga kebaruan:
+**Posisi penelitian.** Baris 1–5 menegaskan bahwa komputerisasi R24J telah mapan dan tervalidasi, namun seluruhnya bersifat mandiri penuh. Baris 6–8 menyediakan landasan teknis kolaborasi real-time yang matang, tetapi belum pernah diterapkan pada instrumen survei gizi. Baris 9 menetapkan batas peran yang tepat bagi LLM di ranah gizi. Penelitian ini menggabungkan ketiga aliran tersebut dan menyumbang tiga kebaruan:
 
 - **K-1.** Sinkronisasi langkah *wizard* lintas pengguna pada aplikasi satu halaman — persoalan yang tidak muncul pada *groupware* berbasis dokumen karena setiap keadaan di sana memiliki representasi URL atau posisi gulir.
 - **K-2.** Model otorisasi peran per-ruang berlapis tiga yang bersifat *fail-closed* dan tahan terhadap upaya kenaikan hak akses melalui navigasi ulang.
 - **K-3.** Pembagian peran yang tegas antara perhitungan gizi deterministik dan interpretasi naratif LLM, disertai keluaran berkendala skema, penyimpanan hasil per-*submission*, dan jejak audit yang memungkinkan evaluasi *post-hoc*.
+
+Di luar tiga kebaruan tersebut, sistem memuat dua **fitur pendukung** yang tidak diklaim sebagai kebaruan tetapi relevan bagi kelayakan pemakaian di lapangan: pengiriman laporan saat luring dengan sinkronisasi idempoten (Subbab 2.10), dan kanvas langsung di atas foto porsi yang memperkaya unsur "aksi" pada kerangka *workspace awareness* (Subbab 2.3).
 
 ---
 ---
@@ -399,16 +433,16 @@ flowchart TD
     D -.->|"temuan cacat"| C
 ```
 
-Panah putus-putus dari tahap Pengujian kembali ke Implementasi menunjukkan iterasi perbaikan cacat yang benar-benar terjadi dalam penelitian ini dan dilaporkan pada Subbab 4.6.
+Panah putus-putus dari tahap Pengujian kembali ke Implementasi menunjukkan iterasi perbaikan cacat yang benar-benar terjadi dalam penelitian ini dan dilaporkan pada Subbab 4.3.
 
 **Uraian tiap tahap:**
 
 | Tahap | Kegiatan | Luaran |
 |---|---|---|
-| 1. Analisis Kebutuhan | Studi literatur R24J, CSCW, dan LLM; analisis ASA24 & Intake24; perumusan kebutuhan | Tabel 3.2 & 3.3 |
-| 2. Perancangan | Arsitektur sistem, *use case*, *activity*, *sequence*, *class diagram*, ERD, rancangan antarmuka | Gambar 3.2–3.10 |
+| 1. Analisis Kebutuhan | Studi literatur R24J, CSCW, LLM, dan PWA; analisis ASA24, Intake24, & myfood24; perumusan kebutuhan | Tabel 3.2 & 3.3 |
+| 2. Perancangan | Arsitektur sistem, *use case*, *activity*, *sequence*, *class diagram*, ERD, rancangan antarmuka | Gambar 3.2–3.11 |
 | 3. Implementasi | Pengodean layanan Go (REST + WebSocket *hub*), antarmuka Next.js, migrasi basis data | Kode sumber, basis data |
-| 4. Pengujian | Kotak-hitam, penelusuran *end-to-end*, kinerja, UAT | Tabel 4.5–4.12 |
+| 4. Pengujian | Kotak-hitam, penelusuran *end-to-end*, kinerja, UAT | Tabel 4.5–4.12, 4.14 |
 | 5. Pemeliharaan | Perbaikan cacat temuan, dokumentasi teknis | Tabel 4.9 |
 
 ## 3.2 Populasi dan Sampel
@@ -457,13 +491,20 @@ Kriteria eksklusi: peserta yang tidak menyelesaikan seluruh rangkaian tugas peng
 | | TanStack Query | — | Pengelolaan keadaan server |
 | | Zod + React Hook Form | — | Validasi formulir admin |
 | | lucide-react | — | Pustaka ikon |
-| Perangkat lunak — layanan | Go | 1.21 | Bahasa pemrograman layanan |
+| | Dexie | v4 | Pembungkus IndexedDB untuk antrean laporan luring |
+| | *Service Worker* + *Web App Manifest* | API peramban | *Cache* kerangka aplikasi dan aset; pemasangan PWA |
+| | uuid | — | Pembangkit kunci idempotensi (`local_id`) |
+| | Canvas 2D API | API peramban | Perenderan kanvas langsung di atas foto porsi |
+| Perangkat lunak — layanan | Go | 1.22 | Bahasa pemrograman layanan |
 | | Gin | 1.9.1 | Kerangka kerja HTTP |
 | | gorilla/websocket | 1.5.3 | Implementasi WebSocket |
 | | GORM + driver MySQL | 1.30 / 1.5.7 | Pemetaan objek-relasional |
 | | golang-jwt/jwt | v5 | Autentikasi berbasis token |
+| | bcrypt (`golang.org/x/crypto`) | — | *Hashing* kata sandi |
+| | gin-metrics | 0.1.13 | Ekspor metrik HTTP dalam format Prometheus |
 | Basis data | MySQL | 8.x, InnoDB, utf8mb4 | Penyimpanan data |
-| Layanan eksternal | Groq API | Model `llama3-8b-8192` | Pembangkitan rekomendasi gizi |
+| Layanan eksternal | Groq API | Model bawaan `llama-3.3-70b-versatile` (dapat dikonfigurasi) | Pembangkitan rekomendasi gizi |
+| Pemantauan & penyebaran | Docker Compose, Prometheus, Grafana | — | Penyebaran layanan dan pemantauan metrik |
 | Perkakas | Visual Studio Code, Git, Postman | — | Pengodean, versi, uji API |
 | Bahan | Tabel komposisi pangan | `[⚠ SEBUTKAN sumber: TKPI/DKBM]` | Sumber nilai gizi |
 | | Foto porsi *as served* (tipe `series` & `range`) | Terinspirasi Atlas Makananku (BRIN × UPI) | Estimasi porsi visual |
@@ -474,7 +515,7 @@ Kriteria eksklusi: peserta yang tidak menyelesaikan seluruh rangkaian tugas peng
 | Teknik | Sumber | Data yang diperoleh | Tahap |
 |---|---|---|---|
 | Studi literatur | Artikel jurnal, dokumentasi resmi, RFC | Landasan teori, celah penelitian, praktik baku | 1 |
-| Analisis sistem sejenis | ASA24, Intake24 | Perbandingan fitur (Tabel 2.1) | 1 |
+| Analisis sistem sejenis | ASA24, Intake24, myfood24 (berdasarkan publikasi) | Perbandingan fitur (Tabel 2.1) | 1 |
 | Observasi & pengujian mandiri | Sistem yang dibangun | Hasil uji kotak-hitam, temuan cacat | 4 |
 | Instrumentasi perangkat lunak | *Log* aplikasi, tabel `ai_result_logs`, `/collab/stats` | Latensi, jumlah token, *throughput* | 4 |
 | Kuesioner | Responden & pendamping | Skor SUS, umpan balik kualitatif | 4 |
@@ -492,9 +533,10 @@ Catatan metodologis: sebagian data kinerja **tidak memerlukan instrumentasi tamb
 |---|---|---|---|
 | F-01 | Sistem dapat mendaftarkan dan mengautentikasi pengguna dengan peran admin atau responden | Semua | Wajib |
 | F-02 | Sistem dapat menampilkan daftar survei berstatus aktif | Responden | Wajib |
-| F-02a | Sistem menyediakan halaman katalog publik (*Find Your Food*) yang dapat diakses tanpa autentikasi untuk mencari makanan dan melihat foto porsi interaktif | Publik (tanpa login) | Wajib |
-| F-02b | Halaman *Find Your Food* menampilkan 13 kategori makanan dan mendukung pencarian *full-text* minimal 3 karakter | Publik | Wajib |
-| F-02c | Halaman detail makanan menampilkan foto porsi sesuai `photo_type` (`series` dengan *slider* A–H, atau `range` dengan *grid*), tabel berat per foto, dan informasi gizi per 100 g | Publik | Wajib |
+| F-02a | Sistem menyediakan katalog makanan (*Find Your Food*) di luar alur survei untuk mencari makanan dan melihat foto porsi interaktif; data dilayani *endpoint* `/public/*` tanpa token ⚠ | Pengguna katalog | Wajib |
+| F-02b | Halaman *Find Your Food* menampilkan 13 kategori makanan dan mendukung pencarian *full-text* minimal 3 karakter | Pengguna katalog | Wajib |
+| F-02c | Halaman detail makanan menampilkan foto porsi sesuai `photo_type` (`series` dengan deret *thumbnail* A–H, atau `range` berupa satu foto panduan berlabel), tabel berat per foto, dan informasi gizi per 100 g | Pengguna katalog | Wajib |
+| F-02d | Pengguna katalog dapat menandai makanan sebagai tersimpan (*bookmark*) di perambannya | Pengguna katalog | Opsional |
 | F-03 | Sistem dapat mendaftarkan responden sebagai partisipan survei dan menerbitkan token akses | Responden | Wajib |
 | F-04 | Sistem dapat menampilkan pilihan waktu makan sesuai konfigurasi survei beserta jam bawaan | Responden | Wajib |
 | F-05 | Sistem dapat mencari makanan dan minuman berdasarkan kata kunci minimal tiga karakter | Responden | Wajib |
@@ -526,6 +568,25 @@ Catatan metodologis: sebagian data kinerja **tidak memerlukan instrumentasi tamb
 | F-31 | Sistem dapat menerbitkan dan menarik terbit anotasi (siklus *draft*–*published*) | Admin | Wajib |
 | F-32 | Sistem dapat menampilkan dan mengekspor daftar *submission* per survei | Admin | Wajib |
 | F-33 | Sistem dapat menyimpan progres penyuntingan anotasi secara otomatis (*autosave*) | Admin | Wajib |
+| F-34 | Sistem dapat mengantrekan laporan di peramban ketika pengiriman dilakukan tanpa koneksi atau koneksi putus di tengah pengiriman | Sistem | Wajib |
+| F-35 | Sistem dapat menyinkronkan antrean laporan secara otomatis saat koneksi pulih, serta atas permintaan pengguna | Sistem / Responden | Wajib |
+| F-36 | Sistem dapat mencegah laporan tersimpan ganda akibat pengiriman ulang, melalui kunci idempotensi | Sistem | Wajib |
+| F-37 | Sistem dapat menampilkan status koneksi dan jumlah laporan yang belum tersinkron | Responden | Wajib |
+| F-38 | Sistem dapat dipasang sebagai aplikasi (PWA) dan memuat kerangka halamannya tanpa koneksi | Responden | Opsional |
+| F-39 | Sistem dapat menghitung ulang nilai gizi laporan di server dari basis data pangan dan menetapkan partisipan dari identitas login, bukan dari kiriman klien | Sistem | Wajib |
+| F-40 | Peserta berperan *owner*/*editor* dapat menggambar di atas foto porsi (pensil, persegi, lingkaran, penghapus) dan coretannya tampil pada seluruh peserta ruang | Responden, Pendamping | Opsional |
+| F-41 | Peserta berperan *owner*/*editor* dapat menggunakan penunjuk laser yang memudar otomatis | Responden, Pendamping | Opsional |
+| F-42 | Peserta yang bergabung belakangan menerima coretan kanvas yang masih aktif di ruang | Sistem | Opsional |
+| F-43 | Peserta dapat mengirim pesan singkat yang menempel pada kursornya (obrolan kursor) | Semua | Opsional |
+| F-44 | Pemilik ruang dapat mengubah peran peserta menjadi *editor* atau *viewer* selama sesi berlangsung | Pemilik ruang | **Sebagian** ⚠ |
+| F-45 | Pengguna dapat melihat dan mengubah profil (nama, telepon, jenis kelamin, tanggal lahir, foto) serta mengganti kata sandi | Semua | Wajib |
+| F-46 | Responden dapat melihat riwayat dan rincian laporan miliknya sendiri | Responden | Wajib |
+| F-47 | Admin dapat mengunggah gambar (JPG, PNG, WebP; maksimal 10 MB) untuk makanan dan porsi | Admin | Wajib |
+| F-48 | Admin dapat menggandakan survei dan menerbitkan ulang token akses survei | Admin | Opsional |
+
+> **Catatan status F-02a.** *Endpoint* `/public/*` memang tidak mensyaratkan token. Namun pada kode versi 1, rute halaman `/find-food` terdaftar sebagai rute terlindung pada `middleware.ts`, dan kotak pencarian di halaman beranda mengarahkan pengunjung ke halaman login terlebih dahulu. Dengan kata lain, **datanya publik, halamannya belum**. Lihat keputusan yang perlu diambil pada Subbab 4.1.4.
+
+> **Catatan status F-44.** Layanan sudah menangani pesan `update_user_role` (hanya diterima dari *owner*, hanya ke peran *editor*/*viewer*), memperbarui seluruh koneksi aktif milik peserta sasaran, dan menyiarkan `user_role_updated`; klien pun sudah menerapkan perubahan itu saat diterima. Yang belum ada adalah kontrol antarmuka untuk mengirimnya. F-44 tidak disertakan dalam perhitungan tingkat keberhasilan pengujian.
 
 > **Catatan status F-22.** Kebutuhan penguncian entitas **tidak diwujudkan sebagai fitur v1**. Mekanismenya tersedia pada lapis layanan (`LockManager` di sisi Go dan tipe pesan `db_edit_*` pada protokol) serta komponen penanda `LockIndicator` di sisi antarmuka, namun **belum ada satu pun halaman portal admin yang mengaktifkannya** — sesi kolaborasi (`CollabSession`) hanya dipasang pada halaman *recall* dan pencarian makanan. F-22 karena itu dinyatakan sebagai kebutuhan yang teridentifikasi tetapi ditangguhkan, dan dicatat pada Subbab 5.2.1 sebagai saran pengembangan. Kebutuhan ini **tidak** disertakan dalam perhitungan tingkat keberhasilan pengujian pada Subbab 4.2.
 
@@ -550,6 +611,11 @@ Catatan metodologis: sebagian data kinerja **tidak memerlukan instrumentasi tamb
 | NF-13 | Aksesibilitas | Kontrol yang dinonaktifkan tetap terbaca pembaca layar sebagai nonaktif | Atribut `aria-disabled`/`inert` terpasang |
 | NF-14 | Pemeliharaan | Kode terorganisasi per domain bisnis | Tidak ada ketergantungan melingkar antar domain |
 | NF-15 | Pemeliharaan | Kode lolos pemeriksaan tipe dan *linter* | `tsc --noEmit` dan `eslint` bersih |
+| NF-16 | Keandalan | Laporan yang dikirim saat luring tidak hilang dan tidak berganda | Setiap laporan antre tepat satu kali tersimpan di server setelah koneksi pulih |
+| NF-17 | Keandalan | Antrean luring tidak macet akibat sesi yang terputus di tengah sinkronisasi | Item berstatus `SYNCING` yang usang dipulihkan menjadi `PENDING` saat aplikasi dibuka |
+| NF-18 | Keamanan | Koneksi WebSocket dan permintaan lintas-asal hanya diterima dari asal yang terdaftar | Asal di luar daftar putih ditolak pada CORS dan pada *handshake* WebSocket |
+| NF-19 | Keamanan | Kata sandi tidak disimpan dalam bentuk asli | Tersimpan sebagai *hash* bcrypt |
+| NF-20 | Observabilitas | Metrik layanan dapat dipantau | *Endpoint* `/metrics` berformat Prometheus dan `/health` tersedia |
 
 ## 3.6 Perancangan Sistem
 
@@ -564,12 +630,17 @@ flowchart TB
         CS["Konteks Kolaborasi"]
         AIP["Panel Rekomendasi AI"]
         ADM["Portal Admin & CMS Anotasi"]
+        FYF["Katalog Find Your Food"]
+        SW["Service Worker<br/>(cache kerangka & gambar)"]
+        IDB[("IndexedDB<br/>antrean laporan luring")]
+        SYNC["Sync Engine"]
     end
 
     subgraph Server["Lapis Aplikasi — Layanan Go (Gin)"]
         REST["REST API /api/v1"]
         HUB["Collab Hub (WebSocket)"]
         SVC["Layanan Domain:<br/>auth · survey · food · submission<br/>ai · annotation · collab · upload"]
+        MET["/metrics · /health"]
     end
 
     subgraph Data["Lapis Data"]
@@ -578,14 +649,19 @@ flowchart TB
     end
 
     GROQ["Layanan Eksternal:<br/>Groq API (LLM)"]
+    MON["Prometheus + Grafana"]
 
-    RW & ADM & AIP -->|HTTPS/JSON| REST
+    RW & ADM & AIP & FYF -->|HTTPS/JSON| REST
+    RW -.->|luring: simpan| IDB
+    IDB --> SYNC
+    SYNC -->|"POST /survey/sync/batch<br/>(local_id)"| REST
     CS <-->|WSS| HUB
     REST --> SVC
     HUB --> SVC
     SVC --> DB
     SVC --> FS
     SVC -->|prompt berkendala skema| GROQ
+    MON -->|scrape| MET
 ```
 
 Sistem menerapkan arsitektur **tiga lapis** dengan pemisahan tegas antara presentasi, aplikasi, dan data. Layanan Go menyediakan dua kanal komunikasi dalam satu proses: REST untuk operasi permintaan–tanggapan dan WebSocket untuk komunikasi dua arah real-time.
@@ -616,6 +692,7 @@ flowchart LR
         UC1["UC-01 Registrasi & Login"]
         UC2["UC-02 Melihat survei aktif"]
         UC3["UC-03 Bergabung ke survei"]
+        UC4["UC-04 Menjelajah katalog makanan"]
         UC5["UC-05 Mengisi recall 6 langkah"]
         UC6["UC-06 Mengirim laporan"]
         UC7["UC-07 Bergabung ke ruang kolaborasi"]
@@ -627,12 +704,17 @@ flowchart LR
         UC13["UC-13 Mengelola foto porsi"]
         UC14["UC-14 Menganotasi foto makanan"]
         UC15["UC-15 Menelaah & mengekspor submission"]
+        UC16["UC-16 Mengirim laporan saat luring<br/>& menyinkronkan"]
+        UC17["UC-17 Menggambar & menunjuk<br/>di kanvas foto porsi"]
+        UC18["UC-18 Mengirim obrolan kursor"]
+        UC19["UC-19 Mengelola profil &<br/>melihat riwayat laporan"]
     end
 
-    R --- UC1 & UC2 & UC3 & UC5 & UC6 & UC9 & UC10
-    P --- UC1 & UC7 & UC8
-    A --- UC1 & UC11 & UC12 & UC13 & UC14 & UC15
+    R --- UC1 & UC2 & UC3 & UC4 & UC5 & UC6 & UC9 & UC10 & UC16 & UC17 & UC18 & UC19
+    P --- UC1 & UC4 & UC7 & UC8 & UC17 & UC18
+    A --- UC1 & UC11 & UC12 & UC13 & UC14 & UC15 & UC19
     UC10 --- L
+    UC16 -.->|extend| UC6
 ```
 
 ### 3.6.3 Skenario *Use Case*
@@ -764,7 +846,11 @@ sequenceDiagram
         FE->>FE: hitung gizi (nilai/100 × gram)
     end
     R->>FE: Kirim laporan
-    FE->>API: POST /survey/submit {meals_data, daily_total, missing_foods}
+    FE->>API: POST /survey/submit {local_id, meals_data, daily_total, missing_foods}<br/>+ header Idempotency-Key
+    API->>DB: SELECT survey_submissions WHERE local_id (cek idempotensi)
+    API->>DB: SELECT partisipan dari (survey_id, user_id)
+    API->>DB: SELECT nilai gizi per 100 g
+    API->>API: hitung ulang gizi & total di server
     API->>DB: INSERT survey_submissions
     API-->>FE: 200 {submission_id}
     R->>FE: Tekan "Analisis dengan AI"
@@ -816,6 +902,53 @@ sequenceDiagram
     H-->>P: follow_stopped
 ```
 
+**Gambar 3.11 *Sequence diagram* pengiriman luring dan sinkronisasi idempoten**
+
+```mermaid
+sequenceDiagram
+    actor R as Responden
+    participant FE as Antarmuka (Next.js)
+    participant IDB as IndexedDB (antrean)
+    participant SE as Sync Engine
+    participant API as REST (Go)
+    participant DB as MySQL
+
+    R->>FE: Tekan "Kirim laporan"
+    FE->>FE: bangkitkan local_id (UUID)
+    alt Peramban luring
+        FE->>IDB: simpan {local_id, payload, status: PENDING}
+        FE-->>R: "Tersimpan lokal, dikirim otomatis saat terhubung"
+    else Daring, tetapi koneksi putus di tengah permintaan
+        FE->>API: POST /survey/submit (Idempotency-Key: local_id)
+        API--xFE: tanpa balasan
+        FE->>IDB: simpan {local_id, payload, status: PENDING}
+    end
+
+    Note over FE,SE: peristiwa "online" atau aplikasi dibuka kembali
+    SE->>IDB: pulihkan item SYNCING yang usang → PENDING
+    SE->>IDB: ambil item PENDING (percobaan < 5)
+    SE->>IDB: tandai SYNCING
+    SE->>API: POST /survey/sync/batch {items[]}
+    loop tiap item
+        API->>DB: SELECT WHERE local_id
+        alt Sudah pernah tersimpan
+            API->>API: hasil SKIPPED
+        else Belum ada
+            API->>DB: INSERT survey_submissions (local_id UNIQUE)
+            API->>API: hasil SYNCED atau FAILED
+        end
+    end
+    API-->>SE: {results[], synced_count, failed_count}
+    SE->>IDB: SYNCED/SKIPPED → hapus dari antrean
+    SE->>IDB: FAILED → percobaan + 1
+    opt Batch gagal atau ada item tak terjawab
+        SE->>API: POST /survey/submit per item (Idempotency-Key)
+    end
+    SE-->>FE: perbarui jumlah antrean pada bilah status
+```
+
+Dua jalur masuk ke antrean pada diagram di atas sengaja dibedakan. Jalur kedua — koneksi putus **setelah** permintaan dikirim — adalah kasus yang menuntut idempotensi: laporan mungkin sudah tersimpan di server, sehingga pengiriman ulang tanpa `local_id` akan menghasilkan duplikat.
+
 ### 3.6.6 Diagram Keadaan *Wizard*
 
 **Gambar 3.10 Diagram keadaan *wizard* enam langkah**
@@ -862,6 +995,7 @@ classDiagram
     }
     class SurveySubmission {
         +string ID
+        +string LocalID
         +string SurveyID
         +string ParticipantID
         +string MealsData
@@ -901,8 +1035,20 @@ classDiagram
         -map clients
         -map roles
         -Message[] messageHistory
+        -CanvasStrokeItem[] canvasStrokes
         +AddMessage(msg)
         +RememberedRole(userID) string
+        +AddCanvasStroke(stroke)
+        +ClearCanvasStrokes(targetImageID)
+    }
+    class CanvasStrokeItem {
+        +string StrokeID
+        +string UserID
+        +string Tool
+        +string Color
+        +float Width
+        +string TargetImageID
+        +float[][] Points
     }
     class Client {
         +string RoomID
@@ -910,8 +1056,11 @@ classDiagram
         +string RoomRole
         +string FollowingUserID
         +map Viewport
+        +map ChatBubble
         +canEdit() bool
         +handleViewportUpdate(msg)
+        +handleCanvasDrawStart(msg)
+        +handleUpdateUserRole(msg)
     }
     class LockManager {
         -map locks
@@ -932,6 +1081,7 @@ classDiagram
     SurveySubmission "1" --> "1" AIResultLog
     Hub "1" --> "*" Room
     Room "1" --> "*" Client
+    Room "1" --> "*" CanvasStrokeItem
     Hub "1" --> "1" LockManager
     Hub "1" --> "*" InviteToken
 ```
@@ -943,6 +1093,7 @@ classDiagram
 ```mermaid
 erDiagram
     users ||--o{ surveys : membuat
+    users ||--o{ refresh_tokens : memegang
     users ||--o{ survey_participants : terdaftar
     surveys ||--o{ survey_participants : memiliki
     surveys ||--o{ survey_submissions : menerima
@@ -964,20 +1115,31 @@ erDiagram
 
 | Tabel | Kolom kunci | Keterangan |
 |---|---|---|
-| `users` | `id`, `email`, `password_hash`, `role` | `role` ∈ {admin, respondent} |
+| `users` | `id`, `email`, `password_hash`, `role`, `phone`, `gender`, `birth_date`, `photo_url` | `role` ∈ {admin, respondent}; empat kolom terakhir adalah data profil (migrasi 009) |
+| `refresh_tokens` | `user_id`, *hash* token, masa berlaku | Token penyegar disimpan dalam bentuk *hash*, bukan nilai aslinya |
 | `surveys` | `id`, `slug`, `meals_config` (JSON), `status`, `access_token`, `created_by` | `meals_config` menentukan pilihan waktu makan pada langkah 1 |
-| `survey_participants` | `id`, `survey_id`, `user_id`, `alias` | Menautkan pengguna ke survei |
-| `survey_submissions` | `id`, `survey_id`, `participant_id`, `meals_data` (JSON), `missing_foods` (JSON), `total_*` | Laporan *recall* final |
+| `survey_participants` | `id`, `survey_id`, `user_id` (wajib), `alias` | Menautkan pengguna ke survei; partisipan anonim tidak didukung (migrasi 006) |
+| `survey_submissions` | `id`, **`local_id` (UNIQUE)**, `survey_id`, `participant_id`, `meals_data` (JSON), `missing_foods` (JSON), `total_energy`, `total_protein`, `total_carbs`, `total_fat` | Laporan *recall* final; `local_id` adalah kunci idempotensi dari klien (migrasi 010) |
 | `ai_result_logs` | `id`, `submission_id` (**UNIQUE**), `input_payload`, `raw_response`, `overall_status`, `model_used`, `token_used`, `latency_ms` | Hasil analisis + jejak audit |
 | `categories` | `id`, `code`, `name`, `display_order` | Kategori makanan |
 | `foods` | `id`, `code`, `name`, `local_name`, `category_id`, **`photo_type`** | Indeks **FULLTEXT** pada (`name`, `local_name`); `photo_type` ∈ {series, range} menentukan komponen visualisasi foto porsi |
 | `nutrient_types`, `nutrient_units`, `food_nutrients` | — | Nilai gizi per 100 g |
 | `food_portion_size_methods` | `food_id`, `method_type`, `config` (JSON) | `method_type` ∈ {as_served, guide_image, weight} |
 | `as_served_sets`, `as_served_images` | `set_id`, `weight_gram`, `image_url`, `label` | Aset foto porsi; `label` berupa kode A–H untuk tipe *series* |
-| `food_images`, `food_areas` | poligon, status draft/published | CMS anotasi |
+| `food_images`, `food_areas` | `food_images`: `image_url`, `width`, `height`, `status` ∈ {draft, published, archived}, `primary_food_id`; `food_areas`: `polygon` (JSON), `food_id`, `z_index`, `weight_gram` | CMS anotasi; `weight_gram` per area (migrasi 011) memungkinkan satu foto panduan memuat berat tiap ukuran |
 | `locales` | `code`, `name` | Multi-bahasa (id, en) |
 
-**Catatan migrasi basis data.** Kolom `photo_type ENUM('series', 'range') DEFAULT 'series'` ditambahkan ke tabel `foods` melalui migrasi bernomor (`006_add_photo_type_to_foods.sql`) agar nilai lama secara otomatis dianggap bertipe `series` tanpa memerlukan pembaruan data secara massal. Pencarian pada *endpoint* publik dioptimalkan menggunakan `MATCH(name, local_name) AGAINST(? IN BOOLEAN MODE)` untuk memanfaatkan indeks `FULLTEXT` yang sudah ada, menggantikan operator `LIKE` yang tidak menggunakan indeks.
+**Penyimpanan sisi klien.** Selain basis data server, antarmuka memakai tiga tempat penyimpanan di peramban, masing-masing dengan peran berbeda:
+
+| Penyimpanan | Isi | Masa hidup |
+|---|---|---|
+| `localStorage` | Sesi pengisian *wizard* (`RecallSession`) | 24 jam |
+| IndexedDB (`AtlasFoodOfflineDB`, tabel `offlineQueue`) | Antrean laporan luring: `localId` (unik), `surveyId`, `payload`, `syncStatus`, `retryCount`, `lastAttemptAt`, `errorMessage` | Hingga tersinkron |
+| *Cookie* | Token akses dan token penyegar; daftar *bookmark* katalog | 24 jam / 30 hari; 1 tahun |
+
+Skema IndexedDB juga mendefinisikan tabel `cachedFoods` dan `surveyDrafts`, tetapi keduanya **belum dipakai** oleh kode mana pun pada versi 1 (lihat saran pada Subbab 5.2.1).
+
+**Catatan migrasi basis data.** Skema dibangun melalui sebelas berkas migrasi bernomor (`001`–`011`). Kolom `photo_type ENUM('series', 'range') DEFAULT 'series'` dan indeks `FULLTEXT` pada (`name`, `local_name`) ditambahkan ke tabel `foods` melalui `007_update_foods_photo_type.sql`, sehingga nilai lama secara otomatis dianggap bertipe `series` tanpa pembaruan data massal. Pencarian pada *endpoint* publik menggunakan `MATCH(name, local_name) AGAINST(? IN BOOLEAN MODE)` untuk memanfaatkan indeks tersebut. Kata kunci pengguna dibersihkan lebih dahulu dari operator mode Boolean (`+ - > < ( ) ~ * : " & | @`) dan setiap kata dijadikan pencocokan awalan (`nasi*`); tanpa pembersihan ini, tanda kutip yang tidak berpasangan membuat MySQL melempar galat sintaks dan pencarian membalas 500. Karakter *wildcard* `%` dan `_` pada cabang `LIKE` juga di-*escape*.
 
 **Justifikasi penggunaan kolom JSON.** Struktur satu laporan *recall* bersifat bersarang dan variatif: jumlah waktu makan, makanan, dan bahan tambahan berbeda tiap responden. Normalisasi penuh akan menghasilkan banyak tabel dengan *join* dalam untuk satu kali baca, padahal laporan **selalu dibaca sebagai satu kesatuan** dan tidak pernah dikueri per baris makanan. Total gizi tetap didenormalisasi ke kolom numerik agar agregasi lintas responden tetap murah. Konsekuensi metodologis yang menguntungkan: nilai gizi yang tersimpan merupakan *snapshot* pada saat pengisian, sehingga perubahan basis data makanan di kemudian hari tidak mengubah laporan historis.
 
@@ -999,7 +1161,7 @@ Prinsip perancangan antarmuka yang diterapkan:
 
 | Jenis pengujian | Instrumen | Responden/Objek | Teknik analisis |
 |---|---|---|---|
-| Kotak-hitam | Tabel kasus uji berbasis kebutuhan fungsional F-01…F-32 | Sistem | Persentase kasus uji berstatus "Sesuai" |
+| Kotak-hitam | Tabel kasus uji berbasis kebutuhan fungsional F-01…F-48 (kecuali F-22 dan F-44) | Sistem | Persentase kasus uji berstatus "Sesuai" |
 | Penelusuran *end-to-end* | Skenario alur lengkap responden dan pendamping | Sistem | Klasifikasi cacat berdasarkan jenis |
 | Kinerja real-time | Instrumentasi waktu pada klien dan `/collab/stats` | 2, 5, 10, 20 klien | Statistik deskriptif: rerata, p50, p95 |
 | Penerimaan pengguna | Kuesioner SUS 10 butir | ≥ 20 responden, ≥ 5 pendamping | Perhitungan skor SUS |
@@ -1007,7 +1169,7 @@ Prinsip perancangan antarmuka yang diterapkan:
 
 ### 3.7.1 Pengujian Kotak-Hitam
 
-Pengujian kotak-hitam menguji sistem dari sisi masukan dan keluaran tanpa memeriksa struktur internal. Setiap kebutuhan fungsional diturunkan menjadi satu atau lebih kasus uji dengan format: kode, skenario, masukan, hasil yang diharapkan, hasil yang diperoleh, dan status (Sesuai/Tidak Sesuai). Rancangan kasus uji disajikan pada Subbab 4.5.
+Pengujian kotak-hitam menguji sistem dari sisi masukan dan keluaran tanpa memeriksa struktur internal. Setiap kebutuhan fungsional diturunkan menjadi satu atau lebih kasus uji dengan format: kode, skenario, masukan, hasil yang diharapkan, hasil yang diperoleh, dan status (Sesuai/Tidak Sesuai). Rancangan kasus uji disajikan pada Subbab 4.2.
 
 Tingkat keberhasilan dihitung dengan:
 
@@ -1096,6 +1258,8 @@ nilai_gizi_porsi = (nilai_per_100g ÷ 100) × berat_porsi_gram
 
 dibulatkan satu desimal, kemudian diakumulasi menjadi total per waktu makan dan total harian.
 
+**Perhitungan ulang di server (F-39).** Angka yang dihitung antarmuka berfungsi sebagai umpan balik segera bagi responden, tetapi **bukan** angka yang disimpan. Saat laporan diterima, layanan menghitung ulang nilai gizi setiap makanan dari nilai per 100 g di basis data dan berat porsi yang dilaporkan, lalu menyusun ulang total per waktu makan dan total harian (`calculateTotals`). Makanan yang tidak dikenali basis data memakai nilai kiriman klien apa adanya. Dengan cara yang sama, partisipan ditetapkan server dari pasangan (`survey_id`, identitas login), bukan dari `participant_id` kiriman klien, dan survei diperiksa masih berstatus aktif. Rancangan ini mencegah klien yang dimodifikasi mengirim angka gizi sembarang atau mengirim laporan atas nama partisipan lain.
+
 **Validasi (F-12).** Tiga aturan ditegakkan sebelum pengiriman: `survey_id` harus ada; minimal satu waktu makan berisi makanan; seluruh makanan pada waktu makan terisi wajib memiliki `portion_gram > 0`.
 
 `[⚠ LAMPIRKAN Gambar 4.3–4.8: tangkapan layar keenam langkah wizard]`
@@ -1132,13 +1296,26 @@ flowchart LR
 | K→S | `portion_set` | `food_id`, `portion_gram`, `image_label` | **Ya** |
 | K→S | `review_submit` | `survey_id` | **Ya** |
 | K→S | `db_edit_start/field/save/cancel` ⚠ | `entity_type`, `entity_id`, `version` | **Ya** |
+| K→S | `canvas_draw_start` | `stroke_id`, `tool`, `color`, `width`, `target_image_id`, `x`, `y` | **Ya** |
+| K→S | `canvas_draw_move` / `canvas_draw_end` | `stroke_id`, `points[]` | **Ya** |
+| K→S | `canvas_laser_move` | `x`, `y`, `color`, `target_image_id` | **Ya** |
+| K→S | `canvas_clear` | `target_image_id` (kosong = seluruh ruang) | **Ya** |
+| K→S | `cursor_chat_open` / `cursor_chat_update` / `cursor_chat_close` | `x`, `y`, `text` | Tidak |
+| K→S | `update_user_role` ⚠⚠ | `target_user_id`, `new_role` | Hanya *owner* |
 | K→S | `get_history`, `ping` | — | Tidak |
 | S→K | `presence_list`, `presence_joined`, `presence_left` | daftar/identitas peserta | — |
 | S→K | `cursor_update`, `viewport_sync` | posisi, halaman, **langkah** | — |
 | S→K | `follow_started`, `follow_stopped`, `follow_state` | relasi pemimpin–pengikut | — |
 | S→K | `food_search_shared`, `food_selected`, `meal_updated`, `portion_updated` | siaran aktivitas | — |
 | S→K | `db_locked`, `db_unlocked`, `db_edit_saved` | status kunci entitas | — |
+| S→K | `canvas_stroke_started`, `canvas_stroke_updated`, `canvas_stroke_ended`, `canvas_laser_updated`, `canvas_cleared`, `canvas_state_sync` | coretan, laser, dan cuplikan kanvas bagi peserta yang baru bergabung | — |
+| S→K | `cursor_chat_updated`, `cursor_chat_closed` | posisi jangkar, teks, warna, peran | — |
+| S→K | `user_role_updated` | `target_user_id`, `new_role`, `changed_by` | — |
 | S→K | `state_sync`, `history`, `activity_log`, `error`, `pong` | sinkronisasi & sistem | — |
+
+Kolom "Mutasi data" menandai pesan yang melewati gerbang peran: pesan bertanda **Ya** ditahan klien dan ditolak server bila pengirimnya *viewer*. Pesan kanvas ikut digolongkan demikian meskipun tidak mengubah laporan, agar *viewer* benar-benar hanya menjadi pengamat.
+
+⚠⚠ `update_user_role` ditangani penuh oleh *hub* dan `user_role_updated` diterapkan klien, tetapi belum ada kontrol antarmuka yang mengirimkannya (catatan status F-44, Subbab 3.5.1).
 
 ⚠ Tipe pesan `db_edit_*` beserta pasangannya `db_locked`/`db_unlocked`/`db_edit_saved` **tersedia dan tertangani pada protokol maupun *hub*, tetapi belum ada klien yang mengirimkannya** pada versi 1 karena penguncian entitas belum diintegrasikan ke portal admin (catatan status F-22, Subbab 3.5.1).
 
@@ -1148,13 +1325,18 @@ flowchart LR
 |---|---|---|
 | Batas ukuran pesan | 64 KB | Menolak muatan abnormal |
 | Batas laju | 50 pesan/detik/klien | Melindungi *hub* dari banjir pesan (NF-03) |
-| *Batching* | *Ticker* 50 ms; *flush* paksa pada 50 pesan antre | Meredam frekuensi tinggi kursor/*viewport* |
-| *Coalescing* kursor | Hanya posisi terakhir per pengguna dikirim | Membuang bingkai antara |
+| *Throttling* di klien | Kursor 66 ms; *viewport* 100 ms; titik coretan kanvas dikumpulkan dan dikirim tiap 16 ms | Menekan frekuensi sejak dari pengirim |
+| *Batching* | *Ticker* 50 ms; *flush* paksa pada 50 pesan antre | Meredam frekuensi tinggi kursor/*viewport*/kanvas |
+| *Coalescing* kursor & laser | Hanya posisi terakhir per pengguna dikirim | Membuang bingkai antara |
+| Riwayat kanvas | 50 coretan terakhir per ruang, di memori | Menyediakan cuplikan bagi peserta yang bergabung belakangan tanpa membengkakkan memori |
+| Penunjuk laser | Memudar setelah 1,5 detik di klien; tidak disimpan | Penunjuk sesaat, bukan coretan |
+| Obrolan kursor | Teks maksimal 200 karakter; *debounce* 120 ms; tutup otomatis setelah 7 detik tanpa ketikan | Pesan singkat kontekstual, bukan kanal percakapan |
 | Riwayat | *Ring buffer* 100 pesan; kursor & `viewport_sync` tidak dicatat | Mencegah riwayat dibanjiri |
 | *Heartbeat* | Klien `ping` tiap 25 s; server `pongWait` 60 s | Deteksi koneksi mati |
 | Rekoneksi | *Backoff* `2^n` detik, batas 30 s | Mencegah badai rekoneksi (NF-05) |
 | Buffer kirim | 256 pesan/klien; kelebihan di-*drop* dan dicatat | Klien lambat tidak memblokir *hub* |
-| Pembersihan ruang | *Ticker* 30 detik menghapus ruang kosong | Mencegah kebocoran memori |
+| Pembersihan ruang | *Ticker* 30 detik menghapus ruang yang kosong **lebih dari 10 menit** | Mencegah kebocoran memori tanpa menghapus peran, riwayat, dan coretan saat peserta sekadar memuat ulang halaman |
+| Asal koneksi | Daftar putih asal yang sama dengan CORS diperiksa pada *handshake* | Menolak halaman pihak ketiga membuka koneksi kolaborasi (NF-18) |
 
 **Implementasi sinkronisasi langkah (F-18, kontribusi K-1).** Tiga persoalan diselesaikan:
 
@@ -1176,7 +1358,22 @@ Pemilihan atribut `inert` dan bukan `pointer-events: none` didasari kenyataan ba
 
 **Ketahanan peran (NF-10).** Ruang mengingat peran per-`user_id`. Tanpa mekanisme ini, peserta *viewer* yang berpindah halaman — sehingga parameter `invite` hilang dari URL — akan naik menjadi `editor` pada koneksi berikutnya. Selain itu, tab kedua milik pengguna yang sama mewarisi peran tab pertama, dan *socket* lama tidak ditendang karena penendangan memicu siklus rekoneksi saling-tendang tanpa henti.
 
+**Kanvas langsung di atas foto porsi (F-40, F-41, F-42).** Pendampingan estimasi porsi sering kali berbentuk kalimat "yang ini, bukan yang itu" — sesuatu yang sulit disampaikan hanya dengan kursor. Komponen `LiveCanvasOverlay` menumpangkan elemen kanvas transparan di atas foto porsi pada langkah 3 *wizard* dan pada halaman detail katalog, sedangkan `CanvasToolbar` menyediakan lima perkakas: pensil, persegi, lingkaran, penunjuk laser, dan penghapus, beserta pilihan warna dan ketebalan. Empat keputusan rancangan menentukan perilakunya:
+
+1. **Koordinat ternormalisasi.** Setiap titik disimpan sebagai pecahan 0–1 terhadap lebar dan tinggi foto, bukan piksel, sehingga coretan jatuh di tempat yang sama pada layar berukuran berbeda.
+2. **Terikat pada foto.** Setiap coretan membawa `target_image_id`; kanvas suatu foto hanya merender coretan miliknya, dan penghapusan dapat dibatasi pada satu foto.
+3. **Laser bukan coretan.** Posisi laser di-*coalesce* seperti kursor, memudar sendiri dalam 1,5 detik, dan tidak masuk riwayat.
+4. **Cuplikan bagi yang datang belakangan.** Ruang menyimpan 50 coretan terakhir di memori dan menyertakannya pada pesan `state_sync` (medan `canvas_strokes`) bagi peserta yang baru tersambung.
+
+Coretan tidak pernah ditulis ke basis data dan tidak ikut terkirim dalam laporan; kanvas adalah sarana komunikasi, bukan data penelitian. Seluruh pesan kanvas melewati gerbang peran yang sama dengan pesan mutasi lain, sehingga *viewer* tidak dapat menggambar melalui ketiga lapis pada Tabel 4.4.
+
+**Obrolan kursor (F-43).** Menekan tombol `/` di luar kolom isian memunculkan gelembung teks yang menempel pada posisi kursor saat itu (*hook* `useCursorChat`). Teks disiarkan ke peserta lain selagi diketik, dibatasi 200 karakter di klien maupun server, dan gelembung ditutup oleh Enter, Esc, atau setelah 7 detik tanpa ketikan. Server menyimpan keadaan gelembung per koneksi dan mengabaikan pembaruan teks yang tidak didahului pembukaan. Fitur ini sengaja tidak menyimpan riwayat percakapan.
+
+**Perubahan peran selama sesi (F-44, sebagian).** *Hub* menyediakan `UpdateUserRole`: hanya *owner* yang boleh memanggilnya, peran sasaran terbatas pada *editor* atau *viewer*, perubahan diterapkan ke seluruh koneksi aktif milik peserta sasaran sekaligus ke peta peran ruang, lalu daftar kehadiran dan umpan aktivitas disiarkan ulang. Klien menerapkan `user_role_updated` begitu diterima sehingga kunci antarmuka *viewer* langsung aktif atau lepas. Kontrol antarmuka untuk memicunya belum tersedia pada versi 1.
+
 `[⚠ LAMPIRKAN Gambar 4.9–4.10: tangkapan layar bilah kolaborasi, avatar kehadiran, kursor peserta, dan modal berbagi undangan]`
+
+`[⚠ LAMPIRKAN Gambar 4.17–4.18: tangkapan layar kanvas langsung di atas foto porsi (dua peserta) dan gelembung obrolan kursor]`
 
 ### 4.1.3 Implementasi Modul AI
 
@@ -1196,7 +1393,7 @@ flowchart LR
     I --> D2["source: groq"]
 ```
 
-**Kendala skema.** *System prompt* mengunci peran model sebagai penganalisis gizi dan mewajibkan keluaran JSON yang cocok dengan skema tetap berisi `overall_status`, `overall_message`, `nutritional_analysis`, `ai_recommendation`, `recommended_foods`, `health_insight`, dan `suggested_activities`. Parameter: `temperature = 0,2`, `response_format = {"type":"json_object"}`, `max_tokens` bawaan 512.
+**Kendala skema.** *System prompt* mengunci peran model sebagai penganalisis gizi dan mewajibkan keluaran JSON yang cocok dengan skema tetap berisi `overall_status`, `overall_message`, `nutritional_analysis`, `ai_recommendation`, `recommended_foods`, `health_insight`, dan `suggested_activities`. Parameter: `temperature = 0,2`, `response_format = {"type":"json_object"}`. Model, batas token, dan batas waktu dapat dikonfigurasi melalui variabel lingkungan; nilai bawaannya adalah model `llama-3.3-70b-versatile` (`GROQ_MODEL`), `max_tokens` 2.048 (`GROQ_MAX_TOKENS`), dan batas waktu server 45 detik (`GROQ_TIMEOUT_SECONDS`) — sengaja lebih pendek daripada batas waktu klien 60 detik agar kegagalan dilaporkan server, bukan diputus klien. `[⚠ CATAT model yang benar-benar dipakai saat pengambilan data; nilainya terekam pada kolom model_used tabel ai_result_logs]`
 
 **Pertahanan terhadap keluaran model (F-26).** Keluaran LLM diperlakukan sebagai masukan tidak tepercaya melalui tiga lapis: penguraian dan pemetaan galat ke 503 di server; normalisasi paksa tiap medan ke tipe aman di klien (array bukan-array menjadi `[]`, string bukan-string menjadi `""`, item tanpa label maupun deskripsi dibuang); serta pemetaan nilai status tak dikenal ke gaya visual netral.
 
@@ -1208,19 +1405,27 @@ flowchart LR
 
 ### 4.1.4 Implementasi Modul Katalog Publik (*Find Your Food*)
 
-Modul ini diimplementasikan sebagai seperangkat halaman Next.js yang dapat diakses tanpa autentikasi (`/find-food`, `/find-food/search`, `/find-food/[foodId]`, `/find-food/category/[code]`), memanfaatkan *endpoint* publik (`/public/*`) yang sudah ada di backend Go tanpa menambahkan tabel basis data baru.
+Modul ini diimplementasikan sebagai tiga rute Next.js — `/find-food` (beranda katalog dan pencarian), `/find-food/[id]` (detail makanan), dan `/find-food/category/[code]` (daftar per kategori) — yang memanfaatkan *endpoint* `/public/*` di layanan Go tanpa menambahkan tabel basis data baru. Sesi kolaborasi dipasang pada *layout* `/find-food` (bukan per halaman) dengan `autoConnect` nonaktif, sehingga koneksi, kehadiran, dan status ikut bertahan ketika pengguna berpindah antar-halaman katalog.
+
+> **⚠ Ketidaksesuaian yang harus diputuskan sebelum sidang.** *Endpoint* `/public/*` tidak mensyaratkan token, tetapi `middleware.ts` mendaftarkan `/find-food` sebagai rute terlindung dan kotak pencarian di beranda mengarahkan pengunjung ke login. Jadi pada kode saat ini katalog **tidak** dapat dibuka tanpa login. Pilih salah satu: **(a)** keluarkan `/find-food` dari daftar rute terlindung (kolaborasi di katalog tetap hanya aktif bagi pengguna yang login), lalu klaim "katalog publik tanpa login" pada Subbab 1.6, 2.9, dan 4.7.6 sah; atau **(b)** biarkan kodenya dan pertahankan rumusan hati-hati yang dipakai draf ini ("API publik tanpa token; halaman web memerlukan login"). Draf ini ditulis mengikuti pilihan (b) karena itulah keadaan kode.
 
 **Komponen utama:**
-- **`PortionPhotoViewer`** — komponen tunggal yang merender dua mode sesuai `photo_type`: mode *series* menampilkan *slider* horizontal dengan label A–H dan animasi transisi; mode *range* menampilkan *grid thumbnail*. Pada kedua mode, klik thumbnail mengubah tampilan utama (*main focus*) dengan berat porsi dan kode tampil langsung di bawah gambar.
+- **`PortionPhotoViewer`** — komponen tunggal yang merender dua mode sesuai `photo_type`. Mode *series* menampilkan satu foto utama dengan deret *thumbnail* berlabel A–H yang dapat digulir; klik *thumbnail* mengganti foto utama dengan animasi transisi, dan berat porsi serta kodenya tampil langsung di bawah gambar. Mode *range* menampilkan **foto panduan**: satu foto besar yang memuat seluruh ukuran, dengan label kode dan berat tiap ukuran sebagai *overlay* serta tabel seluruh ukuran di bawahnya.
+- **Area poligon terbitan** — bila foto memiliki anotasi berstatus *published* dari CMS (Subbab 4.1.5), `AnnotationHoverOverlay` menumpangkan area poligonnya di atas foto. Area dapat ditampilkan atau disembunyikan, dan deret "bagian makanan" di bawah foto memungkinkan pengguna memilih satu area. Inilah titik temu antara CMS anotasi dan tampilan responden.
+- **Kanvas langsung** — `LiveCanvasOverlay` dipasang di atas foto pada kedua mode sehingga peserta ruang dapat saling menunjuk bagian foto (Subbab 4.1.2).
 - **Pencarian *full-text*** — memanggil `GET /public/foods/search?q=` dengan *debounce* 300 ms; menggunakan `MATCH … AGAINST … IN BOOLEAN MODE` di sisi *repository* untuk memanfaatkan indeks `FULLTEXT` pada (`name`, `local_name`).
 - **Navigasi prev/next** — halaman detail menyediakan navigasi ke makanan sebelumnya dan berikutnya dalam kategori yang sama tanpa memuat ulang halaman penuh.
-- **Fitur Simpan (Bookmark)** — tersimpan di `localStorage` tanpa memerlukan login, sehingga pengguna anonim dapat menyimpan referensi porsi makanan.
+- **Fitur Simpan (*Bookmark*)** — daftar makanan tersimpan dicatat di *cookie* peramban (`atlas_bookmarks`, masa berlaku satu tahun) tanpa tabel di server; data lama dari `localStorage` dimigrasikan otomatis saat pertama kali dibaca.
 
 `[⚠ LAMPIRKAN Gambar 4.13–4.15: tangkapan layar halaman Find Your Food (landing), detail makanan mode series, detail makanan mode range]`
 
 ### 4.1.5 Implementasi Modul Admin
 
-Portal admin mengimplementasikan F-27 sampai F-32 melalui enam kelompok rute: survei, makanan, kategori, set foto *as served*, metode porsi, dan anotasi.
+Portal admin mengimplementasikan F-27 sampai F-33, F-47, dan F-48 melalui dasbor dan tujuh kelompok rute: survei, *submission*, makanan, kategori, set foto *as served*, metode porsi, dan anotasi. Akses dijaga dua kali: `middleware.ts` mengalihkan pengguna non-admin menjauh dari `/admin` berdasarkan klaim peran pada token (semata untuk pengarahan halaman, tanpa verifikasi tanda tangan), sedangkan penolakan yang sesungguhnya dilakukan *middleware* `AdminOnly` pada setiap *endpoint* `/admin/*` di layanan.
+
+**Pengelolaan survei (F-27, F-48).** Selain CRUD dan konfigurasi waktu makan, admin dapat menggandakan survei (`/clone`) untuk mengulang rancangan yang sama pada periode berikutnya, dan menerbitkan ulang token akses (`/regenerate-token`) bila tautan lama perlu dimatikan.
+
+**Foto makanan terpadu dan unggah gambar (F-29, F-47).** Halaman sunting makanan memuat bagian foto yang menyatukan pengelolaan foto porsi per makanan (`/admin/foods/{id}/photos` dengan aksi terbit/tarik terbit). Berkas gambar diunggah melalui `POST /upload` yang hanya menerima JPG, PNG, dan WebP berukuran maksimal 10 MB, menamai ulang berkas dengan UUID, dan hanya menerima nama folder tujuan yang terdiri atas huruf, angka, garis bawah, atau tanda hubung (maksimal 64 karakter), agar nama folder kiriman klien tidak dapat dipakai untuk menulis di luar direktori unggahan (*path traversal*).
 
 **CMS anotasi (F-30, F-31, F-33).** Domain anotasi memisahkan aset gambar (`food_images`) dari area poligon (`food_areas`) dengan siklus *draft* → *published*. Operasi `PUT /{id}/areas` mengganti seluruh himpunan area sekaligus — operasi idempoten yang menjadi dasar mekanisme penyimpanan otomatis.
 
@@ -1230,18 +1435,58 @@ Portal admin mengimplementasikan F-27 sampai F-32 melalui enam kelompok rute: su
 
 `[⚠ LAMPIRKAN Gambar 4.12: tangkapan layar dasbor admin dan editor anotasi]`
 
+### 4.1.6 Implementasi Dukungan Luring (*Offline-First* PWA)
+
+Dukungan luring menjawab F-34 sampai F-38 dan terdiri atas empat bagian yang bekerja berurutan.
+
+**1. Kerangka aplikasi (*service worker* dan manifes).** Berkas `public/sw.js` menerapkan dua strategi *cache*. Untuk navigasi halaman dipakai ***network-first***: jaringan dicoba lebih dahulu dan salinannya disimpan, lalu *cache* dipakai bila jaringan gagal. Untuk gambar, fon, dan berkas `/uploads/` dipakai ***cache-first***, sehingga foto porsi yang pernah dibuka tetap tampil saat luring. Tiga jenis permintaan sengaja **tidak** disentuh: permintaan selain `GET` (pengiriman laporan ditangani antrean, bukan *cache*), bundel `/_next/`, dan panggilan `/api/`. Manifes (`app/manifest.ts`) menetapkan mode tampilan `standalone` sehingga aplikasi dapat dipasang ke layar utama, dan `PWAInstallPrompt` menawarkan pemasangan. *Service worker* hanya didaftarkan pada *build* produksi di luar `localhost`; pada mode pengembangan registrasi yang tersisa justru dicabut agar tidak mengganggu pemuatan ulang modul.
+
+**2. Antrean laporan (IndexedDB).** Fungsi `submitSurvey` selalu membangkitkan `local_id` (UUID) sebelum pengiriman pertama. Bila peramban luring, laporan langsung ditulis ke tabel `offlineQueue` melalui Dexie dan responden menerima pemberitahuan bahwa datanya tersimpan lokal. Bila peramban daring tetapi permintaan gagal karena jaringan, laporan yang sama — dengan `local_id` yang sama — dialihkan ke antrean.
+
+**3. Mesin sinkronisasi.** `SyncEngine` berjalan saat peristiwa `online` terpicu, saat aplikasi dibuka, atau saat pengguna menekan "Sinkronkan Sekarang". Urutannya: memulihkan item usang, mengambil item tertunda, menandainya `SYNCING`, mengirim seluruhnya dalam satu permintaan `POST /survey/sync/batch`, lalu menerapkan hasil per item. Item yang tidak disebut dalam balasan *batch* — atau seluruh antrean bila *batch* gagal — dikirim ulang satu per satu melalui `POST /survey/submit` dengan *header* `Idempotency-Key`. Aturan yang dijaga ketat: **tidak ada item yang boleh tertinggal berstatus `SYNCING`**, karena item semacam itu tidak lagi terhitung tertunda dan akan hilang dari antrean tanpa pernah terkirim.
+
+**Tabel 4.13 Siklus status antrean luring**
+
+| Status | Arti | Transisi berikutnya |
+|---|---|---|
+| `PENDING` | Menunggu dikirim | → `SYNCING` saat sinkronisasi dimulai |
+| `SYNCING` | Sedang dikirim | → `SYNCED` bila server membalas `SYNCED`/`SKIPPED`; → `PENDING` (percobaan + 1) bila gagal; → `PENDING` bila ditemukan usang saat aplikasi dibuka |
+| `SYNCED` | Sudah tersimpan di server | Dihapus dari antrean |
+| `FAILED` | Gagal lima kali berturut-turut | Tidak dicoba otomatis lagi; dapat diantrekan ulang secara manual |
+
+**4. Idempotensi di server (F-36).** Kolom `survey_submissions.local_id` berkendala `UNIQUE`. Baik *endpoint* tunggal maupun *batch* memeriksa `local_id` lebih dahulu: bila sudah ada, server mengembalikan `submission_id` yang lama (status `SKIPPED` pada *batch*) tanpa menyisipkan baris baru. *Endpoint* tunggal menerima kunci itu dari badan permintaan maupun dari *header* `Idempotency-Key`. *Endpoint* *batch* memproses tiap item secara mandiri dan melaporkan hasilnya per `local_id`, sehingga satu item yang gagal tidak menggagalkan item lain.
+
+**Umpan balik kepada responden (F-37).** `OfflineStatusBar` muncul hanya bila peramban luring atau antrean belum kosong, menampilkan jumlah laporan yang belum tersinkron beserta tombol sinkronisasi manual. Perubahan status koneksi dan hasil sinkronisasi (berhasil, sebagian, gagal) diumumkan melalui *toast*.
+
+**Batas dukungan luring.** Yang dijamin tetap berjalan tanpa koneksi adalah pengisian yang sedang berlangsung (keadaan *wizard* tersimpan di `localStorage`) dan pengiriman laporan. Pencarian makanan, foto porsi yang belum pernah dibuka, kolaborasi, dan analisis LLM memerlukan koneksi. Laporan yang masih berada di antrean memakai `local_id` sebagai pengenal sementara, sehingga analisis AI baru dapat diminta setelah laporan tersinkron.
+
+`[⚠ LAMPIRKAN Gambar 4.16: tangkapan layar bilah status luring dengan jumlah antrean dan tombol sinkronisasi]`
+
+### 4.1.7 Implementasi Profil, Autentikasi, dan Pemantauan
+
+**Autentikasi (F-01).** Kata sandi disimpan sebagai *hash* bcrypt. Login menghasilkan token akses JWT (masa berlaku bawaan 24 jam) dan token penyegar (bawaan 7 hari) yang disimpan di basis data dalam bentuk *hash*. Antarmuka menyimpan keduanya di *cookie* dan memperbarui token akses melalui `POST /auth/refresh` ketika kedaluwarsa. *Middleware* layanan menerima token dari *header* `Authorization` untuk REST dan dari parameter *query* `token` khusus untuk *handshake* WebSocket.
+
+**Profil dan riwayat (F-45, F-46).** Halaman `/profile` memungkinkan pengguna mengubah nama, nomor telepon, jenis kelamin, dan tanggal lahir (`PATCH /auth/me`), mengganti foto (`POST /auth/me/photo`), dan mengganti kata sandi (`PUT /auth/me/password`) dengan indikator kekuatan kata sandi. Halaman yang sama menampilkan riwayat laporan milik pengguna (`GET /survey/my-submissions`) beserta rinciannya; layanan menyaring berdasarkan identitas login sehingga laporan pengguna lain tidak dapat dibuka dengan menebak pengenal.
+
+**Pemantauan (NF-20).** Layanan mengekspos `/health` dan `/metrics`. Metrik HTTP (jumlah permintaan, durasi, permintaan lambat) dikumpulkan oleh *middleware* `gin-metrics` dalam format Prometheus; berkas Docker Compose menyertakan Prometheus dan Grafana untuk mengikis dan menampilkannya. Metrik ini melengkapi `/collab/stats` (keadaan *hub*) dan tabel `ai_result_logs` (latensi LLM) sebagai sumber data pengujian kinerja pada Subbab 4.4.
+
 **Tabel 4.1 Kontrak API sistem**
 
 | Kelompok | Metode & *Endpoint* | Kebutuhan |
 |---|---|---|
-| Publik | `GET /public/foods/search`, `/public/foods/{id}`, `/public/categories`, `/public/categories/{code}/foods`, `/public/food-images/…` | F-05, F-07 |
-| Autentikasi | `POST /auth/register`, `/auth/login`, `/auth/refresh`; `GET\|PATCH /auth/me` | F-01 |
-| Responden | `GET /survey/active`; `POST /survey/access`; `GET /survey/{id}/info`; `POST /survey/submit` | F-02, F-03, F-13 |
+| Publik (tanpa token) | `GET /public/foods/search`, `/public/foods/{id}`, `/public/foods/{id}/images`, `/public/categories`, `/public/categories/{code}/foods`, `/public/food-images`, `/public/food-images/{id}` | F-02a–c, F-05, F-07 |
+| Autentikasi & profil | `POST /auth/register`, `/auth/login`, `/auth/refresh`; `GET\|PATCH /auth/me`; `PUT /auth/me/password`; `POST /auth/me/photo` | F-01, F-45 |
+| Responden | `GET /survey/active`; `POST /survey/access`; `GET /survey/{id}/info`; `POST /survey/submit`; `GET /locales` | F-02, F-03, F-13, F-39 |
+| Responden — luring & riwayat | `POST /survey/sync/batch`; `GET /survey/my-submissions`, `/survey/my-submissions/{id}` | F-35, F-36, F-46 |
 | AI | `POST /ai/nutrition-analysis` | F-23 |
-| Admin — survei | `/admin/surveys` (CRUD, `/clone`, `/regenerate-token`), `/admin/surveys/{id}/submissions`, `/export` | F-27, F-32 |
-| Admin — pangan | `/admin/foods` (CRUD, `/portion-methods`, `/photos`), `/admin/categories`, `/admin/as-served-sets`, `/admin/portion-methods` | F-28, F-29 |
+| Admin — survei | `/admin/surveys` (CRUD, `/clone`, `/regenerate-token`), `/admin/surveys/{id}/submissions`, `/admin/surveys/{id}/export`, `/admin/submissions/{id}` | F-27, F-32, F-48 |
+| Admin — pangan | `/admin/foods` (CRUD, `/portion-methods`, `/photos` beserta `/publish` dan `/unpublish`), `/admin/categories`, `/admin/as-served-sets` (termasuk `/images`), `/admin/as-served-images`, `/admin/portion-methods` | F-28, F-29 |
 | Admin — anotasi | `/admin/food-images` (CRUD, `/areas`, `/publish`, `/unpublish`, `/export`) | F-30, F-31 |
+| Admin — unggah | `POST /upload` | F-47 |
 | Kolaborasi | `GET /collab/rooms/{id}/ws`, `GET /collab/rooms/{id}`, `POST /collab/rooms/{id}/invite`, `DELETE /collab/invites/{token}`, `GET /collab/stats` | F-15, F-19 |
+| Operasional | `GET /health`, `GET /metrics` | NF-20 |
+
+Seluruh *endpoint* berada di bawah awalan `/api/v1`, kecuali `/health`, `/metrics`, dan berkas statis `/uploads`. Kelompok admin dijaga `AdminOnly`; kelompok responden dan AI dijaga `RespondentOnly`.
 
 ## 4.2 Hasil Pengujian Kotak-Hitam
 
@@ -1335,6 +1580,46 @@ Portal admin mengimplementasikan F-27 sampai F-32 melalui enam kelompok rute: su
 | UK-67 | F-33 | *Flush* sebelum terbit | Ubah area lalu langsung tekan "Terbitkan" | Perubahan terakhir ikut tersimpan sebelum penerbitan | | |
 | UK-68 | F-31 | Draf tidak bocor ke publik | Akses *endpoint* publik untuk anotasi berstatus draf | Ditolak/tidak ditemukan | | |
 
+**Tabel 4.14 Hasil pengujian kotak-hitam dukungan luring, kanvas langsung, katalog, dan profil**
+
+| Kode | Kebutuhan | Skenario | Masukan | Hasil Diharapkan | Hasil Diperoleh | Status |
+|---|---|---|---|---|---|---|
+| UK-69 | F-34 | Kirim saat luring | Matikan jaringan, tekan "Kirim laporan" | Laporan masuk antrean; muncul pemberitahuan tersimpan lokal; isian tidak hilang | | |
+| UK-70 | F-37 | Bilah status luring | Matikan jaringan | Bilah "Mode Offline" tampil; setelah UK-69 menampilkan jumlah antrean 1 | | |
+| UK-71 | F-35 | Sinkronisasi otomatis | Nyalakan kembali jaringan | Antrean terkirim tanpa tindakan pengguna; bilah status hilang; laporan muncul di daftar admin | | |
+| UK-72 | F-35 | Sinkronisasi manual | Dengan antrean terisi, tekan "Sinkronkan Sekarang" | Antrean terkirim; *toast* hasil tampil | | |
+| UK-73 | F-36, NF-16 | Idempotensi — kirim ulang | Kirim permintaan `POST /survey/submit` yang sama dua kali dengan `local_id` identik | Hanya satu baris tersimpan; balasan kedua memuat `submission_id` yang sama | | |
+| UK-74 | F-36, NF-16 | Idempotensi — koneksi putus di tengah | Putuskan jaringan tepat setelah menekan kirim, lalu sambungkan lagi | Tepat satu laporan tersimpan di server | | |
+| UK-75 | F-35 | *Batch* dengan item campuran | Kirim `POST /survey/sync/batch` berisi satu item baru, satu item duplikat, dan satu item tidak valid | Hasil per item: `SYNCED`, `SKIPPED`, `FAILED`; item valid tetap tersimpan | | |
+| UK-76 | NF-17 | Pemulihan antrean macet | Tutup tab saat sinkronisasi berjalan, buka kembali | Item tidak tertinggal berstatus `SYNCING`; terkirim pada sinkronisasi berikutnya | | |
+| UK-77 | F-35 | Batas percobaan | Paksa server menolak satu item lima kali | Item berstatus `FAILED` dan tidak dicoba otomatis lagi | | |
+| UK-78 | F-38 | Pemuatan kerangka saat luring | Pada *build* produksi, buka aplikasi sekali, matikan jaringan, muat ulang | Halaman tetap tampil dari *cache*; foto porsi yang pernah dibuka tetap terlihat | | |
+| UK-79 | F-38 | Pemasangan PWA | Buka aplikasi pada peramban yang mendukung | Tawaran pemasangan muncul; aplikasi terpasang berjalan dalam mode *standalone* | | |
+| UK-80 | F-39 | Hitung ulang gizi di server | Kirim laporan dengan nilai `nutrients` yang sengaja diubah | Nilai tersimpan mengikuti perhitungan server, bukan kiriman klien | | |
+| UK-81 | F-39 | Partisipan dari identitas login | Kirim laporan dengan `participant_id` milik pengguna lain | Laporan tercatat atas partisipan pengirim yang sebenarnya | | |
+| UK-82 | F-40 | Coretan bersama | Peserta A menggambar dengan pensil di atas foto porsi | Coretan tampil pada layar peserta B di posisi foto yang sama | | |
+| UK-83 | F-40 | Konsistensi posisi lintas ukuran layar | Peserta A memakai laptop, peserta B telepon pintar | Coretan jatuh pada bagian foto yang sama | | |
+| UK-84 | F-41 | Penunjuk laser | Peserta A menggerakkan laser | Titik laser tampil pada peserta B dan memudar sekitar 1,5 detik setelah berhenti | | |
+| UK-85 | F-42 | Peserta yang datang belakangan | Peserta C bergabung setelah coretan dibuat | Peserta C melihat coretan yang masih aktif | | |
+| UK-86 | F-40 | Hapus kanvas | Tekan "hapus" pada satu foto | Coretan pada foto itu hilang di seluruh peserta | | |
+| UK-87 | F-20, F-40 | *Viewer* tidak dapat menggambar | Masuk sebagai *viewer*, coba menggambar; kirim `canvas_draw_start` langsung melalui WebSocket | Antarmuka terkunci; server membalas `FORBIDDEN` | | |
+| UK-88 | F-43 | Obrolan kursor | Tekan `/`, ketik pesan, tekan Enter | Gelembung tampil di dekat kursor pada peserta lain lalu hilang | | |
+| UK-89 | F-43 | Tombol `/` tidak membajak isian | Tekan `/` saat fokus berada di kolom pencarian | Karakter `/` terketik di kolom; gelembung tidak muncul | | |
+| UK-90 | F-02a–c | Pencarian katalog | Ketik "nasi" pada *Find Your Food* | Daftar hasil tampil beserta tipe foto | | |
+| UK-91 | F-02c | Detail tipe *series* | Buka makanan bertipe `series` | Foto utama dan deret *thumbnail* A–H tampil; klik *thumbnail* mengganti foto utama dan berat | | |
+| UK-92 | F-02c | Detail tipe *range* | Buka makanan bertipe `range` | Satu foto panduan tampil dengan label kode dan berat tiap ukuran | | |
+| UK-93 | F-02c, F-31 | Area poligon terbitan | Buka foto yang memiliki anotasi terbitan | Area dapat ditampilkan/disembunyikan dan dipilih | | |
+| UK-94 | F-02d | *Bookmark* | Tekan "Simpan", muat ulang halaman | Status "Tersimpan" bertahan | | |
+| UK-95 | F-05 | Karakter khusus pada pencarian | Ketik `ayam "goreng` dan `nasi +` | Hasil tampil atau kosong; tidak ada galat 500 | | |
+| UK-96 | F-45 | Ubah profil | Ubah nama dan nomor telepon | Perubahan tersimpan dan tampil setelah muat ulang | | |
+| UK-97 | F-45 | Ganti kata sandi | Isi kata sandi lama yang salah, lalu yang benar | Yang salah ditolak; yang benar berhasil dan login berikutnya memakai kata sandi baru | | |
+| UK-98 | F-46 | Riwayat laporan sendiri | Buka halaman profil setelah mengirim laporan | Laporan tampil; rincian dapat dibuka | | |
+| UK-99 | F-46 | Laporan pengguna lain | Minta `GET /survey/my-submissions/{id}` dengan pengenal milik pengguna lain | Ditolak/tidak ditemukan | | |
+| UK-100 | F-47 | Unggah gambar | Unggah berkas `.gif`, lalu berkas JPG 12 MB, lalu JPG 1 MB | Dua pertama ditolak dengan pesan yang jelas; yang ketiga berhasil | | |
+| UK-101 | F-48 | Gandakan survei | Tekan gandakan pada satu survei | Survei baru terbentuk dengan konfigurasi yang sama | | |
+| UK-102 | NF-18 | Asal tidak terdaftar | Buka koneksi WebSocket dari asal di luar daftar putih | *Handshake* ditolak | | |
+| UK-103 | NF-20 | Metrik | Akses `/health` dan `/metrics` | `/health` membalas status ok; `/metrics` berformat Prometheus | | |
+
 **Rekapitulasi:**
 
 `[⚠ ISI SETELAH PENGUJIAN]`
@@ -1345,9 +1630,10 @@ Portal admin mengimplementasikan F-27 sampai F-32 melalui enam kelompok rute: su
 | Kolaborasi | 20 (UK-29…UK-48) | | | |
 | AI | 8 (UK-49…UK-56) | | | |
 | Admin | 12 (UK-57…UK-68) | | | |
-| **Total** | **68** | | | |
+| Luring, kanvas, katalog, profil, operasional | 35 (UK-69…UK-103) | | | |
+| **Total** | **103** | | | |
 
-Catatan: kebutuhan F-22 (penguncian entitas) tidak memiliki kasus uji karena dinyatakan di luar lingkup versi 1 — lihat catatan status pada Subbab 3.5.1.
+Catatan: kebutuhan F-22 (penguncian entitas) dan F-44 (perubahan peran selama sesi) tidak memiliki kasus uji karena belum terwujud utuh pada versi 1 — lihat catatan status pada Subbab 3.5.1. UK-90 sampai UK-94 dijalankan dalam keadaan login, sesuai keadaan kode (catatan pada Subbab 4.1.4).
 
 ## 4.3 Hasil Penelusuran *End-to-End* dan Perbaikan Cacat
 
@@ -1479,7 +1765,7 @@ Seluruh variabel tersebut sudah terekam sistem tanpa instrumentasi tambahan.
 
 ### 4.7.1 Menjawab RM-1 — Perancangan dan pembangunan sistem R24J
 
-Sistem berhasil dibangun dengan alur enam langkah yang memetakan metode lintasan berganda (Subbab 3.6.6). Keputusan perancangan yang menentukan adalah **penyimpanan progres di sisi peramban dengan masa berlaku 24 jam**, yang menjawab sifat pengisian R24J yang kerap bertahap sepanjang hari dan berpindah perangkat. Perhitungan gizi dilakukan secara deterministik dan hasilnya dikirim sebagai *snapshot*, sehingga laporan historis tidak berubah ketika basis data pangan diperbarui — sifat yang diperlukan untuk data penelitian.
+Sistem berhasil dibangun dengan alur enam langkah yang memetakan metode lintasan berganda (Subbab 3.6.6). Keputusan perancangan yang menentukan adalah **penyimpanan progres di sisi peramban dengan masa berlaku 24 jam**, yang menjawab sifat pengisian R24J yang kerap bertahap sepanjang hari dan berpindah perangkat. Perhitungan gizi dilakukan secara deterministik dua kali — di antarmuka sebagai umpan balik segera dan di server sebagai angka yang disimpan — lalu dibekukan sebagai *snapshot* pada saat laporan diterima, sehingga laporan historis tidak berubah ketika basis data pangan diperbarui. Sifat ini diperlukan untuk data penelitian, dan perhitungan ulang di server memastikan angka yang tersimpan tidak bergantung pada kejujuran klien.
 
 `[⚠ TAMBAHKAN pembahasan berdasarkan tingkat keberhasilan uji kotak-hitam modul recall]`
 
@@ -1515,26 +1801,52 @@ Tiga mekanisme yang mendukung reproduktibilitas dan auditabilitas: keluaran berk
 
 ### 4.7.5b Pembahasan Modul Katalog Publik
 
-Modul *Find Your Food* menjawab kebutuhan yang tidak terpenuhi oleh sistem sejenis: akses referensi porsi pangan tanpa registrasi. Desain pemisahan *endpoint* publik (`/public/*`) dari *endpoint* terotentikasi memungkinkan modul ini berjalan di atas data yang sama tanpa duplikasi pemeliharaan. Pemilihan `photo_type` sebagai atribut di tabel `foods` (bukan logika *hardcode* di antarmuka) berarti pengelola basis data dapat menentukan tampilan yang sesuai untuk setiap makanan tanpa penyebaran ulang aplikasi — prinsip yang sama dengan pemisahan *draft/published* pada CMS anotasi.
+Modul *Find Your Food* menjawab kebutuhan yang tidak terpenuhi oleh sistem sejenis: referensi porsi pangan yang dapat dijelajahi di luar alur pengisian survei. Datanya dilayani *endpoint* tanpa token, meskipun halaman webnya pada versi 1 masih berada di balik login (catatan pada Subbab 4.1.4). Desain pemisahan *endpoint* publik (`/public/*`) dari *endpoint* terotentikasi memungkinkan modul ini berjalan di atas data yang sama tanpa duplikasi pemeliharaan. Pemilihan `photo_type` sebagai atribut di tabel `foods` (bukan logika *hardcode* di antarmuka) berarti pengelola basis data dapat menentukan tampilan yang sesuai untuk setiap makanan tanpa penyebaran ulang aplikasi — prinsip yang sama dengan pemisahan *draft/published* pada CMS anotasi.
 
 Optimasi pencarian dari `LIKE` ke `MATCH … AGAINST IN BOOLEAN MODE` berdampak langsung pada responsivitas modul ini karena *endpoint* publik tidak memiliki caching query pada sisi server (berbeda dengan *endpoint* terautentikasi yang dapat memanfaatkan koneksi yang sudah terbangun). Indeks `FULLTEXT` yang sudah dirancang sejak awal pada `(name, local_name)` membuktikan nilai dari keputusan desain skema awal yang berorientasi ke depan.
 
-`[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK find-food bila kasus uji ditambahkan]`
+`[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK-90 s.d. UK-95]`
+
+### 4.7.5c Pembahasan Dukungan Luring
+
+Dukungan luring tidak termasuk rumusan masalah, tetapi menentukan apakah sistem layak dipakai pada kondisi lapangan yang menjadi alasan keberadaannya. Tiga hal layak dibahas.
+
+**Pertama, lingkup yang dipilih sengaja sempit.** Yang dibuat tahan-luring hanyalah titik yang paling mahal bila gagal: pengiriman laporan. Kehilangan hasil pencarian hanya menunda responden; kehilangan laporan yang sudah selesai diisi berarti kehilangan satu unit data penelitian dan, sering kali, kesediaan responden untuk mengulang. Pencarian makanan luring memerlukan penyalinan katalog ke perangkat — pekerjaan yang berbeda skala dan ditempatkan sebagai saran pengembangan.
+
+**Kedua, antrean tanpa idempotensi justru memperburuk mutu data.** Mekanisme kirim-ulang otomatis mengubah kegagalan yang terlihat (laporan tidak terkirim) menjadi kegagalan yang tidak terlihat (laporan terkirim dua kali). Pada data gizi, duplikat tidak dapat dibedakan dari dua *recall* sah oleh responden yang sama. Karena itu `local_id` dibangkitkan klien **sebelum** percobaan pertama, bukan sebelum percobaan ulang, dan kendala unik ditegakkan di basis data, bukan hanya diperiksa di aplikasi.
+
+**Ketiga, keadaan antara adalah sumber cacat senyap.** Status `SYNCING` diperlukan agar dua pemicu sinkronisasi tidak mengirim item yang sama bersamaan, tetapi status itu juga menjadi tempat item dapat "tersangkut" bila tab ditutup di tengah proses atau server tidak menyebut item tersebut dalam balasannya. Polanya sama dengan temuan pada Subbab 4.3: kegagalan yang tidak menimbulkan pesan galat. Penanganannya — memulihkan item usang saat aplikasi dibuka, dan memperlakukan item yang tidak dijawab sebagai belum terkirim — mengikuti prinsip yang sama dengan *fail-closed* pada otorisasi: keadaan yang tidak diketahui ditafsirkan ke arah yang aman, dalam hal ini "anggap belum terkirim" karena idempotensi membuat pengiriman ulang tidak berbahaya.
+
+`[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK-69 s.d. UK-79]`
+
+### 4.7.5d Pembahasan Kanvas Langsung dan Obrolan Kursor
+
+Kedua fitur ini memperluas unsur "aksi" pada kerangka *workspace awareness* tanpa melanggar batasan bahwa pendamping tidak menulis ke laporan. Kursor bersama menjawab "di mana rekan saya berada"; kanvas menjawab "bagian mana yang ia maksud" — pembedaan yang menentukan pada langkah estimasi porsi, ketika pendamping perlu menunjuk satu potongan pada foto yang memuat beberapa ukuran. Penggunaan koordinat ternormalisasi terhadap foto, bukan terhadap layar, adalah syarat agar penunjukan itu bermakna ketika responden memakai telepon pintar dan pendamping memakai laptop.
+
+Keputusan menggolongkan pesan kanvas sebagai pesan yang digerbangi peran patut dicatat. Secara data, coretan tidak mengubah apa pun; namun membiarkan *viewer* menggambar akan mengaburkan arti peran tersebut bagi pengguna. Konsistensi model mental di sini didahulukan daripada kelonggaran fitur.
+
+`[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK-82 s.d. UK-89, dan — bila tersedia — tanggapan pendamping pada pertanyaan terbuka kuesioner]`
 
 ### 4.7.6 Perbandingan dengan Sistem Terdahulu
 
-| Aspek | ASA24 | Intake24 | Atlas Food |
-|---|---|---|---|
-| Pendampingan jarak jauh | Tidak | Tidak | **Ya** |
-| Kontrol peran sesi | — | — | **Tiga lapis, *fail-closed*** |
-| Penyelarasan langkah *wizard* | — | — | **Ya** |
-| Umpan balik ke responden | Terbatas | Terbatas | **Rekomendasi LLM berkendala skema** |
-| Katalog porsi publik tanpa login | Tidak ada | Tidak ada | **Ada** (*Find Your Food*, tipe *series*/*range*) |
-| Tipe visualisasi foto porsi | Statis | Statis | **Dinamis** (`series` *slider*, `range` *grid*) |
-| Validasi terhadap standar emas | Ya | Ya (*doubly labelled water*) | **Belum** (di luar cakupan) |
-| Skala penggunaan | Nasional (AS) | Nasional (Britania Raya) | **Prototipe** |
+| Aspek | ASA24 | Intake24 | myfood24 | Atlas Food |
+|---|---|---|---|---|
+| Pendampingan jarak jauh di dalam aplikasi | Tidak | Tidak | Tidak | **Ya** |
+| Kontrol peran sesi | — | — | — | **Tiga lapis, *fail-closed*** |
+| Penyelarasan langkah *wizard* | — | — | — | **Ya** |
+| Penunjuk visual bersama pada foto porsi | Tidak | Tidak | Tidak | **Ya** (kanvas langsung, laser) |
+| Umpan balik ke responden | Terbatas | Terbatas | Ringkasan gizi | **Rekomendasi LLM berkendala skema** |
+| Katalog porsi di luar alur survei | Tidak ada | Tidak ada | Tidak ada | **Ada** (*Find Your Food*; API tanpa token, halaman web v1 memerlukan login) |
+| Tipe visualisasi foto porsi | Deret foto | Deret foto | Deret foto | **Dua tipe** (`series` deret foto, `range` foto panduan berarea) |
+| Pengiriman saat luring | Tidak didokumentasikan | Tidak didokumentasikan | Tidak didokumentasikan | **Ada** (antrean + idempotensi) |
+| Cakupan zat gizi | Luas (puluhan zat gizi) | Luas | Luas | **Empat makronutrien** |
+| Ukuran basis data pangan | Besar, nasional | Besar, nasional | Besar, termasuk produk bermerek | **Terbatas** `[⚠ ISI jumlah makanan pada basis data saat pengujian]` |
+| Validasi terhadap standar emas | Ya | Ya (*doubly labelled water*) | Ya `[⚠ VERIFIKASI]` | **Belum** (di luar cakupan) |
+| Skala penggunaan | Nasional (AS) | Nasional (Britania Raya) | Riset & pendidikan (Britania Raya) | **Prototipe** |
 
-Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dimensi kolaborasi, umpan balik, dan aksesibilitas publik, namun **belum tervalidasi secara gizi** dan belum diuji pada skala nasional seperti kedua sistem pembanding. Klaim penelitian ini terbatas pada ranah rekayasa perangkat lunak, bukan pada ranah validitas pengukuran asupan.
+Isi kolom sistem pembanding bersumber dari publikasi rujukan pada Subbab 2.2, bukan dari pengujian langsung; sel bertanda `[⚠ VERIFIKASI]` dan seluruh kolom myfood24 perlu dicocokkan dengan sumber aslinya sebelum diserahkan.
+
+Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dimensi kolaborasi, umpan balik, dan ketahanan terhadap koneksi buruk, namun **tertinggal jauh** pada cakupan zat gizi dan ukuran basis data pangan, **belum tervalidasi secara gizi**, dan belum diuji pada skala nasional seperti ketiga sistem pembanding. Klaim penelitian ini terbatas pada ranah rekayasa perangkat lunak, bukan pada ranah validitas pengukuran asupan.
 
 ---
 ---
@@ -1547,8 +1859,8 @@ Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dime
 
 | Rumusan | Kesimpulan |
 |---|---|
-| RM-1 | Sistem survei R24J berbasis web berhasil dirancang dan dibangun dengan alur *wizard* enam langkah yang memetakan metode lintasan berganda, dilengkapi estimasi porsi berbasis foto *as served*, perhitungan gizi deterministik untuk empat zat gizi makro, penyimpanan progres berbasis peramban ber-TTL 24 jam, dan validasi tiga aturan sebelum pengiriman. `[⚠ TAMBAHKAN tingkat keberhasilan uji]` |
-| RM-2 | Mekanisme kolaborasi real-time berbasis WebSocket berhasil diterapkan mencakup kehadiran, kursor bersama, umpan aktivitas, dan mode ikut. Persoalan penyelarasan langkah pada aplikasi satu halaman diselesaikan dengan memperluas unsur "lokasi" pada kerangka *workspace awareness* menjadi posisi dalam alur kerja, diwujudkan sebagai atribut `step` yang disertakan pada **setiap** pesan *viewport* dan divalidasi sebelum diterapkan. `[⚠ TAMBAHKAN hasil latensi]` |
+| RM-1 | Sistem survei R24J berbasis web berhasil dirancang dan dibangun dengan alur *wizard* enam langkah yang memetakan metode lintasan berganda, dilengkapi estimasi porsi berbasis foto *as served*, perhitungan gizi deterministik untuk empat zat gizi makro, penyimpanan progres berbasis peramban ber-TTL 24 jam, validasi tiga aturan sebelum pengiriman, dan perhitungan ulang nilai gizi di server. Sistem dilengkapi dukungan luring: laporan yang dikirim tanpa koneksi diantrekan di peramban dan disinkronkan secara idempoten sehingga tidak hilang maupun berganda. `[⚠ TAMBAHKAN tingkat keberhasilan uji]` |
+| RM-2 | Mekanisme kolaborasi real-time berbasis WebSocket berhasil diterapkan mencakup kehadiran, kursor bersama, umpan aktivitas, mode ikut, kanvas langsung di atas foto porsi, dan obrolan kursor. Persoalan penyelarasan langkah pada aplikasi satu halaman diselesaikan dengan memperluas unsur "lokasi" pada kerangka *workspace awareness* menjadi posisi dalam alur kerja, diwujudkan sebagai atribut `step` yang disertakan pada **setiap** pesan *viewport* dan divalidasi sebelum diterapkan. `[⚠ TAMBAHKAN hasil latensi]` |
 | RM-3 | Kontrol peran *owner*/*editor*/*viewer* berhasil ditegakkan melalui tiga lapis independen — atribut `inert` pada antarmuka, gerbang pengiriman *fail-closed* pada klien, dan penolakan otoritatif pada server — dilengkapi pengingatan peran per-pengguna di sisi ruang yang mencegah kenaikan hak akses melalui navigasi ulang. `[⚠ TAMBAHKAN hasil uji]` |
 | RM-4 | Integrasi LLM berhasil dilakukan dengan pembagian peran yang tegas: perhitungan gizi tetap deterministik, LLM hanya menyusun interpretasi naratif. Reproduktibilitas dijaga melalui keluaran berkendala skema dengan *temperature* rendah, normalisasi dua lapis, serta penyimpanan hasil per-*submission* yang sekaligus berfungsi sebagai jejak audit model, token, dan latensi. `[⚠ TAMBAHKAN hasil penilaian pakar]` |
 | RM-5 | Pengujian menghasilkan `[⚠ ISI]`. Penelusuran alur *end-to-end* menemukan sebelas cacat yang seluruhnya telah diperbaiki, dengan 45,5% di antaranya tergolong kehilangan data senyap atau kebuntuan alur — menunjukkan bahwa pemeriksaan tipe dan proses *build* yang berhasil tidak cukup untuk menjamin kebenaran sistem berkeadaan berlapis. |
@@ -1561,14 +1873,16 @@ Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dime
 
 1. **Persistensi keadaan kolaborasi.** *Hub*, kunci entitas, dan token undangan saat ini disimpan di memori proses sehingga seluruh sesi hilang saat layanan dimulai ulang dan sistem tidak dapat disebar ke banyak instans. Disarankan memindahkannya ke Redis dengan Pub/Sub.
 2. **Pengamanan *handshake* WebSocket.** Token JWT saat ini dikirim melalui parameter *query* sehingga berpotensi tercatat pada log proksi. Disarankan menggunakan tiket sekali pakai berumur pendek yang ditukar sebelum proses *upgrade*.
-3. **Pembatasan asal permintaan.** Pemeriksaan `CheckOrigin` pada WebSocket saat ini mengizinkan seluruh asal; untuk penggunaan produksi diperlukan daftar putih berbasis konfigurasi.
+3. **Pengetatan pemeriksaan asal.** `CheckOrigin` pada WebSocket kini memakai daftar putih yang sama dengan CORS, tetapi permintaan **tanpa** *header* `Origin` masih diterima agar klien non-peramban dapat tersambung (JWT tetap wajib). Untuk produksi, kelonggaran ini sebaiknya dapat dimatikan melalui konfigurasi.
 4. **Integrasi penguncian entitas ke portal admin (F-22).** `LockManager`, tipe pesan `db_edit_*`, dan komponen `LockIndicator` sudah tersedia tetapi belum terhubung. Menyematkan `CollabSession` pada rute admin dan mengirim `db_edit_start` saat formulir dibuka akan melengkapi kebutuhan ini dengan pekerjaan yang relatif kecil, karena seluruh lapis pendukungnya sudah ada.
-5. **Pengujian otomatis.** Belum terdapat berkas uji pada sisi antarmuka. Disarankan menambahkan uji unit untuk mesin keadaan `useRecallSession` dan perutean pesan kolaborasi, serta uji *end-to-end* berbasis Playwright agar cacat sejenis D-01 hingga D-08 terdeteksi otomatis.
+5. **Pengujian otomatis.** Sisi layanan telah memiliki enam berkas uji (uji asap perutean, anotasi, *hub* dan konkurensi kolaborasi, pembersihan kueri pencarian, serta *middleware*), tetapi belum terdapat berkas uji pada sisi antarmuka, dan belum ada uji untuk idempotensi pengiriman. Disarankan menambahkan uji unit untuk `SyncEngine` dan jalur idempotensi `local_id`, uji unit untuk mesin keadaan `useRecallSession` dan perutean pesan kolaborasi, serta uji *end-to-end* berbasis Playwright agar cacat sejenis D-01 hingga D-08 terdeteksi otomatis.
 6. **Privasi data pada layanan LLM.** Laporan dikirim ke penyedia pihak ketiga. Disarankan menganonimkan nama responden sebelum pengiriman, atau mengevaluasi penggunaan model yang dijalankan secara lokal.
 7. **Pembersihan rute lama.** Terdapat rute *wizard* versi terdahulu yang tidak tertaut dari mana pun namun masih dapat dibuka langsung dan berperilaku berbeda; disarankan dihapus atau dialihkan.
-8. **Dukungan luring (*Progressive Web App*).** Rancangan arsitektur offline-first telah disiapkan (IndexedDB dengan Dexie.js, antrian sinkronisasi dengan *idempotency key*, Service Worker via Serwist, dan *endpoint* batch sync `POST /sync/batch`). Implementasi penuh akan memungkinkan pengisian recall di wilayah dengan konektivitas buruk — kondisi yang lazim pada penelitian gizi lapangan — dengan data terkirim otomatis saat koneksi kembali.
-9. **Perluasan tipe visualisasi porsi.** Tipe `guide` (satu foto dengan beberapa area overlay untuk makanan majemuk dalam satu piring) dapat diimplementasikan sebagai pelengkap tipe `series` dan `range` yang sudah ada, memanfaatkan infrastruktur CMS anotasi yang sudah tersedia.
-10. **Perluasan katalog publik.** Modul *Find Your Food* dapat diperkaya dengan fitur perbandingan porsi antar makanan dalam kategori, estimasi kalori interaktif berdasarkan pilihan porsi, dan integrasi dengan sumber data gizi nasional (TKPI/DKBM) secara langsung.
+8. **Perluasan dukungan luring.** Versi 1 hanya menjamin pengiriman laporan saat luring. Tiga perluasan disarankan: (a) menyalin katalog makanan dan nilai gizinya ke perangkat agar pencarian dan perhitungan berjalan tanpa koneksi — tabel `cachedFoods` dan `surveyDrafts` sudah didefinisikan pada skema IndexedDB tetapi belum dipakai; (b) memanfaatkan *Background Sync API* agar antrean terkirim meskipun tab sudah ditutup; dan (c) mengaktifkan kembali analisis AI secara otomatis bagi laporan yang baru tersinkron.
+9. **Pembukaan katalog dan kontrol peran.** Mengeluarkan `/find-food` dari rute terlindung agar katalog benar-benar publik (catatan pada Subbab 4.1.4), serta menambahkan kontrol antarmuka bagi pemilik ruang untuk mengubah peran peserta selama sesi (F-44), yang lapis layanannya sudah tersedia.
+10. **Persistensi kanvas.** Coretan kini hanya hidup di memori ruang dan hilang saat layanan dimulai ulang. Bila kelak dibutuhkan sebagai bukti proses pendampingan, coretan dapat disimpan terpisah dari laporan, dengan persetujuan responden.
+11. **Perluasan cakupan zat gizi.** Perhitungan saat ini terbatas pada empat makronutrien, jauh di bawah sistem pembanding. Skema `nutrient_types` sudah mendukung zat gizi lain; yang diperlukan adalah pengisian data dan perluasan agregasi pada layanan.
+12. **Perluasan katalog.** Modul *Find Your Food* dapat diperkaya dengan fitur perbandingan porsi antar makanan dalam kategori, estimasi kalori interaktif berdasarkan pilihan porsi, dan integrasi dengan sumber data gizi nasional (TKPI/DKBM) secara langsung.
 
 ### 5.2.2 Saran Penelitian Lanjutan
 
@@ -1605,6 +1919,14 @@ Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free re
 
 `[⚠ LENGKAPI]` Penulis, A. B., dkk. (2025). Performance evaluation of 3 large language models for nutritional content estimation from food images. *The American Journal of Clinical Nutrition*. https://pubmed.ncbi.nlm.nih.gov/41081011/ — **verifikasi nama penulis, volume, nomor, dan halaman melalui tautan tersebut.**
 
+`[⚠ VERIFIKASI — rujukan pembanding, ditulis dari ingatan penyusun draf; cocokkan penulis, volume, halaman, dan DOI pada sumber aslinya sebelum dipakai]` Carter, M. C., Albar, S. A., Morris, M. A., Mulla, U. Z., Hancock, N., Evans, C. E., Alwan, N. A., Greenwood, D. C., Hardie, L. J., Frost, G. S., Wark, P. A., & Cade, J. E. (2015). Development of a UK online 24-h dietary assessment tool: myfood24. *Nutrients, 7*(6), 4016–4032. https://doi.org/10.3390/nu7064016
+
+`[⚠ VERIFIKASI — sda.]` Moshfegh, A. J., Rhodes, D. G., Baer, D. J., Murayi, T., Clemens, J. C., Rumpler, W. V., Paul, D. R., Sebastian, R. S., Kuczynski, K. J., Ingwersen, L. A., Staples, R. C., & Cleveland, L. E. (2008). The US Department of Agriculture Automated Multiple-Pass Method reduces bias in the collection of energy intakes. *The American Journal of Clinical Nutrition, 88*(2), 324–332. https://doi.org/10.1093/ajcn/88.2.324
+
+`[⚠ VERIFIKASI — sda.]` Subar, A. F., Kirkpatrick, S. I., Mittl, B., Zimmerman, T. P., Thompson, F. E., Bingley, C., Willis, G., Islam, N. G., Baranowski, T., McNutt, S., & Potischman, N. (2012). The Automated Self-Administered 24-hour dietary recall (ASA24): A resource for researchers, clinicians, and educators from the National Cancer Institute. *Journal of the Academy of Nutrition and Dietetics, 112*(8), 1134–1137. https://doi.org/10.1016/j.jand.2012.04.016
+
+`[⚠ TAMBAHKAN]` Rujukan mengenai *Progressive Web App*, *service worker*, dan arsitektur *offline-first* untuk Subbab 2.10 (mis. spesifikasi W3C *Service Workers* dan *Web App Manifest*), serta rujukan mengenai idempotensi pada sistem terdistribusi.
+
 `[⚠ TAMBAHKAN]` Rujukan berbahasa Indonesia mengenai penerapan R24J di Indonesia (jurnal gizi nasional).
 
 `[⚠ TAMBAHKAN]` Rujukan mengenai Tabel Komposisi Pangan Indonesia (TKPI) sebagai sumber nilai gizi.
@@ -1635,6 +1957,16 @@ Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free re
 | Kursor & *viewport* | `internal/domain/collab/hooks/useLiveCursor.ts` |
 | Mode ikut | `internal/domain/collab/hooks/useFollowMode.ts` |
 | Kunci antarmuka *viewer* | `internal/domain/collab/components/ViewerLock.tsx` |
+| Kanvas langsung | `internal/domain/collab/components/LiveCanvasOverlay.tsx`, `CanvasToolbar.tsx`; `hooks/useLiveCanvas.ts`; `store/canvasStore.ts` |
+| Obrolan kursor | `internal/domain/collab/hooks/useCursorChat.ts`; `components/CursorChatOverlay.tsx` |
+| Antrean luring (IndexedDB) | `internal/lib/offlineDb.ts`; `internal/domain/survey/services/offlineService.ts` |
+| Mesin sinkronisasi | `internal/lib/syncEngine.ts`; `internal/hooks/useSyncStatus.ts` |
+| Pengiriman laporan + kunci idempotensi | `internal/domain/submission/services/submissionService.ts` |
+| *Service worker*, manifes, komponen PWA | `public/sw.js`; `app/manifest.ts`; `internal/components/pwa/` |
+| Penampil foto porsi `series`/`range` | `internal/components/PortionPhotoViewer.tsx` |
+| Halaman katalog | `app/find-food/` |
+| Profil & riwayat laporan | `internal/domain/auth/components/ProfileCard.tsx` |
+| Penjaga rute antarmuka | `middleware.ts` |
 | Panel rekomendasi AI | `internal/domain/ai/components/AiRecommendationPanel.tsx` |
 | Normalisasi keluaran LLM | `internal/domain/ai/services/aiService.ts` |
 | *Hub* WebSocket | `internal/domain/collab/hub.go` |
@@ -1644,8 +1976,15 @@ Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free re
 | Token undangan | `internal/domain/collab/invite.go` |
 | Layanan AI | `internal/domain/ai/service.go` |
 | Klien Groq & *prompt* | `internal/pkg/groq/` |
-| Perutean HTTP | `internal/router/router.go` |
-| Migrasi basis data | `migrations/001…009` |
+| Laporan: idempotensi, *batch sync*, hitung ulang gizi | `internal/domain/submission/service.go`, `handler.go` |
+| Pembersihan kueri pencarian | `internal/domain/food/search_query.go` |
+| Unggah gambar | `internal/domain/upload/handler.go` |
+| Autentikasi & profil | `internal/domain/auth/`; `internal/pkg/middleware/auth.go` |
+| Perutean HTTP & metrik | `internal/router/router.go` |
+| Pemantauan | `docker-compose.monitoring.yml`; `monitoring/prometheus.yml` |
+| Migrasi basis data | `migrations/001…011` |
+
+Berkas pada paruh atas tabel berada di repositori antarmuka (`atlas_food_frontend`); berkas `.go`, `migrations/`, dan berkas pemantauan berada di repositori layanan (`atlas_food_backend`).
 
 ## Lampiran B — Instrumen Kuesioner SUS (Bahasa Indonesia)
 
@@ -1690,11 +2029,11 @@ Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free re
 
 ## Lampiran E — Tangkapan Layar Sistem
 
-`[⚠ LAMPIRKAN minimal: (1) halaman login, (2) daftar survei aktif, (3) enam layar wizard, (4) bilah kolaborasi dengan avatar kehadiran, (5) kursor peserta lain, (6) modal berbagi undangan, (7) tampilan mode viewer terkunci, (8) panel AI empat keadaan, (9) halaman ringkasan akhir, (10) dasbor admin, (11) editor anotasi, (12) daftar submission]`
+`[⚠ LAMPIRKAN minimal: (1) halaman login, (2) daftar survei aktif, (3) enam layar wizard, (4) bilah kolaborasi dengan avatar kehadiran, (5) kursor peserta lain, (6) modal berbagi undangan, (7) tampilan mode viewer terkunci, (8) panel AI empat keadaan, (9) halaman ringkasan akhir, (10) dasbor admin, (11) editor anotasi, (12) daftar submission, (13) bilah status luring dengan antrean, (14) kanvas langsung di atas foto porsi, (15) obrolan kursor, (16) katalog Find Your Food mode series dan range, (17) halaman profil dan riwayat laporan]`
 
 ## Lampiran F — Kode Sumber Terpilih
 
-`[⚠ LAMPIRKAN potongan kode kunci sesuai permintaan pembimbing — umumnya: mesin keadaan wizard, penanganan viewport_update di hub, penegakan peran tiga lapis, dan pipeline analisis LLM]`
+`[⚠ LAMPIRKAN potongan kode kunci sesuai permintaan pembimbing — umumnya: mesin keadaan wizard, penanganan viewport_update di hub, penegakan peran tiga lapis, pipeline analisis LLM, serta mesin sinkronisasi luring dan pemeriksaan idempotensi di server]`
 
 ---
 

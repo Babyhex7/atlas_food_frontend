@@ -33,6 +33,7 @@ export type FoodImage = {
   height: number;
   status: AnnotationStatus;
   primary_food_id: string | null;
+  weight_gram?: number | null;
   created_by: string;
   published_at: string | null;
   created_at: string;

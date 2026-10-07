@@ -83,7 +83,7 @@ export function SubmissionList() {
 
   if (isLoading) {
     return (
-      <div className="p-6 px-8">
+      <div className="p-6">
         <div className="flex flex-col gap-3">
           {[1, 2, 3].map((row) => (
             <div key={row} className="skeleton h-24 rounded-xl" />
@@ -95,7 +95,7 @@ export function SubmissionList() {
 
   if (isError) {
     return (
-      <div className="p-6 px-8">
+      <div className="p-6">
         <EmptyState
           title="Gagal memuat submissions"
           description="Pastikan survey ID valid dan Anda login sebagai admin."
@@ -105,7 +105,7 @@ export function SubmissionList() {
   }
 
   return (
-    <div className="p-6 px-8">
+    <div className="p-6">
       {/* Tidak ada tombol "Kembali" di sini: breadcrumb top bar sudah memuat
           tautan ke daftar survey, dua kontrol untuk tujuan yang sama hanya
           menambah keputusan. */}

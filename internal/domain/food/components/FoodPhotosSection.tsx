@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ImagePlus, Pencil, Trash2, Upload } from "lucide-react";
 import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
 import { Button } from "@/internal/pkg/components/Button";
@@ -52,6 +53,7 @@ export function FoodPhotosSection({ foodId, photoType }: FoodPhotosSectionProps)
   const publishPhoto = usePublishFoodPhoto(foodId);
   const unpublishPhoto = useUnpublishFoodPhoto(foodId);
 
+  const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
   const [weight, setWeight] = useState("");
@@ -59,6 +61,7 @@ export function FoodPhotosSection({ foodId, photoType }: FoodPhotosSectionProps)
   const [preview, setPreview] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [targetAction, setTargetAction] = useState<"upload" | "annotate">("upload");
 
   const items = data?.items ?? [];
   const effectiveType = data?.photo_type === "range" || photoType === "range" ? "range" : "series";
@@ -95,7 +98,7 @@ export function FoodPhotosSection({ foodId, photoType }: FoodPhotosSectionProps)
     try {
       const size = await readImageSize(file);
       const uploaded = await uploadFoodPhotoFile(file);
-      await createPhoto.mutateAsync({
+      const created = await createPhoto.mutateAsync({
         title: photoTitle,
         image_url: uploaded.url,
         width: size.width,
@@ -103,6 +106,12 @@ export function FoodPhotosSection({ foodId, photoType }: FoodPhotosSectionProps)
         weight_gram: weightGram,
         label: photoTitle,
       });
+
+      if (targetAction === "annotate" && created?.id) {
+        router.push(`/admin/annotations/${created.id}?returnTo=${returnTo}`);
+        return;
+      }
+
       setTitle("");
       setWeight("");
       setFile(null);
@@ -223,10 +232,27 @@ export function FoodPhotosSection({ foodId, photoType }: FoodPhotosSectionProps)
               <span className="text-sm">{formError}</span>
             </div>
           )}
-          <div className="flex justify-end">
-            <Button type="submit" size="sm" isLoading={uploading || createPhoto.isPending}>
+          <div className="flex items-center justify-end gap-2 flex-wrap pt-1">
+            <Button
+              type="submit"
+              size="sm"
+              variant="secondary"
+              disabled={uploading || createPhoto.isPending}
+              isLoading={uploading && targetAction === "upload"}
+              onClick={() => setTargetAction("upload")}
+            >
               <Upload size={14} />
-              Unggah
+              Unggah Saja
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={uploading || createPhoto.isPending}
+              isLoading={uploading && targetAction === "annotate"}
+              onClick={() => setTargetAction("annotate")}
+            >
+              <Pencil size={14} />
+              Unggah & Langsung Anotasi
             </Button>
           </div>
         </form>

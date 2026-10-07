@@ -104,10 +104,10 @@ export function AsServedSetForm() {
   }
 
   return (
-    <div className="p-6 px-8">
+    <div className="p-6">
       <div className="max-w-[640px]">
         <div className="flex items-center gap-3 mb-8 flex-wrap">
-          <h1 className="text-2xl font-bold text-text-primary m-0">
+          <h1 className="text-[22px] font-semibold text-text-primary m-0 tracking-tight">
             {isEdit ? "Ubah Set Foto Porsi" : "Tambah Set Foto Porsi"}
           </h1>
           {isEdit && (

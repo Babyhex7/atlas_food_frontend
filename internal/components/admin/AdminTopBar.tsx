@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronRight, Plus, Search, UtensilsCrossed } from "lucide-react";
+import { Bell, ChevronRight, Plus, Search, UtensilsCrossed } from "lucide-react";
 import { useAdminFoods } from "@/internal/domain/food/hooks/useFoodQueries";
 
 /** Label ruas path yang dikenal. Sisanya dianggap id dan diberi label induknya. */
@@ -32,22 +32,16 @@ type Crumb = { label: string; href: string };
 function buildCrumbs(pathname: string): Crumb[] {
   const segments = pathname.split("/").filter(Boolean);
   const crumbs: Crumb[] = [];
-
   segments.forEach((segment, index) => {
     const href = `/${segments.slice(0, index + 1).join("/")}`;
     const known = SEGMENT_LABEL[segment];
-
     if (known) {
       crumbs.push({ label: known, href });
       return;
     }
-
-    // Ruas tak dikenal = id. Namanya diambil dari induk supaya breadcrumb tidak
-    // memamerkan UUID mentah ke admin.
     const parent = SEGMENT_LABEL[segments[index - 1] ?? ""] ?? "Detail";
     crumbs.push({ label: `Edit ${parent}`, href });
   });
-
   return crumbs;
 }
 
@@ -59,6 +53,7 @@ export function AdminTopBar() {
   const [debounced, setDebounced] = useState("");
   const [open, setOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const crumbs = useMemo(() => buildCrumbs(pathname), [pathname]);
 
@@ -67,9 +62,7 @@ export function AdminTopBar() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Panel hasil & menu aksi menutup sendiri saat pindah halaman — kalau tidak,
-  // keduanya menggantung di atas halaman baru. Disetel saat render (bukan lewat
-  // efek) supaya tidak ada satu frame dengan panel yang masih terbuka.
+  // Close panels on navigation
   const [lastPath, setLastPath] = useState(pathname);
   if (pathname !== lastPath) {
     setLastPath(pathname);
@@ -78,7 +71,7 @@ export function AdminTopBar() {
   }
 
   const { data, isFetching } = useAdminFoods(
-    { search: debounced, limit: 5, page: 1 },
+    { search: debounced, limit: 6, page: 1 },
     { enabled: debounced.length > 0 }
   );
   const results = debounced ? (data?.foods ?? []) : [];
@@ -91,22 +84,30 @@ export function AdminTopBar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface">
-      <div className="flex h-16 items-center gap-4 px-6">
+      <div className="flex h-14 items-center gap-3 px-5">
+
+        {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
-          <ol className="m-0 flex list-none flex-wrap items-center gap-1 p-0 text-sm">
+          <ol className="m-0 flex list-none flex-wrap items-center gap-1 p-0">
             {crumbs.map((crumb, index) => {
               const last = index === crumbs.length - 1;
               return (
                 <li key={crumb.href} className="flex items-center gap-1">
                   {index > 0 ? (
-                    <ChevronRight size={13} aria-hidden className="text-text-muted" />
+                    <ChevronRight size={12} aria-hidden className="text-text-muted" />
                   ) : null}
                   {last ? (
-                    <span aria-current="page" className="font-semibold text-text-primary">
+                    <span
+                      aria-current="page"
+                      className="text-[13px] font-semibold text-text-primary"
+                    >
                       {crumb.label}
                     </span>
                   ) : (
-                    <Link href={crumb.href} className="text-text-muted no-underline hover:text-primary">
+                    <Link
+                      href={crumb.href}
+                      className="text-[13px] text-text-muted no-underline hover:text-text-primary"
+                    >
                       {crumb.label}
                     </Link>
                   )}
@@ -116,37 +117,39 @@ export function AdminTopBar() {
           </ol>
         </nav>
 
-        <div className="relative hidden w-full max-w-xs md:block">
+        {/* Search */}
+        <div className="relative hidden w-full max-w-[220px] md:block">
           <Search
-            size={14}
+            size={13}
             aria-hidden
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted"
           />
           <input
+            ref={searchRef}
             type="search"
             value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
+            onChange={(e) => {
+              setQuery(e.target.value);
               setOpen(true);
             }}
             onFocus={() => setOpen(true)}
             onBlur={() => window.setTimeout(() => setOpen(false), 150)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") submitSearch();
-              if (event.key === "Escape") setOpen(false);
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submitSearch();
+              if (e.key === "Escape") setOpen(false);
             }}
             placeholder="Cari makanan…"
             aria-label="Cari makanan"
-            className="h-9 w-full rounded-full border-[1.5px] border-border bg-surface-alt pl-8 pr-3 font-sans text-sm text-text-primary outline-none transition-base focus:border-primary focus:bg-surface focus:shadow-focus"
+            className="h-8 w-full rounded-md border border-border bg-surface-alt pl-7 pr-3 font-sans text-[13px] text-text-primary outline-none transition-base focus:border-primary focus:bg-surface focus:shadow-focus"
           />
 
           {open && debounced ? (
-            <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-lg">
+            <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-lg border border-border bg-surface p-1 shadow-md">
               {isFetching && results.length === 0 ? (
-                <p className="m-0 px-3 py-3 text-xs text-text-muted">Mencari…</p>
+                <p className="m-0 px-3 py-2 text-xs text-text-muted">Mencari…</p>
               ) : results.length === 0 ? (
-                <p className="m-0 px-3 py-3 text-xs text-text-muted">
-                  Tidak ada makanan cocok “{debounced}”.
+                <p className="m-0 px-3 py-2 text-xs text-text-muted">
+                  Tidak ada hasil untuk &ldquo;{debounced}&rdquo;.
                 </p>
               ) : (
                 <>
@@ -154,14 +157,18 @@ export function AdminTopBar() {
                     <Link
                       key={food.id}
                       href={`/admin/foods/${food.id}`}
-                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 no-underline hover:bg-surface-alt"
+                      className="flex items-center gap-2 rounded-md px-2 py-1.5 no-underline hover:bg-surface-alt"
                     >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary-light text-sm">
-                        {food.category?.icon || <UtensilsCrossed size={13} className="text-primary" />}
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary-light text-xs">
+                        {food.category?.icon || (
+                          <UtensilsCrossed size={11} className="text-primary" />
+                        )}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm text-text-primary">{food.name}</span>
-                        <span className="block truncate font-mono text-[11px] text-text-muted">
+                        <span className="block truncate text-[13px] text-text-primary">
+                          {food.name}
+                        </span>
+                        <span className="block truncate font-mono text-[10px] text-text-muted">
                           {food.code}
                         </span>
                       </span>
@@ -169,11 +176,11 @@ export function AdminTopBar() {
                   ))}
                   <button
                     type="button"
-                    onMouseDown={(event) => event.preventDefault()}
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={submitSearch}
-                    className="w-full cursor-pointer rounded-lg border-none bg-transparent px-2.5 py-2 text-left font-sans text-xs font-semibold text-primary hover:bg-primary-light"
+                    className="w-full cursor-pointer rounded-md border-none bg-transparent px-2 py-1.5 text-left font-sans text-xs font-semibold text-primary hover:bg-primary-light"
                   >
-                    Lihat semua hasil untuk “{debounced}”
+                    Lihat semua hasil
                   </button>
                 </>
               )}
@@ -181,36 +188,46 @@ export function AdminTopBar() {
           ) : null}
         </div>
 
+        {/* Notification placeholder */}
+        <button
+          type="button"
+          aria-label="Notifikasi"
+          className="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-text-muted transition-fast hover:bg-surface-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+        >
+          <Bell size={15} aria-hidden />
+        </button>
+
+        {/* Quick action */}
         <div className="relative shrink-0">
           <button
             type="button"
             onClick={() => setQuickOpen((prev) => !prev)}
             aria-expanded={quickOpen}
             aria-haspopup="menu"
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border-none bg-primary px-3.5 py-2 font-sans text-sm font-semibold text-white shadow-sm transition-fast hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 font-sans text-[13px] font-semibold text-text-primary transition-fast hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
           >
-            <Plus size={15} aria-hidden />
-            <span className="hidden sm:inline">Aksi Cepat</span>
+            <Plus size={13} aria-hidden />
+            <span className="hidden sm:inline">Baru</span>
           </button>
 
           {quickOpen ? (
             <>
               <button
                 type="button"
-                aria-label="Tutup menu aksi cepat"
+                aria-label="Tutup menu"
                 onClick={() => setQuickOpen(false)}
                 className="fixed inset-0 z-40 cursor-default border-none bg-transparent"
               />
               <div
                 role="menu"
-                className="absolute right-0 top-[calc(100%+6px)] z-50 w-52 rounded-xl border border-border bg-surface p-1 shadow-lg"
+                className="absolute right-0 top-[calc(100%+6px)] z-50 w-48 rounded-lg border border-border bg-surface p-1 shadow-md"
               >
                 {QUICK_ACTIONS.map((action) => (
                   <Link
                     key={action.href}
                     href={action.href}
                     role="menuitem"
-                    className="block rounded-lg px-3 py-2 text-sm text-text-primary no-underline hover:bg-surface-alt"
+                    className="block rounded-md px-3 py-2 text-[13px] text-text-primary no-underline hover:bg-surface-alt"
                   >
                     {action.label}
                   </Link>

@@ -19,7 +19,7 @@ export function AsServedSetList() {
 
   if (error) {
     return (
-      <div className="p-6 px-8">
+      <div className="p-6">
         <div className="alert alert-danger">
           <span className="text-sm">
             {error instanceof Error ? error.message : "Gagal memuat set foto porsi"}
@@ -30,10 +30,10 @@ export function AsServedSetList() {
   }
 
   return (
-    <div className="p-6 px-8">
+    <div className="p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary mb-1">Foto Porsi</h1>
+          <h1 className="text-[22px] font-semibold text-text-primary mb-1 tracking-tight">Foto Porsi</h1>
           <p className="text-sm text-text-muted m-0">{sets.length} set ditemukan</p>
         </div>
         <Button onClick={() => router.push("/admin/as-served-sets/new")}>

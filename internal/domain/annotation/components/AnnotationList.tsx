@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, Trash2 } from "lucide-react";
+import { ImageIcon, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/internal/lib/cn";
 import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
 import { useAnnotationList } from "../hooks/useAnnotationQueries";
 import { useDeleteAnnotation } from "../hooks/useAnnotationMutations";
 import { ANNOTATION_STATUS_CLASS, ANNOTATION_STATUS_LABEL } from "../constants/annotationStatus";
+import { PageHeader } from "@/internal/pkg/components/PageHeader";
+import { EmptyState } from "@/internal/pkg/components/EmptyState";
+import {
+  AdminSearchInput,
+  AdminSelect,
+  AdminToolbar,
+} from "@/internal/components/admin/AdminToolbar";
 import type { AnnotationStatus } from "../types/annotation";
 
 const FILTERS: { value: AnnotationStatus | ""; label: string }[] = [
@@ -16,7 +23,7 @@ const FILTERS: { value: AnnotationStatus | ""; label: string }[] = [
   { value: "published", label: "Published" },
 ];
 
-/** Tabel gambar anotasi dengan filter status (brief §8) */
+/** Tabel gambar anotasi dengan filter status */
 export function AnnotationList() {
   const [status, setStatus] = useState<AnnotationStatus | "">("");
   const [search, setSearch] = useState("");
@@ -32,109 +39,109 @@ export function AnnotationList() {
   }
 
   return (
-    <div className="p-6 px-8">
-      <div className="flex items-center gap-3 mb-6 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary m-0">Anotasi</h1>
-          <p className="text-sm text-text-muted m-0">
-            Foto scene dengan area polygon untuk Find Food
-          </p>
-        </div>
+    <div className="p-6">
+      <PageHeader
+        title="Anotasi"
+        description="Foto scene dengan area poligon untuk Find Food"
+        action={
+          <Link href="/admin/annotations/new" className="btn btn-primary btn-sm">
+            <Plus size={13} aria-hidden /> Gambar baru
+          </Link>
+        }
+      />
 
-        <Link href="/admin/annotations/new" className="btn btn-primary btn-sm ml-auto">
-          <Plus size={15} />
-          Gambar baru
-        </Link>
-      </div>
-
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="flex gap-1">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter.value || "all"}
-              type="button"
-              onClick={() => setStatus(filter.value)}
-              className={cn("btn btn-sm", status === filter.value ? "btn-primary" : "btn-outline")}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
+      <AdminToolbar>
+        <AdminSearchInput
+          label="Cari anotasi"
           placeholder="Cari judul…"
-          className="text-sm max-w-xs"
+          value={search}
+          onChange={setSearch}
         />
-      </div>
-
-      {isLoading && <p className="text-sm text-text-muted">Memuat…</p>}
+        <AdminSelect
+          label="Status"
+          value={status}
+          onChange={(val) => setStatus(val as AnnotationStatus | "")}
+          options={FILTERS.map((f) => ({ value: f.value, label: f.label }))}
+        />
+      </AdminToolbar>
 
       {error && (
-        <div className="alert alert-danger">
+        <div className="alert alert-danger mb-4">
           <span className="text-sm">
             {error instanceof Error ? error.message : "Gagal memuat daftar anotasi"}
           </span>
         </div>
       )}
 
-      {!isLoading && !error && items.length === 0 && (
-        <div className="card">
-          <div className="card-body text-center">
-            <p className="text-sm text-text-muted m-0">
-              Belum ada gambar anotasi. Mulai dengan mengunggah foto scene.
-            </p>
-          </div>
+      {isLoading ? (
+        <div className="flex flex-col gap-2">
+          {[1, 2, 3, 4].map((row) => (
+            <div key={row} className="skeleton h-14 rounded-lg" />
+          ))}
         </div>
-      )}
-
-      {items.length > 0 && (
+      ) : items.length === 0 ? (
+        <EmptyState
+          icon={<ImageIcon size={32} className="text-text-muted" />}
+          title={search || status ? "Tidak ada hasil" : "Belum ada anotasi"}
+          description={
+            search || status
+              ? "Coba ubah kata kunci atau filter."
+              : "Unggah foto scene untuk memulai anotasi poligon."
+          }
+          action={
+            !search && !status ? (
+              <Link href="/admin/annotations/new" className="btn btn-primary btn-sm">
+                <Plus size={13} aria-hidden /> Gambar baru
+              </Link>
+            ) : undefined
+          }
+        />
+      ) : (
         <div className="table-wrapper">
           <table className="table">
             <thead>
               <tr>
-                <th style={{ width: 72 }}>Gambar</th>
+                <th style={{ width: 68 }}>Gambar</th>
                 <th>Judul</th>
                 <th>Status</th>
                 <th>Area</th>
                 <th>Diperbarui</th>
-                <th style={{ width: 100 }} />
+                <th style={{ width: 96 }} />
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
                 <tr key={item.id}>
                   <td>
-                    {/* next/image tidak dipakai: host uploads tidak terdaftar
-                        di next.config remotePatterns, sama seperti ProfileCard. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`${API_ASSET_ORIGIN}${item.thumbnail_url || item.image_url}`}
                       alt={item.title}
-                      className="w-14 h-10 object-cover rounded-sm border border-border"
+                      className="h-9 w-12 rounded border border-border object-cover"
                     />
                   </td>
                   <td>
-                    <Link href={`/admin/annotations/${item.id}`} className="font-medium">
+                    <Link
+                      href={`/admin/annotations/${item.id}`}
+                      className="block font-medium text-text-primary no-underline hover:text-primary hover:underline"
+                    >
                       {item.title}
                     </Link>
-                    <div className="text-xs text-text-muted">
+                    <span className="text-[11px] text-text-muted">
                       {item.width} × {item.height} px
-                    </div>
+                    </span>
                   </td>
                   <td>
-                    <span className={ANNOTATION_STATUS_CLASS[item.status]}>
+                    <span className={cn(ANNOTATION_STATUS_CLASS[item.status], "text-[11px]")}>
                       {ANNOTATION_STATUS_LABEL[item.status]}
                     </span>
                   </td>
-                  <td className="tabular-nums">{item.areas_count}</td>
+                  <td className="tabular-nums text-sm">{item.areas_count}</td>
                   <td className="text-xs text-text-muted">
-                    {new Date(item.updated_at).toLocaleString("id-ID")}
+                    {new Date(item.updated_at).toLocaleDateString("id-ID")}
                   </td>
                   <td>
-                    <div className="flex gap-1 justify-end">
+                    <div className="flex items-center justify-end gap-1">
                       <Link
                         href={`/admin/annotations/${item.id}`}
                         className="btn btn-outline btn-xs"
@@ -146,9 +153,10 @@ export function AnnotationList() {
                         onClick={() => handleDelete(item.id, item.title)}
                         disabled={deleteAnnotation.isPending}
                         className="btn btn-ghost btn-xs btn-icon"
-                        title="Hapus"
+                        title="Hapus anotasi"
+                        aria-label="Hapus anotasi"
                       >
-                        <Trash2 size={13} />
+                        <Trash2 size={13} aria-hidden />
                       </button>
                     </div>
                   </td>

@@ -471,13 +471,11 @@
   .btn-primary:hover:not(:disabled) {
     background-color: var(--color-primary-hover);
     border-color: var(--color-primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
   }
   .btn-primary:active:not(:disabled) {
     background-color: var(--color-primary-active);
     border-color: var(--color-primary-active);
-    transform: translateY(0);
     box-shadow: none;
   }
 
@@ -490,13 +488,9 @@
   .btn-secondary:hover:not(:disabled) {
     background-color: var(--color-surface-alt);
     border-color: var(--color-border-strong);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
   }
   .btn-secondary:active:not(:disabled) {
     background-color: var(--color-border);
-    transform: translateY(0);
-    box-shadow: none;
   }
 
   /* --- Outline Button (primary-colored border) --- */
@@ -507,11 +501,9 @@
   }
   .btn-outline:hover:not(:disabled) {
     background-color: var(--color-primary-light);
-    transform: translateY(-1px);
   }
   .btn-outline:active:not(:disabled) {
     background-color: var(--color-primary-muted);
-    transform: translateY(0);
   }
 
   /* --- Ghost Button --- */
@@ -537,12 +529,10 @@
   .btn-danger:hover:not(:disabled) {
     background-color: #b91c1c;
     border-color: #b91c1c;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
   }
   .btn-danger:active:not(:disabled) {
     background-color: #991b1b;
-    transform: translateY(0);
   }
 
   /* --- Link Button --- */
@@ -642,8 +632,7 @@
     transition: var(--transition-base);
   }
   .card-hover:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
     border-color: var(--color-border-strong);
   }
   .card-hover:active {

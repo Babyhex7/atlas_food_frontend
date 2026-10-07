@@ -12,21 +12,21 @@ const BASE =
 
 const VARIANTS: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary:
-    "bg-primary text-white border-primary hover:bg-primary-hover hover:border-primary-hover hover:-translate-y-px hover:shadow-md active:translate-y-0 active:shadow-none active:bg-primary-active",
+    "bg-primary text-white border-primary hover:bg-primary-hover hover:border-primary-hover active:bg-primary-active",
   secondary:
-    "bg-surface text-text-secondary border-border hover:bg-surface-alt hover:border-border-strong hover:-translate-y-px active:translate-y-0",
+    "bg-surface text-text-secondary border-border hover:bg-surface-alt hover:border-border-strong active:bg-surface-alt",
   outline:
-    "bg-transparent text-primary border-primary hover:bg-primary-light hover:-translate-y-px active:bg-primary-muted active:translate-y-0",
+    "bg-transparent text-primary border-primary hover:bg-primary-light active:bg-primary-muted",
   ghost:
     "bg-transparent text-text-secondary border-transparent hover:bg-surface-alt hover:text-text-primary active:bg-border",
   danger:
-    "bg-danger text-white border-danger hover:bg-danger-hover hover:-translate-y-px hover:shadow-md active:bg-danger-active active:translate-y-0",
+    "bg-danger text-white border-danger hover:bg-danger-hover active:bg-danger-active",
 };
 
 const SIZES: Record<NonNullable<ButtonProps["size"]>, string> = {
-  sm: "h-9 px-4 text-xs",
-  md: "h-11 px-5 text-sm",
-  lg: "h-14 px-8 text-base rounded-lg",
+  sm: "h-8 px-3 text-[12px]",
+  md: "h-9 px-4 text-sm",
+  lg: "h-11 px-6 text-base",
 };
 
 const SPINNER_MUTED_VARIANTS = new Set<ButtonProps["variant"]>(["outline", "ghost", "secondary"]);

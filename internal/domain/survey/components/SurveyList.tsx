@@ -131,7 +131,7 @@ export function SurveyList() {
   }
 
   return (
-    <div className="p-6 px-8">
+    <div className="p-6">
       <PageHeader
         title="Survey"
         description={`${surveys.length} survey · Responden login lalu buka menu Survey Recall`}
