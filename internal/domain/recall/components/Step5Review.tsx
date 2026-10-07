@@ -233,9 +233,18 @@ export function Step5Review({
                       </span>
                     ) : null}
                   </div>
-                  <span className="whitespace-nowrap font-mono text-sm font-semibold text-text-secondary">
-                    {food.portion ? `${food.portion.portion_gram}g` : "—"}
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <span className="whitespace-nowrap font-mono text-sm font-semibold text-text-secondary">
+                      {food.portion ? `${food.portion.portion_gram}g` : "—"}
+                    </span>
+                    {food.portion?.image_label ? (
+                      <span className="text-[11px] text-text-muted">
+                        {food.portion.total_quantity && food.portion.total_quantity !== 1
+                          ? `${food.portion.total_quantity}x · ${food.portion.image_label}`
+                          : food.portion.image_label}
+                      </span>
+                    ) : null}
+                  </div>
                 </li>
               );
             })}
