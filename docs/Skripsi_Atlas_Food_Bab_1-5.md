@@ -15,6 +15,7 @@
 >
 > ### 🔄 PEMBARUAN 6 Oktober 2026 — penyelarasan dengan kode
 > Draf dicocokkan ulang dengan kode `atlas_food_backend` dan `atlas_food_frontend`. Yang ditambahkan: dukungan luring/PWA (Subbab 2.10, 4.1.6, 4.7.5c, Gambar 3.11), kanvas langsung dan obrolan kursor (4.1.2, 4.7.5d), profil–autentikasi–pemantauan (4.1.7), kebutuhan F-34…F-48 dan NF-16…NF-20, kasus uji UK-69…UK-103, serta pembanding myfood24. Yang dikoreksi: versi Go, model dan parameter Groq, perilaku tipe foto `range`, rute katalog, nama berkas migrasi, pembersihan ruang, dan saran yang ternyata sudah diimplementasikan.
+> **Pembaruan lanjutan (modul AI):** status dan persentase gizi kini dihitung server, rujukan AKG mengikuti profil, panel punya delapan keadaan, dan kasus uji AI bertambah (UK-104…UK-112) — lihat Subbab 4.1.3. Sumber nilai gizi diisi TKPI 2020. Angka AKG pada kode ditulis dari ingatan penyusun dan **wajib dicocokkan** dengan Permenkes 28/2019.
 > **Tiga hal yang harus kamu putuskan/periksa:** (1) katalog *Find Your Food* di kode masih di balik login — lihat kotak ⚠ pada Subbab 4.1.4; (2) rujukan Carter 2015, Moshfegh 2008, Subar 2012 dan isi kolom myfood24 ditulis dari ingatan dan **wajib diverifikasi**; (3) F-44 (ubah peran selama sesi) baru ada di lapis layanan.
 >
 > ### 💡 PROMPT UNTUK REVIEW & REVISI BAHASA (Gunakan di ChatGPT/Claude)
@@ -506,7 +507,8 @@ Kriteria eksklusi: peserta yang tidak menyelesaikan seluruh rangkaian tugas peng
 | Layanan eksternal | Groq API | Model bawaan `llama-3.3-70b-versatile` (dapat dikonfigurasi) | Pembangkitan rekomendasi gizi |
 | Pemantauan & penyebaran | Docker Compose, Prometheus, Grafana | — | Penyebaran layanan dan pemantauan metrik |
 | Perkakas | Visual Studio Code, Git, Postman | — | Pengodean, versi, uji API |
-| Bahan | Tabel komposisi pangan | `[⚠ SEBUTKAN sumber: TKPI/DKBM]` | Sumber nilai gizi |
+| Bahan | Tabel Komposisi Pangan Indonesia (TKPI) 2020 | Kementerian Kesehatan RI; 1.146 bahan pangan dalam 13 kelompok, nilai per 100 g bagian yang dapat dimakan (BDD) `[⚠ PASTIKAN nilai gizi di basis data pengujian memang sudah diimpor dari TKPI sebelum menyatakannya sebagai sumber]` | Sumber nilai gizi |
+| | Angka Kecukupan Gizi (AKG) 2019 | Permenkes No. 28 Tahun 2019; energi dan makronutrien per jenis kelamin dan kelompok usia | Pembanding asupan pada analisis gizi |
 | | Foto porsi *as served* (tipe `series` & `range`) | Terinspirasi Atlas Makananku (BRIN × UPI) | Estimasi porsi visual |
 | | Instrumen SUS | Brooke (1996), 10 butir | Pengukuran kebergunaan |
 
@@ -583,6 +585,13 @@ Catatan metodologis: sebagian data kinerja **tidak memerlukan instrumentasi tamb
 | F-46 | Responden dapat melihat riwayat dan rincian laporan miliknya sendiri | Responden | Wajib |
 | F-47 | Admin dapat mengunggah gambar (JPG, PNG, WebP; maksimal 10 MB) untuk makanan dan porsi | Admin | Wajib |
 | F-48 | Admin dapat menggandakan survei dan menerbitkan ulang token akses survei | Admin | Opsional |
+| F-49 | Sistem menghitung tingkat kecukupan dan status tiap zat gizi secara deterministik di server; LLM hanya menyusun narasi | Sistem | Wajib |
+| F-50 | Sistem memilih rujukan AKG sesuai jenis kelamin dan usia pada profil, dan memakai rujukan umum bila profil belum lengkap | Sistem | Wajib |
+| F-51 | Sistem menampilkan hasil analisis yang sudah tersimpan saat halaman dibuka, tanpa memanggil LLM | Responden | Wajib |
+| F-52 | Responden dapat meminta analisis baru yang menggantikan hasil lama, dengan jeda minimal antar-permintaan | Responden | Opsional |
+| F-53 | Sistem tidak mengirim nama, email, maupun pengenal responden ke penyedia LLM | Sistem | Wajib |
+| F-54 | Sistem membedakan jenis kegagalan analisis (belum dikonfigurasi, kuota, batas waktu, gangguan, jawaban tidak valid) dan menampilkan pesan serta aksi yang sesuai | Sistem | Wajib |
+| F-55 | Sistem memperingatkan bila laporan baru memuat sebagian hari atau memuat makanan tanpa nilai gizi | Sistem | Wajib |
 
 > **Catatan status F-02a.** *Endpoint* `/public/*` memang tidak mensyaratkan token. Namun pada kode versi 1, rute halaman `/find-food` terdaftar sebagai rute terlindung pada `middleware.ts`, dan kotak pencarian di halaman beranda mengarahkan pengunjung ke halaman login terlebih dahulu. Dengan kata lain, **datanya publik, halamannya belum**. Lihat keputusan yang perlu diambil pada Subbab 4.1.4.
 
@@ -853,20 +862,25 @@ sequenceDiagram
     API->>API: hitung ulang gizi & total di server
     API->>DB: INSERT survey_submissions
     API-->>FE: 200 {submission_id}
+    FE->>API: GET /ai/nutrition-analysis/{submission_id}
+    API-->>FE: 404 AI_NOT_ANALYZED (belum ada hasil) → tampilkan tombol
     R->>FE: Tekan "Analisis dengan AI"
     FE->>API: POST /ai/nutrition-analysis {submission_id}
+    API->>DB: SELECT submission milik pengguna (id atau local_id)
     API->>DB: SELECT ai_result_logs WHERE submission_id
     alt Hasil tersimpan ada
         DB-->>API: hasil lama
-        API-->>FE: 200 {source:"cache", data}
+        API-->>FE: 200 {source:"cache", data, meta}
     else Belum ada
-        API->>AI: chat.completions (JSON mode, temp 0.2)
-        AI-->>API: JSON terstruktur
-        API->>API: Unmarshal & validasi skema
-        API->>DB: INSERT ai_result_logs (model, token, latensi)
-        API-->>FE: 200 {source:"groq", data}
+        API->>DB: SELECT jenis kelamin & tanggal lahir
+        API->>API: pilih rujukan AKG, hitung % dan status (deterministik)
+        API->>AI: chat.completions (JSON mode, temp 0.2)<br/>fakta hasil hitung + daftar makanan, tanpa identitas
+        AI-->>API: narasi JSON
+        API->>API: urai longgar, validasi, gabung dengan hasil hitung
+        API->>DB: UPSERT ai_result_logs (hasil, model, versi prompt, token, latensi)
+        API-->>FE: 200 {source:"groq", data, meta}
     end
-    FE->>FE: normalisasi keluaran → render panel
+    FE->>FE: normalisasi → simpan di cache kueri → render panel
 ```
 
 **Gambar 3.7 *Sequence diagram* mode ikut dan sinkronisasi langkah**
@@ -1120,7 +1134,7 @@ erDiagram
 | `surveys` | `id`, `slug`, `meals_config` (JSON), `status`, `access_token`, `created_by` | `meals_config` menentukan pilihan waktu makan pada langkah 1 |
 | `survey_participants` | `id`, `survey_id`, `user_id` (wajib), `alias` | Menautkan pengguna ke survei; partisipan anonim tidak didukung (migrasi 006) |
 | `survey_submissions` | `id`, **`local_id` (UNIQUE)**, `survey_id`, `participant_id`, `meals_data` (JSON), `missing_foods` (JSON), `total_energy`, `total_protein`, `total_carbs`, `total_fat` | Laporan *recall* final; `local_id` adalah kunci idempotensi dari klien (migrasi 010) |
-| `ai_result_logs` | `id`, `submission_id` (**UNIQUE**), `input_payload`, `raw_response`, `overall_status`, `model_used`, `token_used`, `latency_ms` | Hasil analisis + jejak audit |
+| `ai_result_logs` | `id`, `submission_id` (**UNIQUE**), `input_payload`, `raw_response`, `result_data`, `overall_status`, `model_used`, `prompt_version`, `token_used`, `prompt_tokens`, `completion_tokens`, `latency_ms`, `updated_at` | Hasil analisis + jejak audit |
 | `categories` | `id`, `code`, `name`, `display_order` | Kategori makanan |
 | `foods` | `id`, `code`, `name`, `local_name`, `category_id`, **`photo_type`** | Indeks **FULLTEXT** pada (`name`, `local_name`); `photo_type` ∈ {series, range} menentukan komponen visualisasi foto porsi |
 | `nutrient_types`, `nutrient_units`, `food_nutrients` | — | Nilai gizi per 100 g |
@@ -1139,7 +1153,7 @@ erDiagram
 
 Skema IndexedDB juga mendefinisikan tabel `cachedFoods` dan `surveyDrafts`, tetapi keduanya **belum dipakai** oleh kode mana pun pada versi 1 (lihat saran pada Subbab 5.2.1).
 
-**Catatan migrasi basis data.** Skema dibangun melalui sebelas berkas migrasi bernomor (`001`–`011`). Kolom `photo_type ENUM('series', 'range') DEFAULT 'series'` dan indeks `FULLTEXT` pada (`name`, `local_name`) ditambahkan ke tabel `foods` melalui `007_update_foods_photo_type.sql`, sehingga nilai lama secara otomatis dianggap bertipe `series` tanpa pembaruan data massal. Pencarian pada *endpoint* publik menggunakan `MATCH(name, local_name) AGAINST(? IN BOOLEAN MODE)` untuk memanfaatkan indeks tersebut. Kata kunci pengguna dibersihkan lebih dahulu dari operator mode Boolean (`+ - > < ( ) ~ * : " & | @`) dan setiap kata dijadikan pencocokan awalan (`nasi*`); tanpa pembersihan ini, tanda kutip yang tidak berpasangan membuat MySQL melempar galat sintaks dan pencarian membalas 500. Karakter *wildcard* `%` dan `_` pada cabang `LIKE` juga di-*escape*.
+**Catatan migrasi basis data.** Skema dibangun melalui dua belas berkas migrasi bernomor (`001`–`012`); migrasi `012` menambah kolom hasil akhir, versi *prompt*, dan rincian token pada `ai_result_logs`. Kolom `photo_type ENUM('series', 'range') DEFAULT 'series'` dan indeks `FULLTEXT` pada (`name`, `local_name`) ditambahkan ke tabel `foods` melalui `007_update_foods_photo_type.sql`, sehingga nilai lama secara otomatis dianggap bertipe `series` tanpa pembaruan data massal. Pencarian pada *endpoint* publik menggunakan `MATCH(name, local_name) AGAINST(? IN BOOLEAN MODE)` untuk memanfaatkan indeks tersebut. Kata kunci pengguna dibersihkan lebih dahulu dari operator mode Boolean (`+ - > < ( ) ~ * : " & | @`) dan setiap kata dijadikan pencocokan awalan (`nasi*`); tanpa pembersihan ini, tanda kutip yang tidak berpasangan membuat MySQL melempar galat sintaks dan pencarian membalas 500. Karakter *wildcard* `%` dan `_` pada cabang `LIKE` juga di-*escape*.
 
 **Justifikasi penggunaan kolom JSON.** Struktur satu laporan *recall* bersifat bersarang dan variatif: jumlah waktu makan, makanan, dan bahan tambahan berbeda tiap responden. Normalisasi penuh akan menghasilkan banyak tabel dengan *join* dalam untuk satu kali baca, padahal laporan **selalu dibaca sebagai satu kesatuan** dan tidak pernah dikueri per baris makanan. Total gizi tetap didenormalisasi ke kolom numerik agar agregasi lintas responden tetap murah. Konsekuensi metodologis yang menguntungkan: nilai gizi yang tersimpan merupakan *snapshot* pada saat pengisian, sehingga perubahan basis data makanan di kemudian hari tidak mengubah laporan historis.
 
@@ -1161,7 +1175,7 @@ Prinsip perancangan antarmuka yang diterapkan:
 
 | Jenis pengujian | Instrumen | Responden/Objek | Teknik analisis |
 |---|---|---|---|
-| Kotak-hitam | Tabel kasus uji berbasis kebutuhan fungsional F-01…F-48 (kecuali F-22 dan F-44) | Sistem | Persentase kasus uji berstatus "Sesuai" |
+| Kotak-hitam | Tabel kasus uji berbasis kebutuhan fungsional F-01…F-55 (kecuali F-22 dan F-44) | Sistem | Persentase kasus uji berstatus "Sesuai" |
 | Penelusuran *end-to-end* | Skenario alur lengkap responden dan pendamping | Sistem | Klasifikasi cacat berdasarkan jenis |
 | Kinerja real-time | Instrumentasi waktu pada klien dan `/collab/stats` | 2, 5, 10, 20 klien | Statistik deskriptif: rerata, p50, p95 |
 | Penerimaan pengguna | Kuesioner SUS 10 butir | ≥ 20 responden, ≥ 5 pendamping | Perhitungan skor SUS |
@@ -1216,7 +1230,7 @@ Instrumen SUS versi bahasa Indonesia yang digunakan dilampirkan pada Lampiran B.
 Tiga aspek diuji:
 
 1. **Validitas skema** — persentase respons yang lolos penguraian JSON tanpa perbaikan, dari N laporan uji.
-2. **Konsistensi** — laporan identik dianalisis ulang M kali dengan penyimpanan hasil dinonaktifkan; diukur kesamaan `overall_status` dan tumpang tindih `recommended_foods` menggunakan indeks Jaccard.
+2. **Konsistensi** — laporan identik dianalisis ulang M kali melalui parameter `force_refresh` (dengan memperhatikan jeda 30 detik antar-permintaan); karena `overall_status` kini dihitung server dan pasti sama, yang diukur adalah tumpang tindih `recommended_foods` menggunakan indeks Jaccard.
 3. **Kelayakan klinis** — panel ahli gizi menilai relevansi dan keamanan rekomendasi pada skala Likert; kesepakatan antar-penilai dihitung dengan Cohen's/Fleiss' κ.
 
 ## 3.8 Jadwal Penelitian
@@ -1380,28 +1394,57 @@ Coretan tidak pernah ditulis ke basis data dan tidak ikut terkirim dalam laporan
 **Gambar 4.2 *Pipeline* analisis gizi LLM**
 
 ```mermaid
-flowchart LR
-    A["POST /ai/nutrition-analysis"] --> B{Submission<br/>milik pengguna?}
+flowchart TD
+    A["POST /ai/nutrition-analysis"] --> B{Submission milik<br/>pengguna?<br/>(id atau local_id)}
     B -->|Tidak| E1["404 NOT_FOUND<br/>(pesan seragam)"]
-    B -->|Ya| C{Ada di<br/>ai_result_logs?}
+    B -->|Ya| L["Kunci per submission"]
+    L --> C{Hasil tersimpan ada dan<br/>bukan force_refresh<br/>di luar jeda 30 s?}
     C -->|Ya| D1["source: cache"]
-    C -->|Tidak| F["Susun GroqInput"]
-    F --> G["Groq chat.completions<br/>JSON mode, temp 0.2"]
-    G --> H{JSON sesuai<br/>skema?}
-    H -->|Tidak| E2["503 SERVICE_UNAVAILABLE"]
-    H -->|Ya| I["INSERT ai_result_logs"]
+    C -->|Tidak| P["Ambil profil → pilih rujukan AKG"]
+    P --> Q["Hitung % kecukupan & status<br/>(deterministik)"]
+    Q --> N{Ada makanan<br/>untuk dianalisis?}
+    N -->|Tidak| E0["422 AI_NO_NUTRITION_DATA"]
+    N -->|Ya| G["Groq chat.completions<br/>JSON mode, temp 0.2<br/>ulang ≤ 3× untuk 429/5xx"]
+    G -->|gagal| E3["429 / 503 / 504<br/>sesuai jenis kegagalan"]
+    G --> H{Narasi dapat<br/>diproses?}
+    H -->|"Tidak (2 percobaan)"| E2["502 AI_INVALID_RESPONSE"]
+    H -->|Ya| M["Gabungkan narasi<br/>dengan hasil hitung"]
+    M --> I["UPSERT ai_result_logs"]
     I --> D2["source: groq"]
 ```
 
-**Kendala skema.** *System prompt* mengunci peran model sebagai penganalisis gizi dan mewajibkan keluaran JSON yang cocok dengan skema tetap berisi `overall_status`, `overall_message`, `nutritional_analysis`, `ai_recommendation`, `recommended_foods`, `health_insight`, dan `suggested_activities`. Parameter: `temperature = 0,2`, `response_format = {"type":"json_object"}`. Model, batas token, dan batas waktu dapat dikonfigurasi melalui variabel lingkungan; nilai bawaannya adalah model `llama-3.3-70b-versatile` (`GROQ_MODEL`), `max_tokens` 2.048 (`GROQ_MAX_TOKENS`), dan batas waktu server 45 detik (`GROQ_TIMEOUT_SECONDS`) — sengaja lebih pendek daripada batas waktu klien 60 detik agar kegagalan dilaporkan server, bukan diputus klien. `[⚠ CATAT model yang benar-benar dipakai saat pengambilan data; nilainya terekam pada kolom model_used tabel ai_result_logs]`
+**Pembagian peran: server menghitung, LLM menarasikan (F-49, kontribusi K-3).** Tingkat kecukupan tiap zat gizi dihitung server sebagai persentase asupan terhadap rujukan, lalu digolongkan: di bawah 80% **kurang**, 80–110% **sesuai**, di atas 110% **berlebih**. Status keseluruhan mengikuti energi; bila energi sudah sesuai, status baru bergeser jika sedikitnya dua dari tiga makronutrien menyimpang ke arah yang sama. Hasil perhitungan ini dikirim ke LLM sebagai **fakta final** yang tidak boleh diubah, dan setelah jawaban diterima, status, angka, serta label pada hasil akhir tetap diambil dari perhitungan server — bukan dari jawaban model. LLM dengan demikian hanya menyumbang teks: ringkasan, penjelasan per zat gizi, saran, daftar makanan, dan aktivitas. Implementasi awal sistem ini masih meminta model membandingkan sendiri asupan dengan rujukan; rancangan itu diganti karena bertentangan dengan temuan literatur pada Subbab 2.7 dan membuat status tidak dapat direproduksi.
 
-**Pertahanan terhadap keluaran model (F-26).** Keluaran LLM diperlakukan sebagai masukan tidak tepercaya melalui tiga lapis: penguraian dan pemetaan galat ke 503 di server; normalisasi paksa tiap medan ke tipe aman di klien (array bukan-array menjadi `[]`, string bukan-string menjadi `""`, item tanpa label maupun deskripsi dibuang); serta pemetaan nilai status tak dikenal ke gaya visual netral.
+**Rujukan yang sesuai responden (F-50).** Pembanding dipilih dari Angka Kecukupan Gizi 2019 berdasarkan jenis kelamin dan usia pada profil (usia dihitung pada tanggal laporan). Bila salah satunya belum diisi, dipakai rujukan umum dewasa (2.150 kkal, protein 60 g, karbohidrat 320 g, lemak 65 g) dan antarmuka mengajak responden melengkapi profil. Rujukan yang dipakai selalu disertakan pada hasil sehingga responden — dan penilai pakar — tahu angka itu dibandingkan dengan apa.
 
-**Penyimpanan hasil dan audit (F-24, F-25).** Kolom `submission_id` bersifat unik sehingga permintaan berulang dilayani dari basis data dengan penanda `source: "cache"`. Setiap analisis meninggalkan jejak `model_used`, `token_used`, dan `latency_ms`.
+**Privasi (F-53).** Masukan ke LLM hanya memuat jenis kelamin, usia, hasil perhitungan, dan daftar makanan beserta beratnya. Nama, alamat surel, dan pengenal responden maupun laporan tidak dikirim. Nama makanan yang diketik bebas oleh responden (catatan manual) dibersihkan dari karakter kontrol, dipotong 80 karakter, dan *prompt* menginstruksikan model memperlakukannya sebagai data — langkah untuk meredam *prompt injection* melalui kolom isian.
 
-**Keputusan pemicuan manual.** Analisis dijalankan hanya atas penekanan tombol oleh responden, bukan otomatis. Alasannya: pemanggilan otomatis menahan responden pada layar pemuatan dan membakar kuota bagi responden yang tidak berminat, padahal analisis bukan syarat keberhasilan pengumpulan data.
+**Kendala skema.** *System prompt* menetapkan peran model sebagai asisten edukasi gizi, melarang diagnosis, penyebutan obat dan suplemen, serta pengarangan angka, dan mewajibkan satu objek JSON berisi `overall_message`, `nutritional_analysis` (deskripsi per `key`), `ai_recommendation`, `recommended_foods`, `health_insight`, dan `suggested_activities`. Parameter: `temperature = 0,2`, `response_format = {"type":"json_object"}`. Model, batas token, dan batas waktu dapat dikonfigurasi melalui variabel lingkungan; nilai bawaannya adalah model `llama-3.3-70b-versatile` (`GROQ_MODEL`), `max_tokens` 2.048 (`GROQ_MAX_TOKENS`), dan batas waktu server 45 detik (`GROQ_TIMEOUT_SECONDS`) — sengaja lebih pendek daripada batas waktu klien 60 detik agar kegagalan dilaporkan server dengan kode yang jelas, bukan diputus klien. *Prompt* diberi nomor versi (`v2`) yang ikut disimpan bersama hasil. `[⚠ CATAT model yang benar-benar dipakai saat pengambilan data; nilainya terekam pada kolom model_used tabel ai_result_logs]`
 
-`[⚠ LAMPIRKAN Gambar 4.11: tangkapan layar panel rekomendasi AI dalam keadaan belum dianalisis, memuat, berhasil, dan gagal]`
+**Pertahanan terhadap keluaran model (F-26).** Keluaran LLM diperlakukan sebagai masukan tidak tepercaya pada tiga lapis. *Pertama*, server mengurainya secara longgar — string di tempat larik atau sebaliknya tetap diterima — lalu membatasi panjang tiap teks, membuang duplikat, membuang saran makanan yang ternyata sudah dimakan responden, dan membatasi jumlah butir. Penjelasan zat gizi yang tidak diberikan model diisi kalimat baku dari hasil hitung, sehingga rincian gizi selalu berisi empat baris. Bila ringkasan atau rekomendasi kosong, model diminta ulang satu kali; bila tetap gagal, server membalas `AI_INVALID_RESPONSE` dan tidak menyimpan apa pun. *Kedua*, klien menormalisasi tiap medan ke tipe aman. *Ketiga*, nilai status di luar kontrak dipetakan ke gaya visual netral.
+
+**Penyimpanan hasil dan audit (F-24, F-25, F-52).** Kolom `submission_id` bersifat unik; permintaan berulang dilayani dari basis data dengan penanda `source: "cache"`. Setiap analisis menyimpan masukan yang dikirim, jawaban mentah model, hasil akhir yang diterima responden, model, versi *prompt*, jumlah token masukan dan keluaran, serta latensi. Responden dapat meminta analisis baru (`force_refresh`) yang **menimpa** baris lama; permintaan semacam itu dalam 30 detik sejak analisis terakhir dilayani dari simpanan agar tombolnya tidak dapat dipakai menguras kuota. Kegagalan menyimpan tidak menggagalkan balasan: hasil yang sudah diperoleh tetap dikirim.
+
+**Ketahanan pemanggilan.** Dua permintaan bersamaan untuk laporan yang sama (klik ganda, dua tab) diserialkan oleh kunci per-*submission*; yang kedua menunggu dan menerima hasil yang baru disimpan, sehingga LLM hanya dipanggil sekali. Kegagalan sementara dari penyedia (429, 5xx, galat jaringan) diulang hingga tiga kali di dalam batas waktu. Pemanggilan dilepas dari siklus hidup permintaan HTTP: bila responden menutup halaman di tengah analisis, proses tetap diselesaikan dan hasilnya tersimpan. Rincian galat dari penyedia hanya dicatat di log server; klien menerima kode dan pesan yang sudah dipetakan.
+
+**Keadaan antarmuka (F-51, F-54, F-55).** Panel rekomendasi digerakkan oleh satu nilai keadaan (*phase*) yang ditentukan *hook* `useNutritionAnalysis`, bukan oleh gabungan beberapa penanda *boolean*:
+
+| Keadaan | Kapan | Tampilan |
+|---|---|---|
+| `unavailable` | Tidak ada laporan pada sesi ini | Penjelasan; tanpa tombol |
+| `queued` | Laporan masih di antrean luring | Penjelasan bahwa analisis menunggu sinkronisasi; panel terbuka sendiri begitu laporan tersinkron |
+| `offline` | Peramban luring dan belum ada hasil | Penjelasan bahwa analisis memerlukan koneksi |
+| `checking` | Memeriksa hasil tersimpan (`GET`) | Indikator ringan |
+| `idle` | Siap, belum pernah dianalisis | Tombol "Analisis dengan AI" |
+| `analyzing` | Analisis pertama berjalan | Kerangka pemuatan |
+| `ready` | Hasil tersedia | Hasil lengkap; analisis ulang berjalan di atasnya tanpa menghapusnya |
+| `error` | Analisis gagal dan belum ada hasil | Pesan sesuai jenis kegagalan; tombol "Coba lagi" hanya bila mencoba lagi memang berguna |
+
+Hasil yang sudah ada selalu didahulukan: ia tetap tampil saat peramban luring maupun saat analisis ulang gagal. Pada keadaan `ready`, tiap zat gizi ditampilkan dengan angka asupan, rujukan, persentase, dan batang kemajuan dari data server, disertai keterangan rujukan yang dipakai. Peringatan muncul bila laporan baru memuat kurang dari tiga waktu makan atau memuat makanan catatan manual yang tidak ikut terhitung — keduanya ditentukan server, bukan ditebak model.
+
+**Keputusan pemicuan manual.** Analisis dijalankan hanya atas penekanan tombol oleh responden, bukan otomatis. Alasannya: pemanggilan otomatis menahan responden pada layar pemuatan dan membakar kuota bagi responden yang tidak berminat, padahal analisis bukan syarat keberhasilan pengumpulan data. Yang otomatis hanyalah pengambilan hasil yang **sudah** tersimpan, yang tidak menyentuh LLM.
+
+`[⚠ LAMPIRKAN Gambar 4.11: tangkapan layar panel rekomendasi AI dalam keadaan belum dianalisis, memuat, berhasil (dengan batang kecukupan dan peringatan kelengkapan), gagal, dan menunggu sinkronisasi]`
 
 ### 4.1.4 Implementasi Modul Katalog Publik (*Find Your Food*)
 
@@ -1478,7 +1521,7 @@ Dukungan luring menjawab F-34 sampai F-38 dan terdiri atas empat bagian yang bek
 | Autentikasi & profil | `POST /auth/register`, `/auth/login`, `/auth/refresh`; `GET\|PATCH /auth/me`; `PUT /auth/me/password`; `POST /auth/me/photo` | F-01, F-45 |
 | Responden | `GET /survey/active`; `POST /survey/access`; `GET /survey/{id}/info`; `POST /survey/submit`; `GET /locales` | F-02, F-03, F-13, F-39 |
 | Responden — luring & riwayat | `POST /survey/sync/batch`; `GET /survey/my-submissions`, `/survey/my-submissions/{id}` | F-35, F-36, F-46 |
-| AI | `POST /ai/nutrition-analysis` | F-23 |
+| AI | `POST /ai/nutrition-analysis`; `GET /ai/nutrition-analysis/{submission_id}` | F-23, F-25, F-51, F-52 |
 | Admin — survei | `/admin/surveys` (CRUD, `/clone`, `/regenerate-token`), `/admin/surveys/{id}/submissions`, `/admin/surveys/{id}/export`, `/admin/submissions/{id}` | F-27, F-32, F-48 |
 | Admin — pangan | `/admin/foods` (CRUD, `/portion-methods`, `/photos` beserta `/publish` dan `/unpublish`), `/admin/categories`, `/admin/as-served-sets` (termasuk `/images`), `/admin/as-served-images`, `/admin/portion-methods` | F-28, F-29 |
 | Admin — anotasi | `/admin/food-images` (CRUD, `/areas`, `/publish`, `/unpublish`, `/export`) | F-30, F-31 |
@@ -1555,13 +1598,22 @@ Seluruh *endpoint* berada di bawah awalan `/api/v1`, kecuali `/health`, `/metric
 | Kode | Kebutuhan | Skenario | Masukan | Hasil Diharapkan | Hasil Diperoleh | Status |
 |---|---|---|---|---|---|---|
 | UK-49 | F-23 | Analisis pertama | Tekan "Analisis dengan AI" | Hasil tampil dengan penanda sumber AI | | |
-| UK-50 | F-25 | Pemanggilan ulang | Tekan "Analisis ulang" | Hasil tampil dengan penanda sumber tersimpan | | |
-| UK-51 | F-23 | Tanpa `submission_id` | Buka panel sebelum mengirim laporan | Tombol nonaktif disertai penjelasan | | |
+| UK-50 | F-25, F-51 | Hasil tersimpan dimuat otomatis | Muat ulang halaman setelah analisis berhasil | Hasil langsung tampil dengan keterangan "hasil analisis tersimpan" tanpa menekan tombol; tidak ada baris baru di `ai_result_logs` | | |
+| UK-51 | F-23 | Tanpa `submission_id` | Buka panel sebelum mengirim laporan | Penjelasan tampil; tombol analisis tidak tersedia | | |
 | UK-52 | F-23 | Otorisasi | Minta analisis atas `submission_id` milik pengguna lain | Ditolak dengan 404 berpesan seragam | | |
-| UK-53 | F-26 | Kegagalan layanan | Nonaktifkan kunci API | Pesan galat + tombol "Coba lagi"; halaman tetap utuh | | |
-| UK-54 | F-26 | Keluaran tidak sesuai skema | Simulasikan respons non-JSON | Ditangani sebagai 503, halaman tidak rusak | | |
-| UK-55 | F-24 | Jejak audit | Periksa tabel `ai_result_logs` | Tercatat model, jumlah token, dan latensi | | |
-| UK-56 | NF-04 | Batas waktu | Analisis berjalan lama | Klien menunggu hingga 60 detik sebelum menyerah | | |
+| UK-53 | F-54 | Layanan belum dikonfigurasi | Kosongkan `GROQ_API_KEY` | Pesan "layanan belum tersedia" **tanpa** tombol "Coba lagi"; halaman tetap utuh | | |
+| UK-54 | F-26 | Keluaran tidak sesuai skema | Simulasikan respons non-JSON dua kali berturut-turut | Server membalas 502 `AI_INVALID_RESPONSE`; tidak ada baris tersimpan; tombol "Coba lagi" tampil | | |
+| UK-55 | F-24 | Jejak audit | Periksa tabel `ai_result_logs` | Tercatat model, versi *prompt*, jumlah token, latensi, dan hasil akhir | | |
+| UK-56 | NF-04, F-54 | Batas waktu | Buat penyedia LLM tidak membalas | Server membalas 504 `AI_TIMEOUT` setelah batas waktu; pesan dan tombol "Coba lagi" tampil | | |
+| UK-104 | F-49 | Status dihitung server | Laporan 900 kkal dengan rujukan 2.650 kkal | Energi berstatus "Kurang", 34%; angka sama pada setiap analisis ulang | | |
+| UK-105 | F-49 | Batas ambang | Asupan tepat 80% dan tepat 110% rujukan | Keduanya berstatus "Sesuai" | | |
+| UK-106 | F-50 | Rujukan sesuai profil | Analisis dengan profil perempuan 24 tahun, lalu dengan profil kosong | Pertama memakai AKG perempuan 19–29 tahun; kedua memakai rujukan umum disertai ajakan melengkapi profil | | |
+| UK-107 | F-52 | Analisis baru | Tekan "Buat analisis baru" segera, lalu setelah 30 detik | Pertama dilayani dari simpanan; kedua menghasilkan analisis baru yang menimpa baris lama | | |
+| UK-108 | F-53 | Tanpa identitas | Periksa kolom `input_payload` | Tidak memuat nama, surel, maupun pengenal responden | | |
+| UK-109 | F-55 | Peringatan kelengkapan | Analisis laporan berisi satu waktu makan dan satu catatan manual | Dua peringatan tampil: sebagian hari, dan makanan tidak ikut terhitung | | |
+| UK-110 | F-34, F-54 | Laporan masih antre | Kirim laporan saat luring, buka panel | Keterangan "menunggu sinkronisasi"; setelah tersinkron tombol analisis muncul sendiri dan analisis berhasil memakai pengenal lokal | | |
+| UK-111 | F-23 | Klik ganda | Tekan tombol analisis dua kali cepat / dari dua tab | Hanya satu pemanggilan LLM (satu baris log) | | |
+| UK-112 | F-54 | Kuota penyedia habis | Simulasikan balasan 429 | Pesan "layanan sedang ramai" dan tombol "Coba lagi" | | |
 
 **Tabel 4.8 Hasil pengujian kotak-hitam modul admin**
 
@@ -1628,10 +1680,10 @@ Seluruh *endpoint* berada di bawah awalan `/api/v1`, kecuali `/health`, `/metric
 |---|---|---|---|---|
 | Recall | 28 (UK-01…UK-28) | | | |
 | Kolaborasi | 20 (UK-29…UK-48) | | | |
-| AI | 8 (UK-49…UK-56) | | | |
+| AI | 17 (UK-49…UK-56, UK-104…UK-112) | | | |
 | Admin | 12 (UK-57…UK-68) | | | |
 | Luring, kanvas, katalog, profil, operasional | 35 (UK-69…UK-103) | | | |
-| **Total** | **103** | | | |
+| **Total** | **112** | | | |
 
 Catatan: kebutuhan F-22 (penguncian entitas) dan F-44 (perubahan peran selama sesi) tidak memiliki kasus uji karena belum terwujud utuh pada versi 1 — lihat catatan status pada Subbab 3.5.1. UK-90 sampai UK-94 dijalankan dalam keadaan login, sesuai keadaan kode (catatan pada Subbab 4.1.4).
 
@@ -1758,7 +1810,7 @@ Seluruh variabel tersebut sudah terekam sistem tanpa instrumentasi tambahan.
 | Metrik objektif | Nilai |
 |---|---|
 | Validitas skema (% respons lolos penguraian JSON) | |
-| Konsistensi `overall_status` pada M pengulangan | |
+| Kesamaan `overall_status` pada M pengulangan (diharapkan 100% karena dihitung server) | |
 | Indeks Jaccard `recommended_foods` antar pengulangan | |
 
 ## 4.7 Pembahasan
@@ -1789,7 +1841,7 @@ Temuan NF-10 juga penting: peran **tidak boleh** hanya bersandar pada parameter 
 
 ### 4.7.4 Menjawab RM-4 — Integrasi LLM
 
-*Pipeline* yang dibangun menempatkan LLM pada peran yang sesuai dengan temuan literatur mutakhir. Kajian terhadap tiga LLM menyimpulkan model tujuan umum belum sesuai untuk penilaian diet presisi karena *underestimation* sistematis dan variabilitas tinggi (*Am. J. Clin. Nutr.*, 2025). Sistem ini karena itu **tidak menggunakan LLM untuk menghitung gizi**; perhitungan dilakukan deterministik dari tabel komposisi pangan, dan LLM hanya menyusun interpretasi naratif di atas angka yang sudah pasti.
+*Pipeline* yang dibangun menempatkan LLM pada peran yang sesuai dengan temuan literatur mutakhir. Kajian terhadap tiga LLM menyimpulkan model tujuan umum belum sesuai untuk penilaian diet presisi karena *underestimation* sistematis dan variabilitas tinggi (*Am. J. Clin. Nutr.*, 2025). Sistem ini karena itu **tidak menggunakan LLM untuk menghitung gizi**; perhitungan dilakukan deterministik dari tabel komposisi pangan, dan LLM hanya menyusun interpretasi naratif di atas angka yang sudah pasti. Prinsip yang sama diterapkan satu tingkat lebih jauh pada **penilaian**: perbandingan asupan terhadap rujukan dan penetapan status kurang–sesuai–berlebih juga dikerjakan server, sehingga dua responden dengan asupan dan profil yang sama pasti menerima status yang sama, apa pun variasi kalimat yang dihasilkan model.
 
 Tiga mekanisme yang mendukung reproduktibilitas dan auditabilitas: keluaran berkendala skema dengan *temperature* rendah; normalisasi dua lapis yang memperlakukan keluaran model sebagai masukan tidak tepercaya; dan penyimpanan hasil per-*submission* yang sekaligus menjadi jejak audit. Kombinasi ketiganya memungkinkan evaluasi *post-hoc* oleh ahli gizi terhadap **keluaran yang benar-benar diterima responden**, bukan terhadap keluaran hasil pengulangan yang mungkin berbeda — keunggulan metodologis yang jarang tersedia pada sistem berbasis LLM.
 
@@ -1876,7 +1928,7 @@ Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dime
 3. **Pengetatan pemeriksaan asal.** `CheckOrigin` pada WebSocket kini memakai daftar putih yang sama dengan CORS, tetapi permintaan **tanpa** *header* `Origin` masih diterima agar klien non-peramban dapat tersambung (JWT tetap wajib). Untuk produksi, kelonggaran ini sebaiknya dapat dimatikan melalui konfigurasi.
 4. **Integrasi penguncian entitas ke portal admin (F-22).** `LockManager`, tipe pesan `db_edit_*`, dan komponen `LockIndicator` sudah tersedia tetapi belum terhubung. Menyematkan `CollabSession` pada rute admin dan mengirim `db_edit_start` saat formulir dibuka akan melengkapi kebutuhan ini dengan pekerjaan yang relatif kecil, karena seluruh lapis pendukungnya sudah ada.
 5. **Pengujian otomatis.** Sisi layanan telah memiliki enam berkas uji (uji asap perutean, anotasi, *hub* dan konkurensi kolaborasi, pembersihan kueri pencarian, serta *middleware*), tetapi belum terdapat berkas uji pada sisi antarmuka, dan belum ada uji untuk idempotensi pengiriman. Disarankan menambahkan uji unit untuk `SyncEngine` dan jalur idempotensi `local_id`, uji unit untuk mesin keadaan `useRecallSession` dan perutean pesan kolaborasi, serta uji *end-to-end* berbasis Playwright agar cacat sejenis D-01 hingga D-08 terdeteksi otomatis.
-6. **Privasi data pada layanan LLM.** Laporan dikirim ke penyedia pihak ketiga. Disarankan menganonimkan nama responden sebelum pengiriman, atau mengevaluasi penggunaan model yang dijalankan secara lokal.
+6. **Privasi data pada layanan LLM.** Nama dan pengenal responden sudah tidak dikirim, tetapi isi laporan makan, jenis kelamin, dan usia tetap dikirim ke penyedia pihak ketiga. Disarankan mencantumkannya pada lembar persetujuan dan mengevaluasi penggunaan model yang dijalankan secara lokal.
 7. **Pembersihan rute lama.** Terdapat rute *wizard* versi terdahulu yang tidak tertaut dari mana pun namun masih dapat dibuka langsung dan berperilaku berbeda; disarankan dihapus atau dialihkan.
 8. **Perluasan dukungan luring.** Versi 1 hanya menjamin pengiriman laporan saat luring. Tiga perluasan disarankan: (a) menyalin katalog makanan dan nilai gizinya ke perangkat agar pencarian dan perhitungan berjalan tanpa koneksi — tabel `cachedFoods` dan `surveyDrafts` sudah didefinisikan pada skema IndexedDB tetapi belum dipakai; (b) memanfaatkan *Background Sync API* agar antrean terkirim meskipun tab sudah ditutup; dan (c) mengaktifkan kembali analisis AI secara otomatis bagi laporan yang baru tersinkron.
 9. **Pembukaan katalog dan kontrol peran.** Mengeluarkan `/find-food` dari rute terlindung agar katalog benar-benar publik (catatan pada Subbab 4.1.4), serta menambahkan kontrol antarmuka bagi pemilik ruang untuk mengubah peran peserta selama sesi (F-44), yang lapis layanannya sudah tersedia.
@@ -1929,7 +1981,9 @@ Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free re
 
 `[⚠ TAMBAHKAN]` Rujukan berbahasa Indonesia mengenai penerapan R24J di Indonesia (jurnal gizi nasional).
 
-`[⚠ TAMBAHKAN]` Rujukan mengenai Tabel Komposisi Pangan Indonesia (TKPI) sebagai sumber nilai gizi.
+Kementerian Kesehatan Republik Indonesia. (2020). *Tabel Komposisi Pangan Indonesia*. Jakarta: Kementerian Kesehatan RI. `[⚠ LENGKAPI unit penerbit dan ISBN dari halaman kolofon buku]`
+
+Kementerian Kesehatan Republik Indonesia. (2019). *Peraturan Menteri Kesehatan Republik Indonesia Nomor 28 Tahun 2019 tentang Angka Kecukupan Gizi yang Dianjurkan untuk Masyarakat Indonesia*. Jakarta: Kementerian Kesehatan RI. `[⚠ VERIFIKASI angka AKG yang dipakai sistem (berkas internal/domain/ai/reference.go) terhadap lampiran peraturan ini]`
 
 `[⚠ TAMBAHKAN]` Sauro, J., & Lewis, J. R. (2016). *Quantifying the user experience: Practical statistics for user research* (2nd ed.) — bila dipakai sebagai dasar penentuan ukuran sampel dan interpretasi SUS.
 
@@ -1968,13 +2022,18 @@ Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free re
 | Profil & riwayat laporan | `internal/domain/auth/components/ProfileCard.tsx` |
 | Penjaga rute antarmuka | `middleware.ts` |
 | Panel rekomendasi AI | `internal/domain/ai/components/AiRecommendationPanel.tsx` |
-| Normalisasi keluaran LLM | `internal/domain/ai/services/aiService.ts` |
+| Normalisasi keluaran & pemetaan galat AI | `internal/domain/ai/services/aiService.ts` |
+| Keadaan panel AI | `internal/domain/ai/hooks/useNutritionAnalysis.ts` |
 | *Hub* WebSocket | `internal/domain/collab/hub.go` |
 | Klien WS & penanganan pesan | `internal/domain/collab/client.go` |
 | Ruang, *batching*, riwayat | `internal/domain/collab/room.go` |
 | Kunci entitas | `internal/domain/collab/lock.go` |
 | Token undangan | `internal/domain/collab/invite.go` |
-| Layanan AI | `internal/domain/ai/service.go` |
+| Layanan AI (alur, kunci, simpan) | `internal/domain/ai/service.go` |
+| Rujukan AKG & penilaian deterministik | `internal/domain/ai/reference.go`, `assessment.go` |
+| *Prompt* & penyusunan masukan LLM | `internal/domain/ai/prompt.go` |
+| Penguraian & perakitan narasi | `internal/domain/ai/narrative.go` |
+| Kode galat AI | `internal/domain/ai/errors.go` |
 | Klien Groq & *prompt* | `internal/pkg/groq/` |
 | Laporan: idempotensi, *batch sync*, hitung ulang gizi | `internal/domain/submission/service.go`, `handler.go` |
 | Pembersihan kueri pencarian | `internal/domain/food/search_query.go` |
@@ -1982,7 +2041,7 @@ Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free re
 | Autentikasi & profil | `internal/domain/auth/`; `internal/pkg/middleware/auth.go` |
 | Perutean HTTP & metrik | `internal/router/router.go` |
 | Pemantauan | `docker-compose.monitoring.yml`; `monitoring/prometheus.yml` |
-| Migrasi basis data | `migrations/001…011` |
+| Migrasi basis data | `migrations/001…012` |
 
 Berkas pada paruh atas tabel berada di repositori antarmuka (`atlas_food_frontend`); berkas `.go`, `migrations/`, dan berkas pemantauan berada di repositori layanan (`atlas_food_backend`).
 
