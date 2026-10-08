@@ -1,0 +1,1404 @@
+/* Halaman Metodologi (Pedoman Penggunaan) — desain 1280px, konten 1152px. */
+
+.main {
+  --metodologi-body: #515f74;
+  --metodologi-pink: #faf0f1;
+  background: var(--landing-canvas);
+}
+
+.container {
+  width: min(1152px, 100%);
+  margin: 0 auto;
+}
+
+.section {
+  padding: 96px 64px;
+}
+
+.sectionDark {
+  background: var(--landing-ink);
+  color: #fff;
+}
+
+.sectionTint {
+  background: #eff3ff;
+}
+
+.intro {
+  text-align: center;
+}
+
+.title {
+  color: var(--landing-ink);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  line-height: 40px;
+}
+
+.sectionDark .title {
+  color: #fff;
+}
+
+.lead {
+  max-width: 680px;
+  margin-top: 16px;
+  color: var(--metodologi-body);
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.intro .lead {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.sectionDark .lead {
+  color: rgba(234, 241, 255, 0.85);
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  padding: 64px 64px 160px;
+}
+
+.heroInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 552px);
+  align-items: center;
+  gap: 48px;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 16px;
+  border: 1px solid #d3e0fb;
+  border-radius: 9999px;
+  background: var(--landing-tint);
+  color: var(--landing-red);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.heroTitle {
+  margin-top: 28px;
+  color: var(--landing-ink);
+  font-size: 60px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 72px;
+}
+
+.heroTitle em {
+  color: var(--landing-red);
+  font-style: normal;
+}
+
+.heroDescription {
+  max-width: 520px;
+  margin-top: 28px;
+  color: var(--metodologi-body);
+  font-size: 18px;
+  line-height: 29px;
+}
+
+.heroImage {
+  border-radius: 32px;
+  background: #fff;
+  box-shadow: 0 24px 48px -16px rgba(11, 28, 48, 0.22);
+}
+
+/* ---------- Apa itu ---------- */
+
+.about {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 544px);
+  align-items: center;
+  gap: 64px;
+}
+
+.aboutCover {
+  width: min(360px, 100%);
+  margin: 0 auto;
+  background: #fff;
+  box-shadow: 0 20px 40px -20px rgba(11, 28, 48, 0.3);
+}
+
+.aboutText {
+  margin-top: 24px;
+  color: var(--metodologi-body);
+  font-size: 18px;
+  line-height: 29px;
+}
+
+.aboutPoints {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.aboutPoints li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 12px 16px;
+  border: 1px solid var(--landing-line);
+  border-radius: 9999px;
+  background: #fff;
+  color: var(--landing-ink);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.check {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--landing-red);
+  color: #fff;
+}
+
+/* ---------- Kapan digunakan ---------- */
+
+.useGrid,
+.photoGrid,
+.referenceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  margin-top: 64px;
+}
+
+.useCard {
+  padding: 32px;
+  border: 1px solid #e6ebf5;
+  border-radius: 24px;
+  background: #fff;
+  text-align: center;
+}
+
+.useIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--metodologi-pink);
+  color: var(--landing-red);
+}
+
+.useCard h3 {
+  margin-top: 24px;
+  color: var(--landing-ink);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+}
+
+.useCard p {
+  margin-top: 12px;
+  color: var(--metodologi-body);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* ---------- Tiga jenis foto ---------- */
+
+.photoCard {
+  position: relative;
+  overflow: hidden;
+  min-height: 448px;
+  border-radius: 24px;
+  background: #1a2a40;
+}
+
+.photoImage {
+  position: absolute;
+  inset: 0;
+}
+
+.photoBody {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 120px 32px 32px;
+  background: linear-gradient(180deg, rgba(20, 20, 24, 0), rgba(20, 20, 24, 0.85) 45%);
+}
+
+.photoBody h3 {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+}
+
+.photoBody p {
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 14px;
+  line-height: 23px;
+}
+
+/* ---------- Cara menggunakan (tab) ---------- */
+
+.guide {
+  overflow: hidden;
+  margin-top: 40px;
+  border: 1px solid var(--landing-line);
+  border-radius: 24px;
+  background: #fff;
+}
+
+.tabs {
+  display: flex;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--landing-line);
+  background: #eff3ff;
+}
+
+.tab {
+  flex: 0 0 auto;
+  padding: 18px 32px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--metodologi-body);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--landing-red);
+}
+
+.tabActive {
+  border-bottom-color: var(--landing-red);
+  background: #fff;
+  color: var(--landing-red);
+}
+
+.guidePanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px;
+  padding: 48px;
+}
+
+.guideHeading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--landing-ink);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.guideHeading svg {
+  color: var(--landing-red);
+}
+
+.steps {
+  display: grid;
+  gap: 24px;
+  margin-top: 32px;
+  counter-reset: step;
+}
+
+.steps li {
+  display: flex;
+  gap: 16px;
+  counter-increment: step;
+}
+
+.steps li::before {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--landing-red);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  content: counter(step);
+}
+
+.steps strong {
+  display: block;
+  color: var(--landing-ink);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.steps span {
+  display: block;
+  color: var(--metodologi-body);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.callout {
+  margin-top: 32px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--landing-tint);
+  color: var(--landing-ink);
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.callout strong {
+  display: block;
+  font-weight: 700;
+}
+
+.calloutExample {
+  padding-left: 16px;
+  border-left: 4px solid var(--landing-red);
+  background: var(--metodologi-pink);
+}
+
+.calloutExample strong {
+  color: var(--landing-red);
+}
+
+.guideImage {
+  border: 1px solid var(--landing-line);
+  border-radius: 32px;
+  background: #fff;
+}
+
+.guideCaption {
+  margin-top: 24px;
+  color: var(--metodologi-body);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* ---------- Bagaimana digunakan ---------- */
+
+.flowTitle {
+  color: var(--landing-ink);
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 64px;
+}
+
+.flowGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 64px 48px;
+  margin-top: 80px;
+}
+
+.flowNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--landing-red);
+  box-shadow: 0 12px 20px -8px rgba(152, 0, 18, 0.45);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.flowStep h3 {
+  margin: 28px 0 16px;
+  color: var(--landing-ink);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.mock {
+  padding: 24px;
+  border: 1px solid var(--landing-line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.flowImage {
+  border: 1px solid var(--landing-line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.flowImageDevice {
+  border: 0;
+  border-radius: 24px;
+  background: #1a2233;
+  box-shadow: 0 24px 40px -20px rgba(11, 28, 48, 0.5);
+}
+
+.flowQuote {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  max-width: 200px;
+  margin: -64px 16px 0 auto;
+  padding: 12px;
+  border: 1px solid var(--landing-line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--landing-shadow);
+  color: var(--landing-ink);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.chat {
+  display: grid;
+  gap: 16px;
+}
+
+.chatBubble {
+  max-width: 88%;
+  padding: 12px;
+  border-radius: 16px 16px 16px 4px;
+  background: var(--landing-tint);
+  color: var(--landing-ink);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.chatBubble small {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--metodologi-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.chatBubbleReply {
+  justify-self: end;
+  border-radius: 16px 16px 4px 16px;
+  background: var(--landing-red);
+  color: #fff;
+}
+
+.chatBubbleReply small {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.mockLabel {
+  color: #8b93a1;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.mockHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--landing-line);
+  color: var(--landing-red);
+}
+
+.mockValue {
+  margin-top: 4px;
+  color: var(--landing-red);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 32px;
+}
+
+.mockRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  color: var(--metodologi-body);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.mockRow strong {
+  color: var(--landing-ink);
+}
+
+.mockStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: #e9f7ee;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.form {
+  overflow: hidden;
+  padding: 0;
+}
+
+.formHead {
+  padding: 12px;
+  border-bottom: 1px solid var(--landing-line);
+  background: var(--landing-tint);
+  color: var(--landing-ink);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.formRows {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+
+.formRows li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-left: 3px solid #d5dbe6;
+  border-radius: 4px;
+  background: #f5f6fa;
+  color: #8b93a1;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.formRows li:first-child {
+  border-left-color: var(--landing-red);
+  background: var(--metodologi-pink);
+  color: var(--landing-ink);
+}
+
+.formRows li:first-child span:last-child {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.nutrients {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.nutrient {
+  padding: 16px;
+}
+
+.nutrient p:last-of-type {
+  margin-top: 8px;
+  color: var(--landing-ink);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.nutrient small {
+  margin-left: 4px;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.meter {
+  height: 4px;
+  margin-top: 12px;
+  border-radius: 9999px;
+  background: var(--landing-tint);
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--landing-red);
+}
+
+.meterMuted span {
+  background: #5a6478;
+}
+
+.nutrientTotal {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--landing-ink);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---------- Perbandingan ---------- */
+
+.compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+  margin-top: 112px;
+}
+
+.compareCard {
+  position: relative;
+  padding: 40px 32px 48px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 10px 40px -16px rgba(11, 28, 48, 0.14);
+  text-align: center;
+}
+
+.compareCardGood {
+  border: 2px solid var(--landing-line);
+}
+
+.comparePill {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  padding: 4px 24px;
+  border-radius: 9999px;
+  background: #515b70;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  line-height: 20px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.compareCardGood .comparePill {
+  background: var(--landing-red);
+}
+
+.compareIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border: 1px solid #e6ebf5;
+  border-radius: 50%;
+  color: #8b96ab;
+}
+
+.compareCardGood .compareIcon {
+  border-color: transparent;
+  background: var(--metodologi-pink);
+  color: var(--landing-red);
+}
+
+.compareCard h3 {
+  margin-top: 32px;
+  color: var(--landing-body);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 24px;
+}
+
+.compareCardGood h3 {
+  color: var(--landing-red);
+  font-weight: 500;
+}
+
+.compareList {
+  display: grid;
+  gap: 24px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 32px auto 0;
+  text-align: left;
+}
+
+.compareList li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 320px;
+  color: var(--landing-body);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.compareList li > span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f8e3e5;
+  color: #c41226;
+}
+
+.compareCardGood .compareList {
+  width: min(384px, 100%);
+}
+
+.compareCardGood .compareList li {
+  max-width: none;
+  padding: 16px 24px;
+  border: 1px solid #f1d9db;
+  border-radius: 8px;
+  background: var(--metodologi-pink);
+  color: var(--landing-ink);
+  font-weight: 600;
+}
+
+.compareCardGood .compareList svg {
+  flex: 0 0 auto;
+  color: var(--landing-red);
+}
+
+/* ---------- Kutipan ---------- */
+
+.quote {
+  position: relative;
+  overflow: hidden;
+  margin-top: 96px;
+  padding: 112px 48px 48px;
+  border-radius: 40px;
+  background: #1c2b42;
+  isolation: isolate;
+  text-align: center;
+}
+
+.quoteBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.quoteBackdrop::after {
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 36, 58, 0.85);
+  content: "";
+}
+
+.quoteBackdropMissing {
+  border: 0;
+  background: none;
+}
+
+.quote p {
+  max-width: 780px;
+  margin: 0 auto;
+  color: #fff;
+  font-size: 36px;
+  font-weight: 300;
+  line-height: 44px;
+}
+
+.quote::after {
+  display: block;
+  width: 80px;
+  height: 4px;
+  margin: 28px auto 0;
+  background: #c41226;
+  content: "";
+}
+
+/* ---------- Alat makan ---------- */
+
+.utensilImage {
+  margin-top: 64px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--landing-shadow);
+}
+
+.utensilList {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.utensilList li {
+  padding: 16px 8px;
+  border: 1px solid var(--landing-line);
+  border-radius: 24px;
+  background: #fff;
+  text-align: center;
+}
+
+.utensilList strong {
+  display: block;
+  color: var(--landing-ink);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.utensilList span {
+  display: block;
+  color: var(--metodologi-body);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* ---------- Tips ---------- */
+
+.tips {
+  display: grid;
+  grid-template-columns: repeat(21, minmax(0, 1fr));
+  gap: 32px;
+  margin-top: 40px;
+}
+
+.tip {
+  grid-column: span 7;
+  padding: 24px;
+  border: 1px solid var(--landing-line);
+  border-radius: 24px;
+  background: #fff;
+}
+
+.tipMain {
+  display: flex;
+  grid-column: span 12;
+  grid-row: span 2;
+  align-items: center;
+  gap: 32px;
+  padding: 40px;
+  border-color: #e3e9f8;
+  background: #eff3ff;
+}
+
+.tipSide {
+  display: flex;
+  grid-column: span 9;
+  gap: 24px;
+}
+
+.tipAlert {
+  border-color: var(--landing-red);
+  background: var(--landing-red);
+  box-shadow: 0 16px 24px -12px rgba(152, 0, 18, 0.4);
+}
+
+.tipIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--metodologi-pink);
+  color: var(--landing-red);
+}
+
+.tipSide .tipIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #d9e6ff;
+}
+
+.tipMain .tipIcon {
+  width: 96px;
+  height: 96px;
+  border-radius: 16px;
+  background: #c41226;
+  box-shadow: 0 12px 20px -8px rgba(152, 0, 18, 0.45);
+  color: #fff;
+}
+
+.tipAlert .tipIcon {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.tipTag {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 9999px;
+  background: #f1dbe2;
+  color: var(--landing-red);
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  line-height: 20px;
+}
+
+.tip h3 {
+  margin-top: 20px;
+  color: var(--landing-ink);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.tipSide h3 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.tipMain h3 {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 32px;
+}
+
+.tip p {
+  margin-top: 12px;
+  color: var(--metodologi-body);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.tipSide p {
+  margin-top: 6px;
+}
+
+.tipMain p {
+  margin-top: 16px;
+  font-size: 18px;
+  line-height: 29px;
+}
+
+.tipAlert h3,
+.tipAlert p {
+  color: #fff;
+}
+
+/* ---------- Dasar pengembangan ---------- */
+
+.process {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin-top: 64px;
+}
+
+.process li {
+  position: relative;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.process li::before {
+  position: absolute;
+  top: 23px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(152, 0, 18, 0.45);
+  content: "";
+}
+
+.process span {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 24px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--landing-red);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* ---------- Referensi ilmiah ---------- */
+
+.referenceHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.referenceLink,
+.referenceLink:hover {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  color: var(--landing-red);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.referenceLink:hover {
+  text-decoration: underline;
+}
+
+.referenceGrid {
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.referenceCard {
+  padding: 32px;
+  border: 1px solid var(--landing-line);
+  border-radius: 24px;
+  background: #fff;
+}
+
+.referenceCard svg {
+  color: var(--landing-red);
+}
+
+.referenceCard h3 {
+  margin-top: 16px;
+  color: var(--landing-ink);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.referenceCard p {
+  margin-top: 8px;
+  color: var(--metodologi-body);
+  font-size: 14px;
+  line-height: 23px;
+}
+
+/* ---------- CTA ---------- */
+
+.cta {
+  position: relative;
+  overflow: hidden;
+  padding: 80px 64px;
+  background: #c4081c;
+  color: #fff;
+  isolation: isolate;
+  text-align: center;
+}
+
+.ctaMark {
+  position: absolute;
+  top: -16px;
+  right: -8px;
+  z-index: -1;
+  width: 312px;
+  height: 312px;
+  color: #b1091d;
+}
+
+.ctaTitle {
+  color: #fff;
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -1.3px;
+  line-height: 62px;
+}
+
+.ctaText {
+  max-width: 660px;
+  margin: 24px auto 0;
+  color: #fff;
+  font-size: 18px;
+  line-height: 29px;
+}
+
+.ctaActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.ctaButton,
+.ctaButton:hover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 74px;
+  padding: 20px 40px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+  background: var(--landing-red);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.ctaButton:hover {
+  background: var(--landing-red-hover);
+  transform: translateY(-1px);
+}
+
+.ctaButtonLight,
+.ctaButtonLight:hover {
+  border-color: #fff;
+  background: #fff;
+  color: var(--landing-red);
+}
+
+.ctaButtonLight:hover {
+  background: #fff1f2;
+}
+
+/* ---------- Responsif ---------- */
+
+@media (max-width: 1120px) {
+  .section,
+  .hero {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+
+  .heroTitle {
+    font-size: 48px;
+    line-height: 58px;
+  }
+
+  .flowTitle {
+    font-size: 44px;
+    line-height: 52px;
+  }
+
+  .utensilList {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tipMain,
+  .tipSide {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 960px) {
+  .hero {
+    padding-bottom: 96px;
+  }
+
+  .heroInner,
+  .about,
+  .guidePanel,
+  .compare {
+    grid-template-columns: 1fr;
+  }
+
+  .useGrid,
+  .photoGrid,
+  .referenceGrid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .flowGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .compare {
+    gap: 48px;
+  }
+
+  .photoCard {
+    min-height: 360px;
+  }
+
+  .tip {
+    grid-column: 1 / -1;
+  }
+
+  /* Enam langkah tidak muat sebaris: lini masa menjadi vertikal. */
+  .process {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .process li {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .process li::before {
+    top: 48px;
+    left: 23px;
+    width: 2px;
+    height: 24px;
+  }
+
+  .process li:last-child::before {
+    display: none;
+  }
+
+  .process span {
+    flex: 0 0 auto;
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .section,
+  .hero {
+    padding: 64px 20px;
+  }
+
+  .hero {
+    padding-top: 40px;
+  }
+
+  .heroTitle {
+    font-size: 38px;
+    letter-spacing: -1px;
+    line-height: 46px;
+  }
+
+  .heroDescription,
+  .aboutText {
+    font-size: 16px;
+    line-height: 26px;
+  }
+
+  .title {
+    font-size: 26px;
+    line-height: 34px;
+  }
+
+  .flowTitle {
+    font-size: 32px;
+    letter-spacing: -1px;
+    line-height: 40px;
+  }
+
+  .aboutPoints,
+  .flowGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .useGrid,
+  .flowGrid {
+    margin-top: 40px;
+  }
+
+  .flowGrid {
+    gap: 40px;
+  }
+
+  .guidePanel {
+    gap: 32px;
+    padding: 24px;
+  }
+
+  .tab {
+    padding: 16px 20px;
+  }
+
+  .compare {
+    margin-top: 72px;
+  }
+
+  .compareCard {
+    padding: 40px 20px 32px;
+  }
+
+  .quote {
+    margin-top: 64px;
+    padding: 56px 24px 32px;
+    border-radius: 24px;
+  }
+
+  .quote p {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  .utensilImage {
+    margin-top: 40px;
+  }
+
+  .utensilList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .tips {
+    gap: 16px;
+  }
+
+  .tipMain {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 24px;
+  }
+
+  .tipMain .tipIcon {
+    width: 72px;
+    height: 72px;
+  }
+
+  .tipMain p {
+    font-size: 16px;
+    line-height: 26px;
+  }
+
+  .referenceHead {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cta {
+    padding: 64px 20px;
+  }
+
+  .ctaMark {
+    width: 200px;
+    height: 200px;
+  }
+
+  .ctaTitle {
+    font-size: 32px;
+    letter-spacing: -1px;
+    line-height: 40px;
+  }
+
+  .ctaText {
+    font-size: 16px;
+    line-height: 26px;
+  }
+
+  .ctaButton,
+  .ctaButton:hover {
+    width: 100%;
+    min-height: 56px;
+    padding: 14px 24px;
+    font-size: 18px;
+    line-height: 26px;
+  }
+}
