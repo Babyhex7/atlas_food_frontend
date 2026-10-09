@@ -344,6 +344,7 @@ function RecallHistorySection() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Detail modal state
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -364,6 +365,22 @@ function RecallHistorySection() {
         setLoading(false);
       });
   }, []);
+
+  const filteredSubmissions = submissions.filter((sub) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    const dateStr = new Date(sub.submitted_at || sub.created_at || "")
+      .toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+      .toLowerCase();
+    const idStr = sub.id.toLowerCase();
+    const energyStr = `${Math.round(sub.total_energy || (sub.daily_total?.energy ?? 0))}`;
+    return dateStr.includes(q) || idStr.includes(q) || energyStr.includes(q);
+  });
 
   const handleOpenDetail = async (id: string) => {
     setSelectedId(id);
@@ -446,6 +463,36 @@ function RecallHistorySection() {
           </div>
         </div>
 
+        {/* Search Bar for History */}
+        {!loading && !error && submissions.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface-alt p-3 rounded-xl border border-border">
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+              <input
+                type="text"
+                placeholder="Cari riwayat (tanggal, ID recall, atau kkal)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input input-sm pl-10 pr-8 text-xs sm:text-sm w-full bg-surface"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary p-0.5"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            {searchQuery && (
+              <span className="text-xs text-text-muted shrink-0 font-medium px-1">
+                Menampilkan {filteredSubmissions.length} dari {submissions.length} riwayat
+              </span>
+            )}
+          </div>
+        )}
+
         {/* List Content */}
         {loading ? (
           <div className="py-12 flex flex-col items-center justify-center gap-2 text-text-muted">
@@ -466,9 +513,20 @@ function RecallHistorySection() {
               </p>
             </div>
           </div>
+        ) : filteredSubmissions.length === 0 ? (
+          <div className="py-10 flex flex-col items-center justify-center gap-2 text-center border border-dashed border-border rounded-xl bg-surface-alt p-6">
+            <p className="font-semibold text-text-primary text-sm m-0">Tidak ditemukan riwayat yang sesuai</p>
+            <p className="text-xs text-text-muted m-0">Tidak ada riwayat recall yang cocok dengan kata kunci "{searchQuery}".</p>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="btn btn-secondary btn-xs mt-2"
+            >
+              Bersihkan Pencarian
+            </button>
+          </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {submissions.map((sub) => (
+            {filteredSubmissions.map((sub) => (
               <div
                 key={sub.id}
                 className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border border-border rounded-xl bg-surface hover:border-primary-border transition-all gap-4 shadow-sm"
@@ -533,6 +591,7 @@ function RecallHistorySection() {
             ))}
           </div>
         )}
+
       </div>
 
       {/* Detail Modal */}
