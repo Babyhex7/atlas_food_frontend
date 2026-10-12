@@ -10,7 +10,7 @@ import {
   Minus,
   Plus,
   RotateCcw,
-  Sparkles,
+  SlidersHorizontal,
 } from "lucide-react";
 import { getFoodPublic } from "@/internal/services/food.service";
 import { getApiErrorMessage } from "@/internal/pkg/utils/apiError";
@@ -31,6 +31,7 @@ import {
   StepShell,
 } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
+import { PortionAdjustModal } from "./PortionAdjustModal";
 
 /** Batas berat yang masuk akal untuk satu porsi (gram). */
 const MAX_PORTION_GRAM = 5000;
@@ -59,6 +60,29 @@ function formatQuantityLabel(qty: number): string {
   if (qty % 1 === 0.25) return `${Math.floor(qty)} ¼ porsi`;
   if (qty % 1 === 0.75) return `${Math.floor(qty)} ¾ porsi`;
   return `${qty} porsi`;
+}
+
+function formatFractionDisplay(qty: number): string {
+  if (qty === 0.25) return "1/4 porsi";
+  if (qty === 0.5) return "1/2 porsi";
+  if (qty === 0.75) return "3/4 porsi";
+  if (qty === 1) return "1 porsi";
+  if (qty === 1.25) return "1 1/4 porsi";
+  if (qty === 1.5) return "1 1/2 porsi";
+  if (qty === 1.75) return "1 3/4 porsi";
+  if (qty % 1 === 0) return `${qty} porsi`;
+  return `${qty} porsi`;
+}
+
+function formatPillValue(qty: number): string {
+  if (qty === 0.25) return "1/4";
+  if (qty === 0.5) return "1/2";
+  if (qty === 0.75) return "3/4";
+  if (qty === 1) return "1";
+  if (qty === 1.25) return "1 1/4";
+  if (qty === 1.5) return "1 1/2";
+  if (qty === 1.75) return "1 3/4";
+  return String(qty);
 }
 
 /** Pisahkan total quantity menjadi integer bulat dan pecahan */
@@ -125,6 +149,7 @@ export function Step3Portion({
 }: Props) {
   const [fetched, setFetched] = useState<FetchedDetail | null>(null);
   const [selection, setSelection] = useState<PortionSelection | null>(null);
+  const [activeModalPhoto, setActiveModalPhoto] = useState<PortionPhoto | null>(null);
   const { send, isConnected } = useCollab();
 
   // Index dijepit ke daftar yang ada sekarang.
@@ -304,24 +329,25 @@ export function Step3Portion({
   );
 
   const handlePresetSelect = useCallback(
-    (qty: number, frac: number, total: number) => {
-      if (!currentFood || !selectedPhoto) return;
+    (qty: number, frac: number, total: number, photoOverride?: PortionPhoto) => {
+      const photoToUse = photoOverride || selectedPhoto || activeModalPhoto;
+      if (!currentFood || !photoToUse) return;
       setSelection({
         foodId: currentFood.food.id,
-        photo: selectedPhoto,
+        photo: photoToUse,
         quantity: qty,
         fraction: frac,
         customGram: "",
       });
       const calculatedWeight = Math.min(
-        Math.round(selectedPhoto.weight_gram * total * 10) / 10,
+        Math.round(photoToUse.weight_gram * total * 10) / 10,
         MAX_PORTION_GRAM
       );
       const portion: SelectedPortion = {
         method: total === 1 ? "simple_grid" : "as_served_quantity",
-        image_id: selectedPhoto.id,
-        image_label: selectedPhoto.label,
-        base_weight: selectedPhoto.weight_gram,
+        image_id: photoToUse.id,
+        image_label: photoToUse.label,
+        base_weight: photoToUse.weight_gram,
         quantity: qty,
         fraction: frac,
         total_quantity: total,
@@ -333,19 +359,20 @@ export function Step3Portion({
           food_id: currentFood.food.id,
           food_name: currentFood.food.name,
           portion_gram: calculatedWeight,
-          image_label: selectedPhoto.label,
+          image_label: photoToUse.label,
           quantity: qty,
           fraction: frac,
           total_quantity: total,
         });
       }
     },
-    [currentFood, selectedPhoto, onPortionSelected, detail, isConnected, send]
+    [currentFood, selectedPhoto, activeModalPhoto, onPortionSelected, detail, isConnected, send]
   );
 
   const handleStep = useCallback(
-    (delta: number) => {
-      if (!currentFood || !selectedPhoto) return;
+    (delta: number, photoOverride?: PortionPhoto) => {
+      const photoToUse = photoOverride || selectedPhoto || activeModalPhoto;
+      if (!currentFood || !photoToUse) return;
       let nextQty: number;
       if (delta > 0) {
         if (currentTotalQty < 1) {
@@ -364,9 +391,9 @@ export function Step3Portion({
       }
 
       const decomp = decomposeQuantity(nextQty);
-      handlePresetSelect(decomp.quantity, decomp.fraction, nextQty);
+      handlePresetSelect(decomp.quantity, decomp.fraction, nextQty, photoToUse);
     },
-    [currentFood, selectedPhoto, currentTotalQty, handlePresetSelect]
+    [currentFood, selectedPhoto, activeModalPhoto, currentTotalQty, handlePresetSelect]
   );
 
   const handleCustomGramChange = useCallback(
@@ -494,209 +521,116 @@ export function Step3Portion({
           {/* ── Foto porsi ───────────────────────────────────────────── */}
           {photos.length > 0 ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                   Pilih foto referensi terdekat:
                 </span>
-                {selectedPhoto && (
-                  <span className="text-xs text-text-muted">
-                    Acuan terpilih:{" "}
-                    <strong className="text-text-primary">{selectedPhoto.label}</strong> (
-                    {selectedPhoto.weight_gram}g)
-                  </span>
-                )}
               </div>
 
               <div
                 role="radiogroup"
                 aria-label="Pilihan porsi"
-                className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                className="grid grid-cols-2 gap-4 pt-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
               >
                 {photos.map((photo) => {
                   const active = selectedPhoto?.id === photo.id;
-                  const isModified = active && currentTotalQty !== 1;
-                  const displayGram = isModified
-                    ? Math.round(photo.weight_gram * currentTotalQty * 10) / 10
-                    : photo.weight_gram;
+                  const displayQty = active ? currentTotalQty : 1;
+                  const displayGram = Math.round(photo.weight_gram * displayQty * 10) / 10;
+                  const fractionText = formatFractionDisplay(displayQty);
+                  const pillVal = formatPillValue(displayQty);
 
                   return (
-                    <SelectTile
+                    <div
                       key={photo.id}
                       role="radio"
                       aria-checked={active}
-                      active={active}
                       onClick={() => handleSelectPhoto(photo)}
+                      className={cn(
+                        "relative flex cursor-pointer flex-col items-center rounded-2xl border-2 p-3 text-center transition-all duration-150 select-none group",
+                        active
+                          ? "border-primary bg-primary/5 text-primary shadow-sm"
+                          : "border-border bg-surface hover:border-primary/50 text-text-secondary hover:text-text-primary"
+                      )}
                     >
-                      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg bg-surface-alt">
+                      {/* Top-Right Floating Pill Stepper Badge (matching design screenshot) */}
+                      {active && (
+                        <div
+                          className="absolute -top-3.5 -right-2 z-20 flex items-center justify-between gap-1 rounded-full bg-primary px-3 py-1 text-white shadow-md"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            aria-label="Kurangi porsi"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStep(-1, photo);
+                              setActiveModalPhoto(photo);
+                            }}
+                            disabled={currentTotalQty <= 0.25}
+                            className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
+                          >
+                            −
+                          </button>
+                          <span
+                            title="Klik untuk buka modal pop-up penyesuaian porsi"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveModalPhoto(photo);
+                            }}
+                            className="mx-1 font-mono text-xs font-bold leading-none text-white cursor-pointer hover:underline"
+                          >
+                            {pillVal}
+                          </span>
+                          <button
+                            type="button"
+                            aria-label="Tambah porsi"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStep(1, photo);
+                              setActiveModalPhoto(photo);
+                            }}
+                            disabled={currentTotalQty >= 10}
+                            className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Photo Thumbnail Container */}
+                      <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-surface-alt">
                         {photo.thumbnail_url || photo.image_url ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img
                             src={photo.thumbnail_url ?? photo.image_url}
                             alt={photo.label}
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
                           />
                         ) : (
-                          <ImageOff aria-hidden className="h-6 w-6 text-text-placeholder" />
-                        )}
-
-                        {/* Tag berat porsi di sudut foto */}
-                        <span
-                          className={cn(
-                            "absolute bottom-1 right-1 rounded px-1.5 py-0.5 font-mono text-[10px] font-bold text-white shadow-sm transition-colors",
-                            isModified ? "bg-primary" : "bg-black/60"
-                          )}
-                        >
-                          {isModified ? `${currentTotalQty}x (${displayGram}g)` : `${photo.weight_gram}g`}
-                        </span>
-
-                        {active && (
-                          <div className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow">
-                            <Check className="h-3 w-3 stroke-[3]" />
+                          <div className="flex h-full w-full items-center justify-center">
+                            <ImageOff aria-hidden className="h-6 w-6 text-text-placeholder" />
                           </div>
                         )}
                       </div>
-                      <span className="text-xs font-bold text-text-secondary">{photo.label}</span>
-                      {photo.description ? (
-                        <span className="text-[10px] text-text-muted">{photo.description}</span>
-                      ) : null}
-                    </SelectTile>
+
+                      {/* Info porsi di bawah foto (sesuai desain screenshot) */}
+                      <div className="mt-3 flex flex-col items-center gap-0.5">
+                        <span className="text-sm font-bold text-primary">
+                          {fractionText}
+                        </span>
+                        <span className="text-xs font-semibold text-text-muted">
+                          {displayGram}g
+                        </span>
+                        {photo.label && (
+                          <span className="mt-0.5 text-[10px] text-text-placeholder">
+                            ({photo.label})
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
-
-              {/* ── Panel Penyesuaian Porsi (Muncul saat foto dipilih) ────── */}
-              {selectedPhoto && (
-                <div className="rounded-2xl border-2 border-primary/20 bg-surface p-4 shadow-sm transition-all sm:p-5">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <Sparkles className="h-3.5 w-3.5" />
-                      </div>
-                      <span className="text-sm font-semibold text-text-primary">
-                        Sesuaikan jumlah porsi dari foto{" "}
-                        <strong className="text-primary">{selectedPhoto.label}</strong>
-                      </span>
-                      <span className="rounded-md bg-surface-alt px-2 py-0.5 font-mono text-xs text-text-muted">
-                        Acuan 1 porsi = {selectedPhoto.weight_gram}g
-                      </span>
-                    </div>
-
-                    {currentTotalQty !== 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handlePresetSelect(1, 0, 1)}
-                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:bg-surface-alt hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-                      >
-                        <RotateCcw className="h-3 w-3" />
-                        Reset ke 1x ({selectedPhoto.weight_gram}g)
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="mt-4 space-y-4">
-                    {/* Petunjuk pecahan */}
-                    <div>
-                      <span className="text-xs font-semibold text-text-secondary">
-                        Berapa banyak yang Anda konsumsi dari porsi di atas?
-                      </span>
-                      <p className="text-[11px] text-text-muted">
-                        Pilih pecahan porsi (misal makan setengahnya atau nambah porsi):
-                      </p>
-                    </div>
-
-                    {/* Quick Preset Buttons (Chips) */}
-                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-                      {PORTION_PRESETS.map((preset) => {
-                        const isSelected = Math.abs(currentTotalQty - preset.totalQty) < 0.01;
-                        const calculatedGram =
-                          Math.round(selectedPhoto.weight_gram * preset.totalQty * 10) / 10;
-                        return (
-                          <button
-                            key={preset.totalQty}
-                            type="button"
-                            onClick={() =>
-                              handlePresetSelect(preset.quantity, preset.fraction, preset.totalQty)
-                            }
-                            className={cn(
-                              "flex flex-col items-center justify-center rounded-xl border p-2.5 text-center transition-all",
-                              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-95",
-                              isSelected
-                                ? "border-primary bg-primary/10 font-bold text-primary shadow-sm ring-1 ring-primary"
-                                : "border-border bg-surface hover:border-primary-border hover:bg-surface-alt text-text-secondary"
-                            )}
-                          >
-                            <span className="text-sm font-bold">{preset.label}</span>
-                            <span className="text-[10px] text-text-muted">{preset.name}</span>
-                            <span className="mt-1 font-mono text-[11px] font-semibold text-primary">
-                              {calculatedGram}g
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Stepper (+ / -) untuk porsi custom / kelipatan lebih lanjut */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface-alt/40 p-3">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-text-primary">
-                          Atur kelipatan lebih lanjut (+ / -)
-                        </span>
-                        <span className="text-[11px] text-text-muted">
-                          Tekan plus untuk porsi nambah, atau minus jika makan lebih sedikit
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleStep(-1)}
-                          disabled={currentTotalQty <= 0.25}
-                          aria-label="Kurangi porsi"
-                          className={cn(
-                            "flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface font-bold text-text-primary transition-colors",
-                            "hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-95 disabled:pointer-events-none disabled:opacity-30"
-                          )}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </button>
-
-                        <div className="flex min-w-[110px] flex-col items-center justify-center rounded-lg border border-border bg-surface px-3 py-1">
-                          <span className="font-mono text-sm font-bold text-text-primary">
-                            {formatQuantityLabel(currentTotalQty)}
-                          </span>
-                          <span className="font-mono text-[10px] text-text-muted">
-                            ({currentTotalQty}x acuan)
-                          </span>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleStep(1)}
-                          disabled={currentTotalQty >= 10}
-                          aria-label="Tambah porsi"
-                          className={cn(
-                            "flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface font-bold text-text-primary transition-colors",
-                            "hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-95 disabled:pointer-events-none disabled:opacity-30"
-                          )}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Rincian hitungan kalkulasi */}
-                    <div className="flex items-center justify-between rounded-xl bg-primary/10 px-4 py-2.5 text-xs text-primary">
-                      <span className="flex items-center gap-2 font-medium">
-                        <span className="inline-block h-2 w-2 rounded-full bg-primary" />
-                        <span>
-                          {currentTotalQty} porsi × {selectedPhoto.weight_gram}g (berat acuan foto)
-                        </span>
-                      </span>
-                      <span className="font-mono text-sm font-bold">= {totalWeight} gram</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           ) : !detailError ? (
             <EmptyState icon={ImageOff}>
@@ -748,6 +682,23 @@ export function Step3Portion({
             </div>
           </div>
         </>
+      )}
+
+      {/* Modal Popup for Portion Adjustment */}
+      {activeModalPhoto && (
+        <PortionAdjustModal
+          isOpen={Boolean(activeModalPhoto)}
+          onClose={() => setActiveModalPhoto(null)}
+          photo={activeModalPhoto}
+          foodName={currentFood.food.name}
+          currentTotalQty={currentTotalQty}
+          onPresetSelect={(qty, frac, total) => {
+            handlePresetSelect(qty, frac, total);
+          }}
+          onStep={handleStep}
+          customGram={customGram}
+          onCustomGram={handleCustomGramChange}
+        />
       )}
 
       <StepNav>

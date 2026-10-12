@@ -291,7 +291,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
       {!isDone && (
         <nav
           aria-label="Langkah pengisian"
-          className="flex gap-2 overflow-x-auto border-b border-border bg-surface px-4 py-3 lg:hidden"
+          className="flex gap-3 overflow-x-auto border-b border-border bg-surface px-4 sm:px-6 py-3.5 lg:hidden scrollbar-none"
         >
           {SIDEBAR_STEPS.map((step) => {
             const num = STEP_NUMBERS[step];
@@ -302,14 +302,23 @@ export function RecallWizard({ guest = false }: WizardProps) {
                 key={step}
                 aria-current={active ? "step" : undefined}
                 className={cn(
-                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1 text-xs transition-colors",
-                  active && "border-primary bg-primary-light font-semibold text-primary",
+                  "inline-flex shrink-0 items-center gap-2.5 rounded-full border px-4 py-1.5 text-xs font-medium transition-all shadow-2xs",
+                  active && "border-primary bg-primary-light font-bold text-primary ring-2 ring-primary/20",
                   done && !active && "border-success-border bg-success-light text-success",
-                  !active && !done && "border-border text-text-muted"
+                  !active && !done && "border-border text-text-muted bg-surface-alt/50"
                 )}
               >
-                {done ? <Check aria-hidden className="h-3 w-3" /> : <span>{num}</span>}
-                {STEP_LABELS[step]}
+                <span
+                  className={cn(
+                    "flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold",
+                    active && "bg-primary text-white",
+                    done && !active && "bg-success text-white",
+                    !active && !done && "bg-muted/20 text-text-muted"
+                  )}
+                >
+                  {done ? <Check aria-hidden className="h-3 w-3" /> : num}
+                </span>
+                <span>{STEP_LABELS[step]}</span>
               </span>
             );
           })}
@@ -319,8 +328,8 @@ export function RecallWizard({ guest = false }: WizardProps) {
       <div className="flex min-h-0 flex-1">
         {/* ── Sidebar (desktop) ────────────────────────────────────────────── */}
         {!isDone && (
-          <aside className="hidden w-56 shrink-0 flex-col gap-1 border-r border-border bg-surface p-5 lg:flex">
-            <nav aria-label="Langkah pengisian" className="flex flex-col gap-1">
+          <aside className="hidden w-64 shrink-0 flex-col justify-between border-r border-border bg-surface p-6 lg:flex">
+            <nav aria-label="Langkah pengisian" className="flex flex-col gap-3">
               {SIDEBAR_STEPS.map((step) => {
                 const num = STEP_NUMBERS[step];
                 const active = currentStep === step;
@@ -330,38 +339,45 @@ export function RecallWizard({ guest = false }: WizardProps) {
                     key={step}
                     aria-current={active ? "step" : undefined}
                     className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 transition-colors",
-                      active && "bg-primary-light"
+                      "flex items-center gap-3.5 rounded-xl px-3.5 py-3 transition-all duration-200",
+                      active && "bg-primary-light border border-primary/20 shadow-xs",
+                      done && !active && "hover:bg-surface-alt/80",
+                      !active && !done && "opacity-80 hover:opacity-100"
                     )}
                   >
                     <span
                       className={cn(
-                        "flex h-[1.75rem] w-[1.75rem] shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors",
-                        active && "border-primary bg-primary text-white",
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-all shadow-2xs",
+                        active && "border-primary bg-primary text-white scale-105 shadow-md shadow-primary/20",
                         done && "border-success bg-success text-white",
-                        !active && !done && "border-border-strong text-text-muted"
+                        !active && !done && "border-border-strong text-text-muted bg-surface"
                       )}
                     >
-                      {done ? <Check aria-hidden className="h-3 w-3" /> : num}
+                      {done ? <Check aria-hidden className="h-4 w-4" /> : num}
                     </span>
-                    <span
-                      className={cn(
-                        "text-sm",
-                        active ? "font-semibold text-text-primary" : "font-medium text-text-muted"
-                      )}
-                    >
-                      {STEP_LABELS[step]}
-                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-text-muted leading-none mb-1">
+                        Langkah {num}
+                      </span>
+                      <span
+                        className={cn(
+                          "text-sm leading-tight",
+                          active ? "font-bold text-text-primary" : "font-semibold text-text-muted"
+                        )}
+                      >
+                        {STEP_LABELS[step]}
+                      </span>
+                    </div>
                   </div>
                 );
               })}
             </nav>
 
             {tip ? (
-              <div className="mt-auto rounded-lg border border-primary-border bg-primary-light p-3 text-xs leading-relaxed text-primary">
-                <Lightbulb aria-hidden className="mb-1 h-4 w-4" />
-                <strong className="mb-1 block font-semibold">{tip.title}</strong>
-                <p>{tip.body}</p>
+              <div className="mt-8 rounded-xl border border-primary-border bg-primary-light/60 p-4 text-xs leading-relaxed text-primary shadow-2xs">
+                <Lightbulb aria-hidden className="mb-1.5 h-4 w-4 text-primary" />
+                <strong className="mb-1 block font-bold text-sm text-text-primary">{tip.title}</strong>
+                <p className="text-text-muted leading-normal">{tip.body}</p>
               </div>
             ) : null}
           </aside>
