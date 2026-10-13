@@ -204,7 +204,7 @@ Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 2. Kolaborasi bersifat *awareness* (kehadiran, kursor, *viewport*, langkah, aktivitas, kunci entitas) — **bukan** penyuntingan bersama satu dokumen. Isian *recall* tidak direplikasi antar peserta. Batasan ini merupakan keputusan desain yang dilandasi validitas data *self-report*, diuraikan pada Subbab 2.5. Kanvas langsung (coretan, bentuk, dan penunjuk laser di atas foto porsi) termasuk lapisan *awareness* ini: coretan bersifat sementara, hanya disimpan di memori ruang, dan tidak pernah menjadi bagian dari laporan.
 3. *Hub* kolaborasi, kunci entitas, dan token undangan disimpan di memori proses (*in-memory*); sistem belum mendukung penyebaran multi-instans.
 4. Fitur kolaborasi hanya aktif pada halaman pengisian *recall* dan halaman pencarian makanan. Portal admin **tidak** dilengkapi kolaborasi real-time maupun penguncian entitas pada versi 1, meskipun mekanismenya telah tersedia pada lapis layanan.
-5. Perhitungan nilai gizi terbatas pada empat zat gizi makro: energi, protein, karbohidrat, dan lemak.
+5. Perhitungan nilai gizi terbatas pada empat zat gizi makro: energi, protein, karbohidrat, dan lemak, dengan data komposisi zat gizi per 100 gram bahan makanan untuk sementara mengadopsi data Tabel Komposisi Pangan Indonesia (TKPI) 2020 yang diterbitkan oleh Kementerian Kesehatan Republik Indonesia.
 6. Model bahasa yang digunakan adalah model pihak ketiga melalui Groq API; penelitian tidak melatih atau melakukan *fine-tuning* model.
 7. Rekomendasi LLM bersifat informatif dan tidak divalidasi sebagai nasihat medis.
 8. Validasi akurasi asupan terhadap metode penimbangan makanan (*weighed food record*) berada di luar cakupan.
@@ -283,7 +283,7 @@ Komputerisasi R24J bertujuan menghilangkan ketergantungan pada pewawancara sekal
 | CMS anotasi foto | Tidak dipublikasikan | Tidak dipublikasikan | Tidak dipublikasikan | **Ada** (poligon, draft→published) |
 | Katalog porsi interaktif di luar alur survei | Tidak ada | Tidak ada | Tidak ada | **Ada** (*Find Your Food*; API publik tanpa token) |
 | Pengiriman saat luring | Tidak didokumentasikan | Tidak didokumentasikan | Tidak didokumentasikan | **Ada** (antrean IndexedDB + sinkronisasi idempoten) |
-| Basis pangan | Amerika Serikat | Britania Raya | Britania Raya | Indonesia |
+| Basis pangan | Amerika Serikat (FNDDS) | Britania Raya (McCance & Widdowson) | Britania Raya (McCance & Widdowson) | Indonesia (TKPI 2020, Kemenkes RI — sementara) |
 
 Keterangan "tidak ada" dan "tidak didokumentasikan" merujuk pada apa yang dilaporkan dalam publikasi rujukan, bukan hasil pengujian langsung terhadap sistem pembanding. Perbedaan pada baris **kolaborasi real-time** dan **kontrol peran sesi** itulah yang menjadi celah penelitian; baris lain yang bercetak tebal merupakan fitur pendukung.
 
@@ -506,7 +506,7 @@ Kriteria eksklusi: peserta yang tidak menyelesaikan seluruh rangkaian tugas peng
 | Layanan eksternal | Groq API | Model bawaan `llama-3.3-70b-versatile` (dapat dikonfigurasi) | Pembangkitan rekomendasi gizi |
 | Pemantauan & penyebaran | Docker Compose, Prometheus, Grafana | — | Penyebaran layanan dan pemantauan metrik |
 | Perkakas | Visual Studio Code, Git, Postman | — | Pengodean, versi, uji API |
-| Bahan | Tabel komposisi pangan | `[⚠ SEBUTKAN sumber: TKPI/DKBM]` | Sumber nilai gizi |
+| Bahan | Tabel komposisi pangan | Tabel Komposisi Pangan Indonesia (TKPI) 2020, Kemenkes RI (sementara) | Sumber nilai zat gizi acuan (energi, protein, lemak, karbohidrat per 100 g BDD) |
 | | Foto porsi *as served* (tipe `series` & `range`) | Terinspirasi Atlas Makananku (BRIN × UPI) | Estimasi porsi visual |
 | | Instrumen SUS | Brooke (1996), 10 butir | Pengukuran kebergunaan |
 
@@ -1123,7 +1123,7 @@ erDiagram
 | `ai_result_logs` | `id`, `submission_id` (**UNIQUE**), `input_payload`, `raw_response`, `overall_status`, `model_used`, `token_used`, `latency_ms` | Hasil analisis + jejak audit |
 | `categories` | `id`, `code`, `name`, `display_order` | Kategori makanan |
 | `foods` | `id`, `code`, `name`, `local_name`, `category_id`, **`photo_type`** | Indeks **FULLTEXT** pada (`name`, `local_name`); `photo_type` ∈ {series, range} menentukan komponen visualisasi foto porsi |
-| `nutrient_types`, `nutrient_units`, `food_nutrients` | — | Nilai gizi per 100 g |
+| `nutrient_types`, `nutrient_units`, `food_nutrients` | — | Nilai zat gizi per 100 g bahan pangan (sementara merujuk data TKPI 2020) |
 | `food_portion_size_methods` | `food_id`, `method_type`, `config` (JSON) | `method_type` ∈ {as_served, guide_image, weight} |
 | `as_served_sets`, `as_served_images` | `set_id`, `weight_gram`, `image_url`, `label` | Aset foto porsi; `label` berupa kode A–H untuk tipe *series* |
 | `food_images`, `food_areas` | `food_images`: `image_url`, `width`, `height`, `status` ∈ {draft, published, archived}, `primary_food_id`; `food_areas`: `polygon` (JSON), `food_id`, `z_index`, `weight_gram` | CMS anotasi; `weight_gram` per area (migrasi 011) memungkinkan satu foto panduan memuat berat tiap ukuran |
@@ -1882,7 +1882,7 @@ Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dime
 9. **Pembukaan katalog dan kontrol peran.** Mengeluarkan `/find-food` dari rute terlindung agar katalog benar-benar publik (catatan pada Subbab 4.1.4), serta menambahkan kontrol antarmuka bagi pemilik ruang untuk mengubah peran peserta selama sesi (F-44), yang lapis layanannya sudah tersedia.
 10. **Persistensi kanvas.** Coretan kini hanya hidup di memori ruang dan hilang saat layanan dimulai ulang. Bila kelak dibutuhkan sebagai bukti proses pendampingan, coretan dapat disimpan terpisah dari laporan, dengan persetujuan responden.
 11. **Perluasan cakupan zat gizi.** Perhitungan saat ini terbatas pada empat makronutrien, jauh di bawah sistem pembanding. Skema `nutrient_types` sudah mendukung zat gizi lain; yang diperlukan adalah pengisian data dan perluasan agregasi pada layanan.
-12. **Perluasan katalog.** Modul *Find Your Food* dapat diperkaya dengan fitur perbandingan porsi antar makanan dalam kategori, estimasi kalori interaktif berdasarkan pilihan porsi, dan integrasi dengan sumber data gizi nasional (TKPI/DKBM) secara langsung.
+12. **Perluasan dan pemutakhiran katalog pangan.** Penggunaan data Tabel Komposisi Pangan Indonesia (TKPI) 2020 pada sistem ini berstatus sementara untuk memvalidasi alur fungsional dan perhitungan. Pada pengembangan lanjutan, modul *Find Your Food* dan basis data sistem disarankan diintegrasikan secara dinamis melalui API dengan basis data komposisi pangan nasional terkini, serta memperluas cakupan makanan olahan dan jajanan lokal.
 
 ### 5.2.2 Saran Penelitian Lanjutan
 
@@ -1929,7 +1929,7 @@ Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free re
 
 `[⚠ TAMBAHKAN]` Rujukan berbahasa Indonesia mengenai penerapan R24J di Indonesia (jurnal gizi nasional).
 
-`[⚠ TAMBAHKAN]` Rujukan mengenai Tabel Komposisi Pangan Indonesia (TKPI) sebagai sumber nilai gizi.
+Kementerian Kesehatan Republik Indonesia. (2020). *Tabel Komposisi Pangan Indonesia (TKPI) 2020*. Direktorat Gizi Masyarakat, Direktorat Jenderal Kesehatan Masyarakat, Kementerian Kesehatan Republik Indonesia.
 
 `[⚠ TAMBAHKAN]` Sauro, J., & Lewis, J. R. (2016). *Quantifying the user experience: Practical statistics for user research* (2nd ed.) — bila dipakai sebagai dasar penentuan ukuran sampel dan interpretasi SUS.
 

@@ -179,14 +179,14 @@ erDiagram
 | `survey_participants` | `survey_id`, `user_id`, `alias` | Menautkan pengguna ke survei; dibuat saat responden mengakses survei aktif |
 | `survey_submissions` | `meals_data` (JSON), `missing_foods` (JSON), `total_energy/protein/carbs/fat` | Laporan recall final; JSON menyimpan struktur bersarang waktu-makan → makanan → porsi → bahan tambahan |
 | `ai_result_logs` | `submission_id` (**unique**), `input_payload`, `raw_response`, `overall_status`, `model_used`, `token_used`, `latency_ms` | *Cache* + jejak audit analisis LLM |
-| `foods`, `categories`, `nutrient_types`, `food_nutrients` | `FULLTEXT (name, local_name)` | Katalog makanan & kandungan gizi per 100 g |
+| `foods`, `categories`, `nutrient_types`, `food_nutrients` | `FULLTEXT (name, local_name)` | Katalog makanan & kandungan gizi per 100 g (mengadopsi TKPI 2020 Kemenkes RI — sementara) |
 | `food_portion_size_methods`, `as_served_sets`, `as_served_images` | `method_type` (as_served/guide_image/weight), `weight_gram` | Aset estimasi porsi berbasis foto |
 | `food_images`, `food_areas` | polygon, status draft/published | CMS anotasi (§9) |
 
 ### 4.3 Keputusan desain data yang perlu dijelaskan di artikel
 
 - **JSON semi-terstruktur untuk `meals_data`.** Struktur satu laporan recall bersifat bersarang dan variatif (jumlah waktu makan, jumlah makanan, jumlah bahan tambahan berbeda tiap responden). Normalisasi penuh akan menghasilkan banyak tabel dengan *join* dalam untuk satu kali baca. Kolom JSON dipilih karena laporan **selalu dibaca sebagai satu kesatuan** dan tidak pernah di-*query* per-baris makanan. Total gizi tetap didenormalisasi ke kolom numerik (`total_energy` dkk.) agar agregasi lintas responden tetap murah.
-- **Perhitungan gizi di sisi klien.** Nilai gizi dihitung dengan `(nilai_per_100g / 100) × berat_porsi_gram`, dibulatkan satu desimal, lalu dikirim bersama laporan. Konsekuensi metodologis: sumber kebenaran gizi tetap tabel `food_nutrients`; nilai terkirim adalah *snapshot* pada saat pengisian, sehingga perubahan basis data makanan di kemudian hari tidak mengubah laporan historis — sifat yang justru diinginkan untuk data penelitian.
+- **Perhitungan gizi di sisi klien.** Nilai gizi dihitung dengan `(nilai_per_100g / 100) × berat_porsi_gram`, dibulatkan satu desimal, lalu dikirim bersama laporan. Konsekuensi metodologis: sumber kebenaran gizi tetap tabel `food_nutrients` (yang sementara ini bersumber dari Tabel Komposisi Pangan Indonesia / TKPI 2020 Kemenkes RI); nilai terkirim adalah *snapshot* pada saat pengisian, sehingga perubahan basis data makanan di kemudian hari tidak mengubah laporan historis — sifat yang justru diinginkan untuk data penelitian.
 - **`ai_result_logs.submission_id` unik.** Menjamin satu laporan memiliki tepat satu hasil analisis tersimpan, sekaligus menjadikan tabel ini *cache* alami.
 
 ---
