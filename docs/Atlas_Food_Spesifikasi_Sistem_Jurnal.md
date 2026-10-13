@@ -6,7 +6,7 @@
 |---|---|
 | Nama sistem | Atlas Food (Atlas Makananku) |
 | Domain masalah | *24-hour dietary recall* terkomputerisasi dengan pendampingan enumerator jarak jauh |
-| Kontribusi utama | (1) Kolaborasi real-time bergaya Figma pada instrumen survei gizi; (2) Rekomendasi gizi berbasis LLM dengan keluaran terstruktur; (3) CMS anotasi foto makanan untuk estimasi porsi |
+| Kontribusi utama | (1) Kolaborasi real-time bergaya Figma pada instrumen survei gizi; (2) Integrasi AI Ganda: Asisten AI percakapan per langkah (*Atlas AI Sidebar*) & rekomendasi gizi LLM berkendala skema; (3) Modul gamifikasi & *leaderboard* survei; (4) CMS anotasi foto makanan untuk estimasi porsi visual |
 | Arsitektur | Client–server terpisah; SPA Next.js ↔ REST + WebSocket Go |
 | Basis data | MySQL 8 (InnoDB, utf8mb4) |
 | Status | Prototipe fungsional; sudah *build-clean* dan *type-safe*, **belum** melalui pengukuran kinerja & uji pengguna formal |
@@ -58,6 +58,8 @@ Rumusan berikut aman secara metodologis karena bertumpu pada rancangan sistem, b
 - **N1 — Sinkronisasi tingkat-langkah pada wizard SPA.** Pada aplikasi satu halaman, seluruh langkah wizard berbagi satu URL, sehingga mekanisme *follow* konvensional yang memantulkan *path* saja tidak mampu menyamakan langkah antar peserta. Sistem ini memperluas pesan `viewport_update` dengan atribut `step` yang dipertahankan sebagai bagian dari *viewport state* di sisi server, sehingga peserta yang bergabung belakangan tetap mendarat di langkah yang benar.
 - **N2 — Otorisasi berlapis tiga untuk peran per-ruang.** Peran (*owner/editor/viewer*) ditegakkan pada tiga lapis independen: kunci UI (atribut `inert`), gerbang pengiriman pesan di klien, dan penolakan di *hub* server; ditambah pengingatan peran per-pengguna di sisi ruang agar peran tidak dapat dinaikkan dengan cara menavigasi ulang tanpa parameter undangan.
 - **N3 — Rekomendasi LLM berkendala skema dengan *caching* per-*submission*.** Keluaran model dibatasi ke skema JSON tetap dan dinormalisasi dua kali (server dan klien), lalu disimpan sebagai *audit log* (model, token, latensi) yang sekaligus berfungsi sebagai *cache* — menjadikan hasil dapat direproduksi dan dapat diaudit, bukan sekadar teks bebas.
+- **N4 — Asisten AI percakapan per langkah (*Atlas AI Sidebar*).** Agen percakapan kontekstual yang menjembatani bahasa alami Ukuran Rumah Tangga (URT) ke opsi foto porsi visual melalui tombol chip aksi satu-klik, dengan pemisahan tegas tugas bahasa dari kalkulasi deterministik (TKPI 2020) guna mengeliminasi risiko halusinasi numerik.
+- **N5 — Gamifikasi dan papan peringkat (*leaderboard*) survei.** Integrasi sistem poin pengalaman (XP) per waktu makan/laporan, pelacak *streak* harian, dan papan peringkat anonim untuk menjaga retensi responden dan memitigasi kelelahan survei (*survey fatigue*).
 
 ---
 

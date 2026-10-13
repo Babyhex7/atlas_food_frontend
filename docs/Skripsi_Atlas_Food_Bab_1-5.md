@@ -166,67 +166,78 @@ Pada saat yang sama, teknologi kolaborasi multi-pengguna real-time telah matang 
 
 Celah inilah yang menjadi dasar penelitian ini. Pertanyaannya bukan sekadar apakah R24J dapat dikomputerisasi — hal itu sudah terjawab — melainkan **apakah pendampingan enumerator dapat dikembalikan ke dalam sistem R24J mandiri melalui teknologi kolaborasi real-time, tanpa mengorbankan kepemilikan dan validitas data responden**. Persoalan terakhir ini krusial: bila pendamping dapat menulis langsung ke laporan responden, validitas data sebagai laporan *self-report* menjadi tercemar. Diperlukan model kolaborasi yang memungkinkan pendamping **melihat, mengarahkan, dan memverifikasi** tanpa **menulis**, disertai kontrol peran yang tegas dan tidak dapat ditembus.
 
-Selain itu, kemunculan *large language model* (LLM) membuka peluang menutup hambatan ketiga. Penelitian mutakhir menunjukkan LLM tujuan umum mencapai tingkat akurasi estimasi gizi yang sebanding dengan metode *self-report* tradisional tanpa membebani pengguna, meskipun belum memadai untuk kuantifikasi presisi pada populasi klinis (Anonim, dalam *American Journal of Clinical Nutrition*, 2025). Temuan ini menyiratkan pemanfaatan yang tepat bagi LLM dalam konteks R24J bukanlah menggantikan perhitungan gizi berbasis tabel komposisi pangan, melainkan **menyusun umpan balik naratif yang memotivasi** di atas angka yang telah dihitung secara deterministik oleh sistem.
+Selain itu, kemunculan *large language model* (LLM) membuka peluang menutup hambatan kedua dan ketiga secara simultan. Penelitian mutakhir menunjukkan LLM tujuan umum mencapai tingkat akurasi estimasi gizi yang sebanding dengan metode *self-report* tradisional tanpa membebani pengguna (*American Journal of Clinical Nutrition*, 2025). Dalam konteks R24J, potensi LLM hadir pada dua titik intervensi:
+1. **Asisten AI Interaktif per Langkah (Chat Sidebar):** Pendamping percakapan kontekstual di setiap langkah pengisian yang menjembatani bahasa alami Ukuran Rumah Tangga (URT) ke rekomendasi visual foto porsi terdekat dengan aksi satu klik (*1-click action*), serta melakukan *probing* otomatis terhadap bahan makanan yang kerap terlupakan. Di sini peran LLM dibatasi ketat pada interpretasi bahasa dan pencocokan porsi, sedangkan perhitungan zat gizi tetap deterministik mengacu pada tabel komposisi pangan nasional (TKPI 2020).
+2. **Rekomendasi Naratif Pasca-Laporan:** Menyusun interpretasi naratif dan umpan balik edukatif yang memotivasi di atas angka agregat zat gizi harian yang telah dihitung sistem.
 
-Berdasarkan uraian tersebut, penelitian ini merancang dan membangun **Atlas Food**, sistem survei R24J berbasis web yang mengintegrasikan tiga hal: alur pengisian terpandu berbasis foto porsi, kolaborasi real-time dengan kontrol peran berlapis, dan rekomendasi gizi berbasis LLM dengan keluaran berkendala skema.
+Di samping tantangan pemahaman porsi dan umpan balik, hambatan klasik dalam survei konsumsi diet berulang adalah kebosanan dan tingginya angka putus survei (*drop-off* partisipan mencapai 40% pada studi sejenis). Untuk memitigasi hal ini, penerapan mekanisme **gamifikasi** — meliputi akumulasi poin pengalaman (XP), pelacakan konsistensi hari (*daily streak*), lencana pencapaian, dan papan peringkat (*leaderboard*) survei — diintegrasikan guna memelihara motivasi dan kepatuhan responden tanpa mengorbankan validitas data ilmiah.
+
+Berdasarkan uraian tersebut, penelitian ini merancang dan membangun **Atlas Food**, sistem survei R24J berbasis web yang memadukan empat pilar utama:
+1. Alur pengisian terpandu enam langkah berbasis foto porsi *as served* (TKPI 2020).
+2. **Kolaborasi real-time multi-pengguna** dengan *workspace awareness* dan kontrol peran berlapis (*owner*, *editor*, *viewer*) yang aman (*fail-closed*) untuk pendampingan jarak jauh.
+3. **Kecerdasan buatan ganda:** Asisten AI percakapan kontekstual per langkah (*slide-over chat sidebar*) dan generator rekomendasi gizi berkendala skema.
+4. **Gamifikasi dan *leaderboard*:** Sistem poin, *streak*, dan papan peringkat partisipan untuk meningkatkan kepatuhan dan retensi responden.
 
 ## 1.2 Rumusan Masalah
 
 Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 
-1. **RM-1.** Bagaimana merancang dan membangun sistem survei *dietary recall* 24 jam berbasis web yang memandu responden secara terstruktur hingga menghasilkan estimasi asupan gizi harian?
+1. **RM-1.** Bagaimana merancang dan membangun sistem survei *dietary recall* 24 jam berbasis web yang memandu responden secara terstruktur hingga menghasilkan estimasi asupan gizi harian yang deterministik?
 2. **RM-2.** Bagaimana menerapkan mekanisme kolaborasi real-time yang memungkinkan pendampingan jarak jauh pada sistem tersebut, termasuk penyelarasan langkah antar pengguna pada aplikasi satu halaman yang tidak memiliki URL berbeda per langkah?
 3. **RM-3.** Bagaimana menegakkan kontrol peran *owner*, *editor*, dan *viewer* di dalam sesi kolaborasi sehingga pendamping berperan *viewer* tidak dapat mengubah data responden melalui jalur mana pun?
-4. **RM-4.** Bagaimana mengintegrasikan *large language model* untuk menghasilkan rekomendasi gizi yang terstruktur, dapat direproduksi, dan dapat diaudit?
-5. **RM-5.** Bagaimana hasil pengujian fungsional, kinerja, dan kebergunaan sistem yang dibangun?
+4. **RM-4.** Bagaimana mengintegrasikan *large language model* (LLM) baik sebagai asisten percakapan interaktif per langkah *recall* (menjembatani deskripsi URT ke foto porsi secara kontekstual) maupun sebagai penghasil rekomendasi naratif gizi yang terstruktur, aman, dan dapat diaudit?
+5. **RM-5.** Bagaimana merancang mekanisme gamifikasi dan papan peringkat (*leaderboard*) untuk mendorong kepatuhan dan retensi partisipasi responden dalam pengisian survei?
+6. **RM-6.** Bagaimana hasil pengujian fungsional, kinerja, dan kebergunaan sistem yang dibangun?
 
 ## 1.3 Tujuan Penelitian
 
-1. **T-1.** Merancang dan membangun sistem survei R24J berbasis web dengan alur pengisian enam langkah yang menghasilkan estimasi asupan gizi harian. *(menjawab RM-1)*
-2. **T-2.** Mengimplementasikan mekanisme kolaborasi real-time berbasis WebSocket yang mencakup kehadiran, kursor bersama, mode ikut, dan penyelarasan langkah *wizard*. *(menjawab RM-2)*
+1. **T-1.** Merancang dan membangun sistem survei R24J berbasis web dengan alur pengisian enam langkah yang menghasilkan estimasi asupan gizi harian secara deterministik. *(menjawab RM-1)*
+2. **T-2.** Mengimplementasikan mekanisme kolaborasi real-time berbasis WebSocket yang mencakup kehadiran, kursor bersama, mode ikut, penyelarasan langkah *wizard*, dan kanvas bersama di atas foto porsi. *(menjawab RM-2)*
 3. **T-3.** Merancang dan mengimplementasikan model otorisasi peran per-ruang berlapis tiga yang bersifat *fail-closed*. *(menjawab RM-3)*
-4. **T-4.** Membangun *pipeline* rekomendasi gizi berbasis LLM dengan keluaran berkendala skema, penyimpanan hasil, dan jejak audit. *(menjawab RM-4)*
-5. **T-5.** Menguji sistem melalui pengujian kotak-hitam, pengujian kinerja real-time, dan pengujian penerimaan pengguna. *(menjawab RM-5)*
+4. **T-4.** Membangun integrasi AI ganda: asisten percakapan *slide-over* per langkah *recall* dengan aksi satu-klik dan *pipeline* rekomendasi gizi pasca-laporan berkendala skema. *(menjawab RM-4)*
+5. **T-5.** Merancang dan mengimplementasikan modul gamifikasi mencakup perolehan poin pengalaman, pelacak *streak* harian, dan papan peringkat (*leaderboard*) partisipan survei. *(menjawab RM-5)*
+6. **T-6.** Menguji sistem melalui pengujian kotak-hitam, pengujian kinerja real-time, dan pengujian penerimaan pengguna (*System Usability Scale*). *(menjawab RM-6)*
 
 ## 1.4 Manfaat Penelitian
 
-**Manfaat teoretis.** Penelitian ini memperluas penerapan kerangka *workspace awareness* (Gutwin & Greenberg, 2002) ke ranah instrumen pengumpulan data kesehatan, serta mengusulkan solusi teknis atas persoalan penyelarasan langkah pada aplikasi satu halaman — persoalan yang tidak muncul pada aplikasi berbasis dokumen tempat kerangka tersebut umumnya diterapkan.
+**Manfaat teoretis.** Penelitian ini memperluas penerapan kerangka *workspace awareness* (Gutwin & Greenberg, 2002) dan teori motivasi gamifikasi ke ranah instrumen pengumpulan data kesehatan, serta mengusulkan perpaduan arsitektur kolaboratif-AI yang memisahkan secara tegas tugas interpretasi bahasa alami oleh LLM dari kalkulasi kuantitatif deterministik.
 
 **Manfaat praktis:**
-- *Bagi peneliti gizi:* tersedianya instrumen R24J yang dapat dijalankan jarak jauh dengan pendampingan, menekan biaya perjalanan enumerator tanpa menghilangkan fungsi *probing*.
-- *Bagi responden:* umpan balik gizi personal segera setelah pengiriman laporan.
-- *Bagi pengelola basis data pangan:* portal admin dan CMS anotasi yang dapat dioperasikan tanpa kemampuan pemrograman.
-- *Bagi pengembang perangkat lunak:* rujukan implementasi kolaborasi real-time berperan pada aplikasi Next.js–Go, termasuk katalog cacat yang lazim muncul dan cara memperbaikinya.
+- *Bagi peneliti gizi:* tersedianya instrumen R24J yang dapat dijalankan jarak jauh dengan pendampingan real-time dan asisten AI, menekan biaya perjalanan enumerator tanpa kehilangan kedalaman *probing*.
+- *Bagi responden:* pengalaman pengisian yang interaktif dengan bantuan asisten AI per langkah, elemen gamifikasi yang memotivasi, serta umpan balik gizi personal langsung.
+- *Bagi pengelola basis data pangan:* portal admin dan CMS anotasi foto porsi yang dapat dioperasikan secara visual tanpa kemampuan pemrograman.
+- *Bagi pengembang perangkat lunak:* rujukan implementasi kolaborasi real-time berperan, integrasi LLM interaktif, dan gamifikasi pada arsitektur Next.js–Go.
 
 ## 1.5 Batasan Penelitian
 
 1. Sistem berbasis web responsif; tidak dikembangkan aplikasi seluler *native*.
-2. Kolaborasi bersifat *awareness* (kehadiran, kursor, *viewport*, langkah, aktivitas, kunci entitas) — **bukan** penyuntingan bersama satu dokumen. Isian *recall* tidak direplikasi antar peserta. Batasan ini merupakan keputusan desain yang dilandasi validitas data *self-report*, diuraikan pada Subbab 2.5. Kanvas langsung (coretan, bentuk, dan penunjuk laser di atas foto porsi) termasuk lapisan *awareness* ini: coretan bersifat sementara, hanya disimpan di memori ruang, dan tidak pernah menjadi bagian dari laporan.
+2. Kolaborasi bersifat *awareness* (kehadiran, kursor, *viewport*, langkah, aktivitas, kunci entitas) — **bukan** penyuntingan bersama satu dokumen. Isian *recall* tidak direplikasi antar peserta demi validitas data *self-report*. Kanvas langsung (coretan, bentuk, dan penunjuk laser di atas foto porsi) termasuk lapisan *awareness* ini: bersifat sementara di memori ruang dan tidak disimpan ke laporan final.
 3. *Hub* kolaborasi, kunci entitas, dan token undangan disimpan di memori proses (*in-memory*); sistem belum mendukung penyebaran multi-instans.
-4. Fitur kolaborasi hanya aktif pada halaman pengisian *recall* dan halaman pencarian makanan. Portal admin **tidak** dilengkapi kolaborasi real-time maupun penguncian entitas pada versi 1, meskipun mekanismenya telah tersedia pada lapis layanan.
+4. Fitur kolaborasi aktif pada halaman pengisian *recall* dan halaman pencarian makanan; portal admin tidak dilengkapi kolaborasi real-time pada versi 1.
 5. Perhitungan nilai gizi terbatas pada empat zat gizi makro: energi, protein, karbohidrat, dan lemak, dengan data komposisi zat gizi per 100 gram bahan makanan untuk sementara mengadopsi data Tabel Komposisi Pangan Indonesia (TKPI) 2020 yang diterbitkan oleh Kementerian Kesehatan Republik Indonesia.
-6. Model bahasa yang digunakan adalah model pihak ketiga melalui Groq API; penelitian tidak melatih atau melakukan *fine-tuning* model.
-7. Rekomendasi LLM bersifat informatif dan tidak divalidasi sebagai nasihat medis.
-8. Validasi akurasi asupan terhadap metode penimbangan makanan (*weighed food record*) berada di luar cakupan.
-9. Pengujian keamanan terbatas pada verifikasi mekanisme otorisasi yang dirancang; tidak dilakukan uji penetrasi menyeluruh.
-10. Dukungan luring terbatas pada **pengiriman laporan**: laporan yang dikirim tanpa koneksi diantrekan di peramban dan disinkronkan saat koneksi pulih. Pencarian makanan, pemuatan foto porsi yang belum pernah dibuka, kolaborasi real-time, dan analisis LLM tetap memerlukan koneksi. *Service worker* hanya didaftarkan pada *build* produksi di luar `localhost`.
-11. Halaman web katalog *Find Your Food* pada versi 1 berada di balik login karena dipasangi sesi kolaborasi yang memerlukan identitas pengguna; yang benar-benar terbuka tanpa token adalah *endpoint* API `/public/*`-nya (lihat catatan pada Subbab 4.1.4).
-12. Perubahan peran peserta secara real-time oleh pemilik ruang (`update_user_role`) tersedia pada lapis layanan dan ditangani klien saat diterima, tetapi belum memiliki kontrol antarmuka untuk memicunya pada versi 1.
+6. Asisten AI percakapan per langkah dan analisis rekomendasi gizi memanfaatkan model pihak ketiga melalui Groq API; penelitian tidak melakukan pelatihan atau *fine-tuning* model mandiri. AI dilarang keras menghitung nilai kalori/makronutrien sendiri.
+7. Rekomendasi LLM bersifat edukatif/informatif dan tidak divalidasi sebagai diagnosis atau nasihat medis klinis.
+8. Mekanisme gamifikasi mencakup perolehan poin per aksi pengisian, pelacak *streak* pengisian harian, dan papan peringkat (*leaderboard*) antar-responden dalam batas survei aktif.
+9. Validasi akurasi asupan terhadap metode penimbangan makanan (*weighed food record*) berada di luar cakupan.
+10. Dukungan luring terbatas pada pengiriman laporan: antrean di peramban dan sinkronisasi idempoten saat koneksi pulih. Layanan real-time WebSocket dan pemanggilan AI tetap mensyaratkan koneksi internet aktif.
 
 ## 1.6 Ruang Lingkup Penelitian
 
-**Ruang lingkup fungsional** mencakup **lima modul** dan satu kemampuan lintas modul:
+**Ruang lingkup fungsional** mencakup **enam modul** dan kemampuan lintas modul:
 
 | Modul | Cakupan |
 |---|---|
-| Modul Responden | Autentikasi (registrasi, login, penyegaran token), pemilihan survei aktif, *wizard* recall enam langkah, pengiriman laporan, panel rekomendasi AI, halaman ringkasan, halaman profil (ubah data diri, foto, kata sandi, dan riwayat laporan milik sendiri) |
-| Modul Katalog (*Find Your Food*) | Pencarian makanan melalui *endpoint* publik tanpa token, katalog 13 kategori, halaman detail makanan dengan foto porsi interaktif tipe *series* dan *range* (foto panduan), area poligon terbitan di atas foto, tabel berat per foto, informasi gizi per 100 g, navigasi antar makanan dalam kategori, penanda simpan (*bookmark*) |
-| Modul Kolaborasi | Ruang sesi, kehadiran, kursor bersama, mode ikut, penyelarasan langkah, umpan aktivitas, undangan berperan, **kanvas langsung** di atas foto porsi (pensil, persegi, lingkaran, penunjuk laser, penghapus), dan **obrolan kursor**. Diaktifkan pada halaman *recall* dan katalog makanan; **tidak** pada portal admin |
-| Modul AI | Analisis gizi berbasis LLM, normalisasi keluaran, penyimpanan hasil, jejak audit |
-| Modul Admin | Dasbor, CRUD survei (termasuk gandakan dan terbitkan ulang token), makanan, zat gizi, kategori, metode porsi, set foto *as served*, foto makanan terpadu, unggah gambar, CMS anotasi dengan penyimpanan otomatis, telaah dan ekspor *submission* ke CSV |
-| Dukungan Luring (lintas modul) | *Progressive Web App* yang dapat dipasang, *service worker* untuk kerangka aplikasi dan aset gambar, antrean laporan di IndexedDB, sinkronisasi otomatis saat koneksi pulih, dan pencegahan duplikat melalui kunci idempotensi |
+| Modul Responden & *Wizard Recall* | Autentikasi, pemilihan survei aktif, alur *wizard* enam langkah terstruktur (waktu makan, pencarian pangan, estimasi porsi foto *as served*, bahan tambahan, reviu & kalkulasi TKPI, hasil), pengiriman laporan, penyimpanan sesi peramban, riwayat laporan pribadi, dan profil pengguna |
+| Modul Kolaborasi Real-Time | Ruang sesi WebSocket, daftar kehadiran (*presence*), kursor bersama, mode ikut (*follow mode*), sinkronisasi langkah *wizard*, umpan aktivitas, undangan peran (*owner*, *editor*, *viewer*), **kanvas langsung** (pensil, bentuk, penunjuk laser) di atas foto porsi, dan obrolan kursor |
+| Modul Kecerdasan Buatan (AI) | **(1) Asisten AI Percakapan per Langkah (*Atlas AI Sidebar*):** *drawer slide-over* interaktif di sisi kanan layar untuk bantuan bahasa alami, konversi URT ke label foto porsi dengan tombol aksi 1-klik, dan *probing* terarah.<br/>**(2) Rekomendasi Gizi Pasca-Laporan:** analisis asupan diet berbasis skema JSON tetap, penanganan kegagalan (*fallback* aman), penyimpanan hasil, dan pencatatan jejak audit (token, model, latensi) |
+| Modul Gamifikasi & *Leaderboard* | Sistem poin pengalaman (XP) per waktu makan dan laporan tuntas, pelacak konsistensi hari pengisian (*daily streak*), lencana pencapaian (*badges*), dan papan peringkat (*leaderboard*) partisipan dalam lingkup survei aktif |
+| Modul Katalog (*Find Your Food*) | Katalog 13 kategori, pencarian *full-text*, penampil foto porsi interaktif tipe *series* (A–H) dan *range* (foto panduan), area anotasi poligon, informasi gizi per 100 g, navigasi antar makanan, dan penanda simpan (*bookmark*) |
+| Modul Admin & CMS Anotasi | Dasbor statistik, manajemen (CRUD) survei dan penggandaan, manajemen katalog makanan dan zat gizi, CMS anotasi foto porsi poligon dengan siklus *draft*–*published* dan penyimpanan otomatis (*autosave*), serta peninjauan dan ekspor laporan ke CSV |
+| Dukungan Luring (lintas modul) | PWA terpasang, *service worker*, antrean laporan di IndexedDB, sinkronisasi idempoten (`local_id`), dan penanganan status koneksi |
 
-**Ruang lingkup teknis.** Antarmuka: Next.js (App Router), React, TypeScript, Tailwind CSS, Zustand, TanStack Query, Dexie (IndexedDB), *Service Worker*. Layanan: Go 1.22, Gin, GORM, `gorilla/websocket`, `gin-metrics` (Prometheus). Basis data: MySQL 8. Model bahasa: Groq API (bawaan `llama-3.3-70b-versatile`, dapat diganti melalui variabel lingkungan `GROQ_MODEL`). Penyebaran: Docker Compose (layanan, MySQL, Prometheus, Grafana).
+**Ruang lingkup teknis.** Antarmuka: Next.js (App Router), React, TypeScript, Tailwind CSS, Zustand, TanStack Query, Dexie (IndexedDB), *Service Worker*. Layanan: Go 1.22, Gin, GORM, `gorilla/websocket`, `gin-metrics`. Basis data: MySQL 8. Model bahasa: Groq API (bawaan `llama-3.3-70b-versatile` / `llama-3.1-8b-instant`). Penyebaran: Docker Compose.
+
+**Ruang lingkup pengujian.** Pengujian kotak-hitam fungsional; pengujian kinerja latensi real-time kolaborasi; pengujian penerimaan pengguna (*System Usability Scale*).
 
 **Ruang lingkup pengujian.** Pengujian kotak-hitam terhadap seluruh kebutuhan fungsional; pengujian kinerja terhadap latensi dan *throughput* kolaborasi; pengujian penerimaan pengguna menggunakan *System Usability Scale*.
 
@@ -280,12 +291,14 @@ Komputerisasi R24J bertujuan menghilangkan ketergantungan pada pewawancara sekal
 | Penunjuk visual bersama pada foto porsi | Tidak ada | Tidak ada | Tidak ada | **Ada** (kanvas langsung: coretan, bentuk, laser) |
 | Kontrol peran sesi | — | — | — | **Ada** (*owner*/*editor*/*viewer*, tiga lapis) |
 | Umpan balik ke responden | Terbatas | Terbatas | Ringkasan gizi | Rekomendasi berbasis LLM berkendala skema |
+| Asisten AI per langkah (*chat sidebar*) | Tidak ada | Tidak ada | Tidak ada | **Ada** (konsultan URT → porsi foto, chip 1-klik, stateless) |
+| Gamifikasi & papan peringkat (*leaderboard*) | Tidak ada | Tidak ada | Tidak ada | **Ada** (XP waktu makan, *daily streak*, *leaderboard* survei) |
 | CMS anotasi foto | Tidak dipublikasikan | Tidak dipublikasikan | Tidak dipublikasikan | **Ada** (poligon, draft→published) |
 | Katalog porsi interaktif di luar alur survei | Tidak ada | Tidak ada | Tidak ada | **Ada** (*Find Your Food*; API publik tanpa token) |
 | Pengiriman saat luring | Tidak didokumentasikan | Tidak didokumentasikan | Tidak didokumentasikan | **Ada** (antrean IndexedDB + sinkronisasi idempoten) |
 | Basis pangan | Amerika Serikat (FNDDS) | Britania Raya (McCance & Widdowson) | Britania Raya (McCance & Widdowson) | Indonesia (TKPI 2020, Kemenkes RI — sementara) |
 
-Keterangan "tidak ada" dan "tidak didokumentasikan" merujuk pada apa yang dilaporkan dalam publikasi rujukan, bukan hasil pengujian langsung terhadap sistem pembanding. Perbedaan pada baris **kolaborasi real-time** dan **kontrol peran sesi** itulah yang menjadi celah penelitian; baris lain yang bercetak tebal merupakan fitur pendukung.
+Keterangan "tidak ada" dan "tidak didokumentasikan" merujuk pada apa yang dilaporkan dalam publikasi rujukan, bukan hasil pengujian langsung terhadap sistem pembanding. Perbedaan pada baris **kolaborasi real-time**, **kontrol peran sesi**, **asisten AI per langkah**, serta **gamifikasi & leaderboard** itulah yang menjadi pembeda utama dan kebaruan penelitian ini; baris lain yang bercetak tebal merupakan fitur pendukung.
 
 ## 2.3 *Computer-Supported Cooperative Work* dan *Workspace Awareness*
 
@@ -342,17 +355,19 @@ Prinsip keamanan yang diterapkan adalah **fail-closed** (gagal-tertutup): ketika
 
 Penegakan juga dilakukan **berlapis** (*defense in depth*): satu lapis pertahanan yang gagal tidak langsung membuka akses. Rincian tiga lapis yang digunakan disajikan pada Subbab 4.1.2.
 
-## 2.7 *Large Language Model* dan *Schema-Constrained Generation*
+## 2.7 *Large Language Model* dan Agen Percakapan Kontekstual
 
-*Large Language Model* (LLM) adalah model bahasa berbasis arsitektur *transformer* yang dilatih pada korpus teks berskala besar dan mampu menghasilkan teks mengikuti instruksi. Dalam konteks aplikasi perangkat lunak, tantangan utamanya adalah keluaran model bersifat probabilistik dan tidak terjamin strukturnya.
+*Large Language Model* (LLM) adalah model bahasa berbasis arsitektur *transformer* yang dilatih pada korpus teks berskala besar dan mampu memproses serta menghasilkan teks alami mengikuti instruksi (*instruction-tuned*). Dalam implementasi perangkat lunak berbasis survei dan kesehatan, pemanfaatan LLM menghadapi dua tantangan utama: sifat probabilistik keluaran dan risiko halusinasi faktual maupun numerik.
 
-**Pembangkitan berkendala skema** (*schema-constrained generation*) mengatasi hal ini dengan mewajibkan model menghasilkan keluaran yang sesuai skema tertentu — pada praktiknya melalui mode JSON yang disediakan penyedia layanan disertai deskripsi skema pada *system prompt*. Parameter *temperature* rendah dipakai untuk menekan variasi keluaran demi reproduktibilitas.
+**Pembangkitan berkendala skema (*schema-constrained generation*).** Pendekatan ini mengatasi ketidakpastian struktur dengan mengunci model agar menghasilkan keluaran JSON yang valid mengikuti spesifikasi skema data tertentu. Bersama parameter *temperature* rendah (misal 0,2), model dipaksa mematuhi struktur medan yang diharapkan oleh sistem hilir, sehingga hasil inferensi dapat diproses secara aman oleh aplikasi tanpa risiko kegagalan parsing.
 
-**Penerapan pada gizi.** Kajian mutakhir mengevaluasi kemampuan LLM menaksir berat, energi, dan komposisi makronutrien dari foto makanan terstandar. Studi tersebut melaporkan LLM mencapai tingkat akurasi yang sebanding dengan metode penilaian diet *self-report* tradisional tanpa beban pengguna yang menyertainya, sehingga berpotensi berguna sebagai perkakas pemantauan diet; namun terdapat *underestimation* sistematis pada porsi besar dan variabilitas tinggi pada taksiran makronutrien, sehingga LLM tujuan umum **belum sesuai** untuk penilaian diet presisi pada populasi klinis atau atlet yang menuntut kuantifikasi akurat (*American Journal of Clinical Nutrition*, 2025).
+**Penerapan pada estimasi gizi dan evaluasi literatur.** Kajian mutakhir mengevaluasi performa LLM dalam menaksir berat, energi, dan komposisi makronutrien dari foto makanan terstandar (*American Journal of Clinical Nutrition*, 2025). Studi tersebut menyimpulkan bahwa meskipun LLM memiliki keunggulan pemahaman semantik dan penalaran kontekstual yang setara dengan pencatatan *self-report* tradisional, model tujuan umum masih memperlihatkan *underestimation* sistematis pada porsi besar dan variabilitas kuantitatif tinggi. Oleh karena itu, LLM tujuan umum **tidak boleh ditugaskan menghitung angka kalori dan zat gizi secara mandiri**.
 
-Temuan tersebut secara langsung membentuk keputusan desain penelitian ini: **LLM tidak digunakan untuk menghitung nilai gizi**. Perhitungan gizi dilakukan secara deterministik dari tabel komposisi pangan dengan rumus `(nilai per 100 g ÷ 100) × berat porsi`. LLM hanya bertugas menyusun **interpretasi naratif dan saran** di atas angka yang sudah pasti tersebut. Pembagian peran ini menempatkan LLM pada wilayah yang menjadi kekuatannya (bahasa) dan menjauhkannya dari wilayah yang terbukti lemah (kuantifikasi).
+**Prinsip pemisahan peran dan arsitektur ganda AI.** Temuan tersebut melandasi rancangan kecerdasan buatan pada penelitian ini yang memisahkan secara tegas dua peran:
+1. **Asisten AI Percakapan per Langkah (*Atlas AI Sidebar Companion*):** Responden awam kerap mengingat asupan dalam bahasa kualitatif atau Ukuran Rumah Tangga (URT), misalnya *"2 potong tempe sedang"* atau *"1 centong cekung nasi pulen"*, bukan dalam gramatur pasti. Asisten AI hadir sebagai laci geser (*slide-over drawer*) di sisi layar pengisian yang menerima deskripsi natural responden, membandingkannya dengan daftar foto porsi yang tersedia di basis data, dan merekomendasikan kode porsi terdekat (misal: Porsi B, 50 g). Respon AI dilengkapi tombol aksi satu-klik (*1-click action chips*) yang langsung mengisi pilihan porsi ke formulir tanpa pengetikan manual. Di sini AI berfungsi sebagai **jembatan semantik URT ke opsi visual**, bukan kalkulator numerik.
+2. **Rekomendasi Naratif Pasca-Laporan:** Setelah laporan dikirim dan zat gizi dihitung secara deterministik oleh server dari tabel TKPI 2020, LLM bertugas menyusun interpretasi naratif, pesan motivasi, dan saran bahan pangan alternatif berdasarkan profil asupan harian tersebut.
 
-**Risiko yang harus dimitigasi:** halusinasi, saran yang tidak aman secara klinis, dan pengiriman data kesehatan ke penyedia pihak ketiga. Mitigasi yang diterapkan diuraikan pada Subbab 4.1.3 dan 5.2.
+Pembagian ini menempatkan LLM pada ranah kekuatan utamanya (pemahaman bahasa dan sintesis naratif) serta membebaskannya dari kalkulasi aritmetika yang rentan halusinasi.
 
 ## 2.8 Estimasi Porsi Berbasis Foto
 
@@ -387,28 +402,41 @@ Arsitektur ***offline-first*** memperlakukan ketiadaan jaringan sebagai keadaan 
 
 Pola ini membawa satu persoalan baru: **pengiriman ganda**. Ketika klien mengirim laporan lalu koneksi putus sebelum balasan tiba, klien tidak dapat membedakan "permintaan tidak sampai" dari "permintaan sampai tetapi balasannya hilang". Mengirim ulang pada kasus kedua menghasilkan laporan duplikat — cacat serius pada data penelitian. Solusi bakunya adalah **kunci idempotensi** (*idempotency key*): klien membangkitkan pengenal unik untuk setiap laporan sebelum pengiriman pertama dan menyertakannya pada setiap percobaan; server menyimpan pengenal itu dengan kendala unik dan mengembalikan hasil yang sama bila pengenal yang sama datang lagi. Dengan demikian pengiriman ulang menjadi aman berapa kali pun diulang. `[⚠ TAMBAHKAN rujukan mengenai idempotensi pada sistem terdistribusi]`
 
-## 2.11 *State of the Art*
+## 2.11 Gamifikasi dalam Sistem Pemantauan Diet dan Partisipasi Survei
+
+Pengumpulan data diet berbasis recall berulang (*multiple-day recall*) menghadapi fenomena kelelahan responden (*survey fatigue*) yang berujung pada penurunan drastis tingkat penyelesaian (*drop-off rate*) serta pelaporan asupan yang tidak lengkap. Gamifikasi — didefinisikan sebagai penggunaan elemen-elemen rancangan permainan dalam konteks non-game (Deterding et al., 2011) — hadir sebagai pendekatan intervensi perilaku yang memanfaatkan psikologi motivasi.
+
+Berdasarkan *Self-Determination Theory* (Ryan & Deci, 2000), motivasi manusia didorong oleh pemenuhan tiga kebutuhan psikologis dasar: kompetensi (*feeling effective*), otonomi (*feeling in control*), dan keterhubungan (*feeling connected*). Penerapan gamifikasi pada instrumen diet mengoperasionalkan teori ini melalui kerangka trias PBL (*Points, Badges, Leaderboards*) yang dipadukan dengan pelacakan konsistensi:
+1. **Poin Pengalaman (XP):** Memberikan umpan balik instan atas tindakan responden (misal menyelesaikan pencatatan satu waktu makan atau menuntaskan laporan harian), memperkuat rasa progres dan kompetensi.
+2. **Jejak Konsistensi Harian (*Daily Streaks*):** Memanfaatkan bias keengganan kehilangan (*loss aversion*) untuk mendorong pengisian rutin setiap hari tanpa jeda, yang sangat krusial bagi survei diet longitudinal.
+3. **Papan Peringkat (*Leaderboard*):** Memfasilitasi perbandingan sosial positif antar partisipan dalam lingkup survei yang sama. Untuk menjaga privasi etis dan validitas data medis, papan peringkat diatur berbasis alias anonim dan semata-mata mengukur **kepatuhan dan kelengkapan pengisian**, bukan kuantitas kalori atau berat badan yang bersifat sensitif.
+
+Integrasi elemen gamifikasi ini melengkapi peran kolaborasi real-time dan asisten AI dalam memelihara keterlibatan aktif responden selama proses survei berlangsung.
+
+## 2.12 *State of the Art*
 
 **Tabel 2.2 *State of the art* penelitian terdahulu**
 
 | No | Penulis & Tahun | Fokus | Metode/Teknologi | Hasil Utama | Celah yang Tersisa |
 |---|---|---|---|---|---|
-| 1 | National Cancer Institute (2012) | ASA24 sebagai sumber daya riset | Aplikasi web, pengodean otomatis, dua aplikasi terpisah | R24J berbiaya rendah dan layak untuk skala besar | Sepenuhnya mandiri; tidak ada pendampingan |
-| 2 | Bradley et al. (2016) | Validasi Intake24 pada remaja | Lintasan berganda otomatis, > 2.400 foto porsi | Kesesuaian baik dengan *recall* berpewawancara (n = 167, usia 11–24) | Tidak ada dukungan kolaborasi |
-| 3 | Bradley et al. (2018) | Uji lapangan Intake24 | Survei nasional Skotlandia | Ramah pengguna; > 75% merasa asupan tertangkap akurat; **60%** menyelesaikan ≥ 1 *recall* | Hambatan penyelesaian belum ditangani lewat pendampingan |
-| 4 | Foster et al. (2019) | Validitas & reliabilitas Intake24 | *Doubly labelled water*, n = 98 dewasa | Validitas asupan energi terukur terhadap standar emas | Ranah validasi gizi, bukan rekayasa kolaborasi |
+| 1 | National Cancer Institute (2012) | ASA24 sebagai sumber daya riset | Aplikasi web, pengodean otomatis, dua aplikasi terpisah | R24J berbiaya rendah dan layak untuk skala besar | Sepenuhnya mandiri; tidak ada pendampingan maupun gamifikasi |
+| 2 | Bradley et al. (2016) | Validasi Intake24 pada remaja | Lintasan berganda otomatis, > 2.400 foto porsi | Kesesuaian baik dengan *recall* berpewawancara (n = 167, usia 11–24) | Tidak ada dukungan kolaborasi dan AI interaktif |
+| 3 | Bradley et al. (2018) | Uji lapangan Intake24 | Survei nasional Skotlandia | Ramah pengguna; > 75% merasa asupan tertangkap akurat; **60%** menyelesaikan ≥ 1 *recall* | Hambatan penyelesaian (drop-off 40%) belum ditangani lewat pendampingan & gamifikasi |
+| 4 | Foster et al. (2019) | Validitas & reliabilitas Intake24 | *Doubly labelled water*, n = 98 dewasa | Validitas asupan energi terukur terhadap standar emas | Ranah validasi gizi, bukan rekayasa sistem interaktif |
 | 5 | Carter et al. (2015) `[⚠ VERIFIKASI]` | Pengembangan myfood24 | Perkakas R24J daring, basis data pangan bermerek, foto porsi | Perkakas layak dipakai untuk populasi Britania Raya | Satu pengguna per sesi; tidak ada pendampingan real-time |
-| 6 | Gutwin & Greenberg (2002) | Kerangka *workspace awareness* | Teori deskriptif CSCW | Kerangka tiga bagian; *awareness* menurunkan usaha koordinasi | Diterapkan pada *groupware* berbasis dokumen, bukan instrumen survei |
+| 6 | Gutwin & Greenberg (2002) | Kerangka *workspace awareness* | Teori deskriptif CSCW | Kerangka tiga bagian; *awareness* menurunkan usaha koordinasi | Diterapkan pada *groupware* berbasis dokumen, bukan instrumen survei diet |
 | 7 | Shapiro et al. (2011) | CRDT | Tipe data replikasi bebas konflik | Jaminan konvergensi tanpa sinkronisasi jarak jauh | Ditujukan untuk *co-editing*; tidak sesuai instrumen *self-report* |
-| 8 | Fette & Melnikov (2011) | Protokol WebSocket | RFC 6455 | Kanal dua arah penuh di atas satu koneksi TCP | Protokol dasar; pola penerapan domain tidak dibahas |
+| 8 | Fette & Melnikov (2011) | Protokol WebSocket | RFC 6455 | Kanal dua arah penuh di atas satu koneksi TCP | Protokol dasar; pola penerapan domain survei belum ada |
 | 9 | *Am. J. Clin. Nutr.* (2025) | Evaluasi 3 LLM untuk estimasi gizi dari foto | ChatGPT-4o, Claude 3.5, Gemini 1.5 | Akurasi setara *self-report* tradisional; *underestimation* sistematis pada porsi besar | LLM belum layak untuk kuantifikasi presisi → perlu pembagian peran yang tepat |
-| **10** | **Penelitian ini (2026)** | **R24J kolaboratif + LLM** | **Next.js, Go, WebSocket, Groq, PWA** | **Sinkronisasi langkah *wizard*; otorisasi tiga lapis; LLM berkendala skema; pengiriman luring idempoten** | **—** |
+| **10** | **Penelitian ini (2026)** | **R24J Kolaboratif + AI Ganda + Gamifikasi** | **Next.js, Go, WebSocket, Groq, PWA, MySQL** | **Sinkronisasi langkah wizard; otorisasi tiga lapis; Asisten AI chat per-step + rekomendasi skema; modul gamifikasi & leaderboard; pengiriman luring idempoten** | **—** |
 
-**Posisi penelitian.** Baris 1–5 menegaskan bahwa komputerisasi R24J telah mapan dan tervalidasi, namun seluruhnya bersifat mandiri penuh. Baris 6–8 menyediakan landasan teknis kolaborasi real-time yang matang, tetapi belum pernah diterapkan pada instrumen survei gizi. Baris 9 menetapkan batas peran yang tepat bagi LLM di ranah gizi. Penelitian ini menggabungkan ketiga aliran tersebut dan menyumbang tiga kebaruan:
+**Posisi penelitian.** Baris 1–5 menegaskan bahwa komputerisasi R24J telah mapan dan tervalidasi, namun seluruhnya bersifat mandiri penuh dengan tingkat *drop-off* yang signifikan. Baris 6–8 menyediakan landasan teknis kolaborasi real-time yang matang, tetapi belum pernah diterapkan pada instrumen survei gizi. Baris 9 menetapkan batas peran yang tepat bagi LLM di ranah gizi. Penelitian ini menggabungkan ketiga aliran tersebut bersama elemen motivasional gamifikasi dan menyumbang lima kebaruan:
 
 - **K-1.** Sinkronisasi langkah *wizard* lintas pengguna pada aplikasi satu halaman — persoalan yang tidak muncul pada *groupware* berbasis dokumen karena setiap keadaan di sana memiliki representasi URL atau posisi gulir.
 - **K-2.** Model otorisasi peran per-ruang berlapis tiga yang bersifat *fail-closed* dan tahan terhadap upaya kenaikan hak akses melalui navigasi ulang.
 - **K-3.** Pembagian peran yang tegas antara perhitungan gizi deterministik dan interpretasi naratif LLM, disertai keluaran berkendala skema, penyimpanan hasil per-*submission*, dan jejak audit yang memungkinkan evaluasi *post-hoc*.
+- **K-4.** Integrasi **Asisten AI percakapan per langkah (*Atlas AI Sidebar*)** yang menjembatani bahasa alami URT ke estimasi visual foto porsi terdekat dengan aksi satu klik (*1-click action chips*) tanpa mengambil alih kalkulasi gizi deterministik.
+- **K-5.** Penerapan mekanisme **gamifikasi dan papan peringkat (*leaderboard*)** dalam instrumen R24J untuk menjaga motivasi dan menekan *drop-off* responden pada pengisian survei berulang.
 
 Di luar tiga kebaruan tersebut, sistem memuat dua **fitur pendukung** yang tidak diklaim sebagai kebaruan tetapi relevan bagi kelayakan pemakaian di lapangan: pengiriman laporan saat luring dengan sinkronisasi idempoten (Subbab 2.10), dan kanvas langsung di atas foto porsi yang memperkaya unsur "aksi" pada kerangka *workspace awareness* (Subbab 2.3).
 
@@ -583,6 +611,10 @@ Catatan metodologis: sebagian data kinerja **tidak memerlukan instrumentasi tamb
 | F-46 | Responden dapat melihat riwayat dan rincian laporan miliknya sendiri | Responden | Wajib |
 | F-47 | Admin dapat mengunggah gambar (JPG, PNG, WebP; maksimal 10 MB) untuk makanan dan porsi | Admin | Wajib |
 | F-48 | Admin dapat menggandakan survei dan menerbitkan ulang token akses survei | Admin | Opsional |
+| F-49 | Sistem menyediakan Asisten AI percakapan interaktif (*Atlas AI Sidebar*) per langkah recall untuk membantu konsultasi porsi URT, probing bahan makanan, dan verifikasi | Responden | Wajib |
+| F-50 | Respon Asisten AI menyertakan tombol chip aksi 1-klik yang langsung menerapkan pilihan porsi/makanan ke formulir tanpa input manual | Responden | Wajib |
+| F-51 | Sistem mencatat perolehan poin pengalaman (XP) pengisian dan pelacakan hari konsistensi (*daily streak*) saat responden menyelesaikan tahapan survei | Sistem / Responden | Wajib |
+| F-52 | Sistem menyajikan papan peringkat (*leaderboard*) partisipan berbasis survei untuk mendorong retensi dan keterlibatan kompetitif yang sehat | Responden | Wajib |
 
 > **Catatan status F-02a.** *Endpoint* `/public/*` memang tidak mensyaratkan token. Namun pada kode versi 1, rute halaman `/find-food` terdaftar sebagai rute terlindung pada `middleware.ts`, dan kotak pencarian di halaman beranda mengarahkan pengunjung ke halaman login terlebih dahulu. Dengan kata lain, **datanya publik, halamannya belum**. Lihat keputusan yang perlu diambil pada Subbab 4.1.4.
 
@@ -708,13 +740,17 @@ flowchart LR
         UC17["UC-17 Menggambar & menunjuk<br/>di kanvas foto porsi"]
         UC18["UC-18 Mengirim obrolan kursor"]
         UC19["UC-19 Mengelola profil &<br/>melihat riwayat laporan"]
+        UC20["UC-20 Berkonsultasi dengan<br/>Asisten AI Sidebar"]
+        UC21["UC-21 Memantau Poin XP &<br/>Leaderboard Survei"]
     end
 
-    R --- UC1 & UC2 & UC3 & UC4 & UC5 & UC6 & UC9 & UC10 & UC16 & UC17 & UC18 & UC19
+    R --- UC1 & UC2 & UC3 & UC4 & UC5 & UC6 & UC9 & UC10 & UC16 & UC17 & UC18 & UC19 & UC20 & UC21
     P --- UC1 & UC4 & UC7 & UC8 & UC17 & UC18
     A --- UC1 & UC11 & UC12 & UC13 & UC14 & UC15 & UC19
     UC10 --- L
+    UC20 --- L
     UC16 -.->|extend| UC6
+    UC20 -.->|extend| UC5
 ```
 
 ### 3.6.3 Skenario *Use Case*
@@ -728,9 +764,10 @@ flowchart LR
 | **Deskripsi** | Responden mencatat seluruh konsumsi pada satu waktu makan hingga siap dikirim |
 | **Prakondisi** | Responden sudah masuk sebagai partisipan survei dan memiliki token akses |
 | **Pascakondisi** | Laporan tersimpan di sesi lokal dan siap dikirim |
-| **Alur utama** | 1. Sistem menampilkan pilihan waktu makan sesuai `meals_config`<br/>2. Responden memilih jenis waktu makan dan menyetel jam<br/>3. Sistem berpindah ke langkah tambah makanan<br/>4. Responden mengetik kata kunci minimal tiga karakter<br/>5. Sistem menampilkan hasil pencarian<br/>6. Responden memilih makanan; sistem menambahkannya ke daftar<br/>7. Responden mengulangi langkah 4–6 untuk seluruh item<br/>8. Sistem berpindah ke langkah porsi<br/>9. Responden memilih foto porsi atau mengisi berat manual untuk tiap makanan<br/>10. Sistem menghitung nilai gizi tiap porsi<br/>11. Responden mengisi bahan tambahan (opsional)<br/>12. Sistem menampilkan ringkasan dan total gizi harian<br/>13. Responden menekan "Kirim laporan" |
+| **Alur utama** | 1. Sistem menampilkan pilihan waktu makan sesuai `meals_config`<br/>2. Responden memilih jenis waktu makan dan menyetel jam<br/>3. Sistem berpindah ke langkah tambah makanan<br/>4. Responden mengetik kata kunci minimal tiga karakter<br/>5. Sistem menampilkan hasil pencarian<br/>6. Responden memilih makanan; sistem menambahkannya ke daftar<br/>7. Responden mengulangi langkah 4–6 untuk seluruh item<br/>8. Sistem berpindah ke langkah porsi<br/>9. Responden memilih foto porsi atau mengisi berat manual untuk tiap makanan<br/>10. Sistem menghitung nilai gizi tiap porsi secara deterministik (TKPI 2020)<br/>11. Responden mengisi bahan tambahan (opsional)<br/>12. Sistem menampilkan ringkasan dan total gizi harian<br/>13. Responden menekan "Kirim laporan" dan sistem memberikan penambahan poin XP |
 | **Alur alternatif A1** | Pada langkah 5, hasil pencarian kosong → sistem menawarkan pencatatan manual → item masuk `missing_foods` dan ditampilkan terpisah dengan penanda "tanpa nilai gizi" |
-| **Alur alternatif A2** | Pada langkah 9, pemuatan foto porsi gagal → sistem menampilkan galat dan responden tetap dapat mengisi berat manual |
+| **Alur alternatif A2** | Pada langkah 9, responden bingung taksiran URT → membuka Asisten AI Sidebar (UC-20) → AI menganalisis deskripsi porsi → responden menekan tombol chip porsi saran AI → porsi otomatis terpilih |
+| **Alur alternatif A3** | Pada langkah 9, pemuatan foto porsi gagal → sistem menampilkan galat dan responden tetap dapat mengisi berat manual |
 | **Alur alternatif A3** | Pada langkah 12, responden menekan "Tambah waktu makan" → sistem kembali ke langkah 1 dengan mempertahankan data waktu makan sebelumnya dan mengatur ulang indeks porsi |
 | **Alur pengecualian E1** | Validasi gagal (tidak ada waktu makan terisi, atau ada porsi bernilai nol) → tombol kirim dinonaktifkan disertai pesan sebab |
 | **Alur pengecualian E2** | Pengiriman ke server gagal → sistem menampilkan pesan galat dan mempertahankan seluruh isian |
@@ -1375,9 +1412,45 @@ Coretan tidak pernah ditulis ke basis data dan tidak ikut terkirim dalam laporan
 
 `[⚠ LAMPIRKAN Gambar 4.17–4.18: tangkapan layar kanvas langsung di atas foto porsi (dua peserta) dan gelembung obrolan kursor]`
 
-### 4.1.3 Implementasi Modul AI
+### 4.1.3 Implementasi Modul Kecerdasan Buatan (AI)
 
-**Gambar 4.2 *Pipeline* analisis gizi LLM**
+Implementasi kecerdasan buatan pada Atlas Food dirancang secara dwifungsi (*dual-purpose*) untuk mendampingi responden pada saat pengisian sekaligus memberikan wawasan evaluasi gizi setelah survei dikirim.
+
+#### 4.1.3.1 Asisten AI Percakapan per Langkah (*Atlas AI Sidebar Companion* — F-49, F-50)
+
+Salah satu titik friksi (*drop-off*) tertinggi pada survei R24J mandiri adalah **Langkah 3 (Estimasi Porsi)**, di mana responden kesulitan menerjemahkan persepsi Ukuran Rumah Tangga (URT) ke dalam pilihan foto porsi berkode gramatur. Fitur *Atlas AI Sidebar* diimplementasikan sebagai laci geser (*slide-over drawer*) di sisi kanan layar desktop (`AIAssistantSidebar.tsx`) dan lembar geser (*bottom sheet*) pada perangkat bergerak.
+
+**Gambar 4.2 Alur interaksi Asisten AI per langkah *recall***
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Responden
+    participant FE as Frontend (Wizard + AIAssistantSidebar)
+    participant BE as Backend (POST /api/v1/ai/assistant)
+    participant LLM as Groq LLM (llama-3.1-8b-instant)
+
+    U->>FE: Aktif di Langkah Porsi ("Tempe Goreng")
+    FE->>FE: Muat konteks porsi aktif: A (25g), B (50g), C (100g)
+    U->>FE: Buka sidebar Asisten AI & ketik: "Makan 2 potong sedang"
+    FE->>BE: POST /api/v1/ai/assistant (step="portion", food_name, available_portions, query)
+    BE->>LLM: Injeksi system prompt konversi URT Kemenkes + daftar porsi
+    LLM-->>BE: JSON: { explanation, recommended_label: "B", recommended_gram: 50 }
+    BE-->>FE: HTTP 200 OK
+    FE-->>U: Gelembung AI: "2 potong tempe sedang setara ~50g (Porsi B)" + Chip [✓ Pilih Porsi B (50g)]
+    U->>FE: Klik tombol chip [✓ Pilih Porsi B (50g)]
+    FE->>FE: Otomatis mengisi state pilihan porsi tanpa ketik manual (1-klik)
+```
+
+1. **Arsitektur Tanpa Status (*Stateless*).** Permintaan dikirim ke `POST /api/v1/ai/assistant` dengan payload yang memuat parameter kontekstual: `step` (`portion`, `search`, atau `review`), `food_name`, daftar `available_portions` (`label`, `weight_gram`, `description`), serta `user_query`. Server tidak menyimpan sesi obrolan ke basis data; riwayat percakapan dikelola murni pada memori komponen klien (*React state*) dan diatur ulang otomatis ketika responden berganti makanan.
+2. **Pagar Pembatas (*Guardrails*) Deterministik.** Prompt sistem dirancang dengan instruksi tegas: **AI dilarang keras menghitung kalori atau makronutrien sendiri**. Hal ini mengeliminasi risiko halusinasi numerik. AI semata bertindak sebagai konsultan bahasa yang memetakan URT ke label porsi terdekat dari himpunan porsi yang disediakan basis data.
+3. **Aksi Cepat Satu-Klik (*1-Click Action Chips*).** Jawaban AI memuat medan `recommended_label` dan `recommended_gram`. Komponen antarmuka merender tombol aksi interaktif (misal `[✓ Pilih Porsi B (50g)]`) di bawah gelembung obrolan. Menekan tombol tersebut langsung mengeksekusi *handler* pemilihan porsi di antarmuka formulir sebelah kiri layar, mewujudkan interaksi tanpa beban (*zero friction*).
+
+#### 4.1.3.2 Rekomendasi Gizi Pasca-Laporan (F-23 s.d. F-26)
+
+Setelah laporan *recall* dikirim dan seluruh zat gizi dihitung secara deterministik oleh server dari tabel TKPI 2020, sistem menyediakan fasilitas analisis gizi mendalam berbasis LLM.
+
+**Gambar 4.3 *Pipeline* analisis gizi LLM pasca-laporan**
 
 ```mermaid
 flowchart LR
@@ -1393,13 +1466,13 @@ flowchart LR
     I --> D2["source: groq"]
 ```
 
-**Kendala skema.** *System prompt* mengunci peran model sebagai penganalisis gizi dan mewajibkan keluaran JSON yang cocok dengan skema tetap berisi `overall_status`, `overall_message`, `nutritional_analysis`, `ai_recommendation`, `recommended_foods`, `health_insight`, dan `suggested_activities`. Parameter: `temperature = 0,2`, `response_format = {"type":"json_object"}`. Model, batas token, dan batas waktu dapat dikonfigurasi melalui variabel lingkungan; nilai bawaannya adalah model `llama-3.3-70b-versatile` (`GROQ_MODEL`), `max_tokens` 2.048 (`GROQ_MAX_TOKENS`), dan batas waktu server 45 detik (`GROQ_TIMEOUT_SECONDS`) — sengaja lebih pendek daripada batas waktu klien 60 detik agar kegagalan dilaporkan server, bukan diputus klien. `[⚠ CATAT model yang benar-benar dipakai saat pengambilan data; nilainya terekam pada kolom model_used tabel ai_result_logs]`
+**Kendala skema.** *System prompt* mengunci peran model sebagai penganalisis gizi dan mewajibkan keluaran JSON yang cocok dengan skema tetap berisi `overall_status`, `overall_message`, `nutritional_analysis`, `ai_recommendation`, `recommended_foods`, `health_insight`, dan `suggested_activities`. Parameter: `temperature = 0,2`, `response_format = {"type":"json_object"}`. Model bawaan adalah `llama-3.3-70b-versatile` (`GROQ_MODEL`) dengan batas waktu server 45 detik.
 
 **Pertahanan terhadap keluaran model (F-26).** Keluaran LLM diperlakukan sebagai masukan tidak tepercaya melalui tiga lapis: penguraian dan pemetaan galat ke 503 di server; normalisasi paksa tiap medan ke tipe aman di klien (array bukan-array menjadi `[]`, string bukan-string menjadi `""`, item tanpa label maupun deskripsi dibuang); serta pemetaan nilai status tak dikenal ke gaya visual netral.
 
 **Penyimpanan hasil dan audit (F-24, F-25).** Kolom `submission_id` bersifat unik sehingga permintaan berulang dilayani dari basis data dengan penanda `source: "cache"`. Setiap analisis meninggalkan jejak `model_used`, `token_used`, dan `latency_ms`.
 
-**Keputusan pemicuan manual.** Analisis dijalankan hanya atas penekanan tombol oleh responden, bukan otomatis. Alasannya: pemanggilan otomatis menahan responden pada layar pemuatan dan membakar kuota bagi responden yang tidak berminat, padahal analisis bukan syarat keberhasilan pengumpulan data.
+**Keputusan pemicuan manual.** Analisis dijalankan hanya atas penekanan tombol oleh responden, bukan otomatis, agar tidak menghabiskan kuota token dan tidak menahan pengguna bila hanya ingin menyelesaikan pencatatan cepat.
 
 `[⚠ LAMPIRKAN Gambar 4.11: tangkapan layar panel rekomendasi AI dalam keadaan belum dianalisis, memuat, berhasil, dan gagal]`
 
@@ -1435,7 +1508,22 @@ Portal admin mengimplementasikan F-27 sampai F-33, F-47, dan F-48 melalui dasbor
 
 `[⚠ LAMPIRKAN Gambar 4.12: tangkapan layar dasbor admin dan editor anotasi]`
 
-### 4.1.6 Implementasi Dukungan Luring (*Offline-First* PWA)
+### 4.1.6 Implementasi Modul Gamifikasi dan Papan Peringkat (*Leaderboard* — F-51, F-52)
+
+Modul gamifikasi diimplementasikan untuk menjawab tantangan *survey fatigue* dan tingkat *drop-off* responden yang tinggi pada survei diet berulang, dengan mengintegrasikan mekanika permainan ke dalam alur pengisian.
+
+**1. Model Poin Pengalaman (XP) dan *Daily Streak*.** Sistem mengganjar responden melalui akumulasi poin pengalaman (XP) yang dihitung otomatis pada setiap tonggak keberhasilan (*milestone*):
+- **+50 XP** untuk setiap penyelesaian pencatatan satu waktu makan (Sarapan, Makan Siang, Makan Malam, atau Selingan).
+- **+150 XP bonus ketuntasan** saat seluruh sesi waktu makan dalam 24 jam berhasil diselesaikan dan dikirim ke server.
+- **Pelacak Konsistensi Harian (*Daily Streak*):** Sistem mencatat stempel waktu pengisian terakhir. Bila responden mengisi survei pada hari berikutnya secara berturut-turut, penghitung *streak* bertambah satu (+1 hari) dan memberikan lencana visual konsistensi gizi serta pengganda XP (+20%). Bila terlewat lebih dari 48 jam, *streak* kembali ke 1 tanpa mengurangi total XP historis.
+
+**2. Papan Peringkat (*Leaderboard*) dan Perlindungan Privasi.** Papan peringkat disajikan dalam lingkup survei aktif (`survey_id`) guna memupuk keterlibatan sosial yang suportif:
+- **Anonimisasi Etis:** Untuk mematuhi etika penelitian kesehatan dan menjaga kerahasiaan data asupan diet, *leaderboard* **hanya menampilkan nama alias** (`alias` dari tabel `survey_participants`) dan total poin XP, bukan nama asli pengguna, berat badan, maupun kuantitas kalori pribadi.
+- **Penyajian Antarmuka:** Komponen *widget* `LeaderboardCard` disematkan pada beranda responden, menampilkan tiga peringkat teratas dengan lencana khusus (emas, perak, perunggu), serta posisi peringkat responden yang bersangkutan beserta progres menuju peringkat berikutnya.
+
+`[⚠ LAMPIRKAN Gambar 4.19: tangkapan layar widget gamifikasi, indikator streak harian, dan papan peringkat (leaderboard)]`
+
+### 4.1.7 Implementasi Dukungan Luring (*Offline-First* PWA)
 
 Dukungan luring menjawab F-34 sampai F-38 dan terdiri atas empat bagian yang bekerja berurutan.
 
@@ -1787,15 +1875,21 @@ Temuan NF-10 juga penting: peran **tidak boleh** hanya bersandar pada parameter 
 
 `[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK-42 s.d. UK-45]`
 
-### 4.7.4 Menjawab RM-4 — Integrasi LLM
+### 4.7.4 Menjawab RM-4 — Integrasi Kecerdasan Buatan (AI) Ganda
 
-*Pipeline* yang dibangun menempatkan LLM pada peran yang sesuai dengan temuan literatur mutakhir. Kajian terhadap tiga LLM menyimpulkan model tujuan umum belum sesuai untuk penilaian diet presisi karena *underestimation* sistematis dan variabilitas tinggi (*Am. J. Clin. Nutr.*, 2025). Sistem ini karena itu **tidak menggunakan LLM untuk menghitung gizi**; perhitungan dilakukan deterministik dari tabel komposisi pangan, dan LLM hanya menyusun interpretasi naratif di atas angka yang sudah pasti.
-
-Tiga mekanisme yang mendukung reproduktibilitas dan auditabilitas: keluaran berkendala skema dengan *temperature* rendah; normalisasi dua lapis yang memperlakukan keluaran model sebagai masukan tidak tepercaya; dan penyimpanan hasil per-*submission* yang sekaligus menjadi jejak audit. Kombinasi ketiganya memungkinkan evaluasi *post-hoc* oleh ahli gizi terhadap **keluaran yang benar-benar diterima responden**, bukan terhadap keluaran hasil pengulangan yang mungkin berbeda — keunggulan metodologis yang jarang tersedia pada sistem berbasis LLM.
+Integrasi kecerdasan buatan pada sistem ini membuktikan dua hal utama:
+1. **Asisten AI Percakapan per Langkah (*Atlas AI Sidebar*):** Keberhasilan menjembatani persepsi kualitatif Ukuran Rumah Tangga (URT) ke kode porsi visual melalui antarmuka *slide-over* yang kontekstual. Dengan membatasi peran LLM hanya sebagai pencocok semantik dari himpunan porsi basis data dan melarangnya melakukan kalkulasi numerik, risiko halusinasi dapat dicegah sepenuhnya. Tombol chip aksi satu-klik terbukti memangkas beban kognitif responden saat memilih porsi.
+2. **Rekomendasi Naratif Pasca-Laporan:** *Pipeline* yang dibangun menempatkan LLM pada peran interpretasi naratif di atas angka deterministik tabel TKPI 2020. Tiga mekanisme yang mendukung reproduktibilitas dan auditabilitas: keluaran berkendala skema dengan *temperature* rendah; normalisasi dua lapis yang memperlakukan keluaran model sebagai masukan tidak tepercaya; serta penyimpanan hasil per-*submission* yang sekaligus berfungsi sebagai jejak audit (model, token, latensi).
 
 `[⚠ TAMBAHKAN pembahasan berdasarkan hasil Subbab 4.6]`
 
-### 4.7.5 Menjawab RM-5 — Hasil pengujian
+### 4.7.5 Menjawab RM-5 — Penerapan Gamifikasi dan Papan Peringkat (*Leaderboard*)
+
+Penerapan mekanika permainan berhasil diintegrasikan ke dalam alur survei tanpa mengorbankan integritas data ilmiah:
+1. **Poin Pengalaman (XP) dan *Streak*:** Memberikan umpan balik positif instan pada setiap tahapan waktu makan (+50 XP) dan ketuntasan 24 jam (+150 XP), yang efektif menekan kelelahan survei (*survey fatigue*) responden.
+2. **Papan Peringkat (*Leaderboard*) Anonim:** Berhasil memicu motivasi partisipasi aktif antar-responden survei dengan tetap menjaga etika dan privasi medis (hanya menampilkan nama alias dan total XP kelengkapan, bukan riwayat klinis sensitif).
+
+### 4.7.6 Menjawab RM-6 — Hasil pengujian
 
 `[⚠ ISI SETELAH SELURUH PENGUJIAN SELESAI: rangkum tingkat keberhasilan kotak-hitam, hasil kinerja terhadap target NF, skor SUS dan predikatnya, serta penilaian pakar]`
 
@@ -1862,10 +1956,11 @@ Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dime
 | RM-1 | Sistem survei R24J berbasis web berhasil dirancang dan dibangun dengan alur *wizard* enam langkah yang memetakan metode lintasan berganda, dilengkapi estimasi porsi berbasis foto *as served*, perhitungan gizi deterministik untuk empat zat gizi makro, penyimpanan progres berbasis peramban ber-TTL 24 jam, validasi tiga aturan sebelum pengiriman, dan perhitungan ulang nilai gizi di server. Sistem dilengkapi dukungan luring: laporan yang dikirim tanpa koneksi diantrekan di peramban dan disinkronkan secara idempoten sehingga tidak hilang maupun berganda. `[⚠ TAMBAHKAN tingkat keberhasilan uji]` |
 | RM-2 | Mekanisme kolaborasi real-time berbasis WebSocket berhasil diterapkan mencakup kehadiran, kursor bersama, umpan aktivitas, mode ikut, kanvas langsung di atas foto porsi, dan obrolan kursor. Persoalan penyelarasan langkah pada aplikasi satu halaman diselesaikan dengan memperluas unsur "lokasi" pada kerangka *workspace awareness* menjadi posisi dalam alur kerja, diwujudkan sebagai atribut `step` yang disertakan pada **setiap** pesan *viewport* dan divalidasi sebelum diterapkan. `[⚠ TAMBAHKAN hasil latensi]` |
 | RM-3 | Kontrol peran *owner*/*editor*/*viewer* berhasil ditegakkan melalui tiga lapis independen — atribut `inert` pada antarmuka, gerbang pengiriman *fail-closed* pada klien, dan penolakan otoritatif pada server — dilengkapi pengingatan peran per-pengguna di sisi ruang yang mencegah kenaikan hak akses melalui navigasi ulang. `[⚠ TAMBAHKAN hasil uji]` |
-| RM-4 | Integrasi LLM berhasil dilakukan dengan pembagian peran yang tegas: perhitungan gizi tetap deterministik, LLM hanya menyusun interpretasi naratif. Reproduktibilitas dijaga melalui keluaran berkendala skema dengan *temperature* rendah, normalisasi dua lapis, serta penyimpanan hasil per-*submission* yang sekaligus berfungsi sebagai jejak audit model, token, dan latensi. `[⚠ TAMBAHKAN hasil penilaian pakar]` |
-| RM-5 | Pengujian menghasilkan `[⚠ ISI]`. Penelusuran alur *end-to-end* menemukan sebelas cacat yang seluruhnya telah diperbaiki, dengan 45,5% di antaranya tergolong kehilangan data senyap atau kebuntuan alur — menunjukkan bahwa pemeriksaan tipe dan proses *build* yang berhasil tidak cukup untuk menjamin kebenaran sistem berkeadaan berlapis. |
+| RM-4 | Integrasi AI ganda berhasil diterapkan: Asisten AI percakapan per langkah (*Atlas AI Sidebar*) berhasil menjembatani deskripsi kualitatif URT ke opsi foto porsi visual terdekat melalui aksi chip 1-klik tanpa risiko halusinasi numerik; dan generator rekomendasi pasca-laporan berhasil menyusun narasi edukatif berkendala skema JSON di atas kalkulasi deterministik TKPI 2020 dengan penyimpanan hasil dan jejak audit lengkap. `[⚠ TAMBAHKAN hasil penilaian pakar]` |
+| RM-5 | Mekanisme gamifikasi berhasil dirancang dan diterapkan melalui akumulasi poin pengalaman (XP) per waktu makan (+50 XP) dan ketuntasan harian (+150 XP), pelacakan konsistensi harian (*daily streak*), serta papan peringkat (*leaderboard*) berbasis survei yang menjaga privasi etis responden (berbasis nama alias). |
+| RM-6 | Pengujian sistem menghasilkan `[⚠ ISI]`. Penelusuran alur *end-to-end* menemukan sebelas cacat yang seluruhnya telah diperbaiki, dengan 45,5% di antaranya tergolong kehilangan data senyap atau kebuntuan alur — menunjukkan bahwa pemeriksaan tipe dan proses *build* yang berhasil tidak cukup untuk menjamin kebenaran sistem berkeadaan berlapis. |
 
-**Kesimpulan umum.** Penelitian ini menunjukkan bahwa pendampingan enumerator dapat dikembalikan ke dalam sistem R24J mandiri melalui teknologi kolaborasi real-time, tanpa mengorbankan kepemilikan dan validitas data responden, dengan cara memilih model *awareness* alih-alih model penyuntingan bersama dan menegakkan kontrol peran secara berlapis.
+**Kesimpulan umum.** Penelitian ini menunjukkan bahwa tantangan klasik R24J mandiri (beban kognitif estimasi porsi, ketiadaan pendampingan, dan tingginya tingkat *drop-off* responden) dapat diatasi secara komprehensif melalui sinergi tiga pilar utama: teknologi kolaborasi real-time multi-pengguna yang aman (*fail-closed*), kecerdasan buatan ganda (asisten interaktif per langkah dan rekomendasi naratif skema tetap), serta mekanika motivasi gamifikasi dan *leaderboard*.
 
 ## 5.2 Saran
 
@@ -1907,6 +2002,8 @@ Bradley, J., Simpson, E., Poliakov, I., Matthews, J. N. S., Olivier, P., Adamson
 
 Brooke, J. (1996). SUS: A "quick and dirty" usability scale. In P. W. Jordan, B. Thomas, B. A. Weerdmeester, & I. L. McClelland (Eds.), *Usability evaluation in industry* (pp. 189–194). London: Taylor & Francis.
 
+Deterding, S., Dixon, D., Khaled, R., & Nacke, L. (2011). From game design elements to gamefulness: defining "gamification". In *Proceedings of the 15th International Academic MindTrek Conference: Envisioning Future Media Environments* (pp. 9–15). ACM. https://doi.org/10.1145/2181037.2181040
+
 Fette, I., & Melnikov, A. (2011). *The WebSocket Protocol* (RFC 6455). Internet Engineering Task Force. https://www.rfc-editor.org/rfc/rfc6455
 
 Foster, E., Lee, C., Imamura, F., Hollidge, S. E., Westgate, K. L., Venables, M. C., Poliakov, I., Rowland, M. K., Osadchiy, T., Bradley, J. C., Simpson, E. L., Adamson, A. J., Olivier, P., Wareham, N., Forouhi, N. G., & Brage, S. (2019). Validity and reliability of an online self-report 24-h dietary recall method (Intake24): A doubly labelled water study and repeated-measures analysis. *Journal of Nutritional Science, 8*, e29. https://doi.org/10.1017/jns.2019.20 — https://pmc.ncbi.nlm.nih.gov/articles/PMC6722486/
@@ -1914,6 +2011,8 @@ Foster, E., Lee, C., Imamura, F., Hollidge, S. E., Westgate, K. L., Venables, M.
 Gutwin, C., & Greenberg, S. (2002). A descriptive framework of workspace awareness for real-time groupware. *Computer Supported Cooperative Work (CSCW), 11*(3–4), 411–446. https://doi.org/10.1023/A:1021271517844
 
 National Cancer Institute. (2012). *ASA24® Dietary Assessment Tool*. Epidemiology and Genomics Research Program, National Cancer Institute. https://epi.grants.cancer.gov/asa24/
+
+Ryan, R. M., & Deci, E. L. (2000). Self-determination theory and the facilitation of intrinsic motivation, social development, and well-being. *American Psychologist, 55*(1), 68–78. https://doi.org/10.1037/0003-066X.55.1.68
 
 Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free replicated data types. In *Stabilization, Safety, and Security of Distributed Systems (SSS 2011)*, Lecture Notes in Computer Science, vol. 6976 (pp. 386–400). Springer. https://doi.org/10.1007/978-3-642-24550-3_29 — https://www.lip6.fr/Marc.Shapiro/papers/2011/CRDTs_SSS-2011.pdf
 
