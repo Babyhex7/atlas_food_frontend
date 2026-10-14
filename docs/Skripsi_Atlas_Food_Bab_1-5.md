@@ -15,7 +15,7 @@
 >
 > ### 🔄 PEMBARUAN 6 Oktober 2026 — penyelarasan dengan kode
 > Draf dicocokkan ulang dengan kode `atlas_food_backend` dan `atlas_food_frontend`. Yang ditambahkan: dukungan luring/PWA (Subbab 2.10, 4.1.6, 4.7.5c, Gambar 3.11), kanvas langsung dan obrolan kursor (4.1.2, 4.7.5d), profil–autentikasi–pemantauan (4.1.7), kebutuhan F-34…F-48 dan NF-16…NF-20, kasus uji UK-69…UK-103, serta pembanding myfood24. Yang dikoreksi: versi Go, model dan parameter Groq, perilaku tipe foto `range`, rute katalog, nama berkas migrasi, pembersihan ruang, dan saran yang ternyata sudah diimplementasikan.
-> **Tiga hal yang harus kamu putuskan/periksa:** (1) katalog *Find Your Food* di kode masih di balik login — lihat kotak ⚠ pada Subbab 4.1.4; (2) rujukan Carter 2015, Moshfegh 2008, Subar 2012 dan isi kolom myfood24 ditulis dari ingatan dan **wajib diverifikasi**; (3) F-44 (ubah peran selama sesi) baru ada di lapis layanan.
+> **Tiga hal yang harus kamu putuskan/periksa:** (1) katalog *Find Your Food* di kode masih di balik login — lihat kotak ⚠ pada Subbab 4.1.4; (2) ~~rujukan Carter 2015, Moshfegh 2008, Subar 2012 dan isi kolom myfood24 wajib diverifikasi~~ — **sudah diverifikasi 14 Oktober 2026** terhadap Crossref/PubMed dan teks lengkap publikasinya; daftar pustaka juga diperbarui dengan rujukan terbitan 2020–2025; (3) F-44 (ubah peran selama sesi) baru ada di lapis layanan.
 >
 > ### 💡 PROMPT UNTUK REVIEW & REVISI BAHASA (Gunakan di ChatGPT/Claude)
 > Jika kamu ingin memperbaiki tata bahasa dari draf ini agar lebih mengalir dan tidak kaku, *copy* prompt berikut dan *paste* per bab ke AI kesayanganmu:
@@ -43,17 +43,17 @@
 
 ## ABSTRAK
 
-*Dietary recall* 24 jam (R24J) merupakan metode baku penilaian asupan gizi individu, namun kualitas datanya sangat bergantung pada pendampingan enumerator terlatih yang mahal dan terbatas secara geografis. Sistem R24J terkomputerisasi yang telah mapan bersifat mandiri penuh sehingga menghilangkan peran pendampingan tersebut. Penelitian ini merancang dan membangun Atlas Food, sistem survei R24J berbasis web yang memungkinkan pendampingan jarak jauh secara real-time tanpa mengorbankan kepemilikan data responden. Sistem dikembangkan menggunakan metode *Waterfall* dengan arsitektur terpisah antara antarmuka berbasis Next.js dan layanan Go yang menyediakan REST API sekaligus *hub* WebSocket. Tiga kontribusi teknis dihasilkan: (1) mekanisme sinkronisasi langkah *wizard* lintas pengguna pada aplikasi satu halaman melalui perluasan atribut `step` pada pesan *viewport*; (2) model otorisasi peran per-ruang berlapis tiga yang menegakkan peran *owner*, *editor*, dan *viewer* pada lapis antarmuka, klien, dan server secara *fail-closed*; serta (3) *pipeline* rekomendasi gizi berbasis *large language model* dengan keluaran berkendala skema, penyimpanan hasil per-*submission*, dan jejak audit model, token, serta latensi. Sebagai pendukung, sistem dilengkapi mode luring (*offline-first*) berbasis *Progressive Web App* dengan antrean IndexedDB dan sinkronisasi idempoten, serta kanvas anotasi langsung di atas foto porsi sebagai sarana penunjuk bagi pendamping. Pengujian fungsional melalui penelusuran alur *end-to-end* menemukan dan memperbaiki sebelas cacat, lima di antaranya tergolong kehilangan data senyap atau kebuntuan alur. `[⚠ ISI SETELAH PENGUJIAN: hasil uji kotak-hitam, skor SUS, dan latensi sinkronisasi]`
+*Dietary recall* 24 jam (R24J) merupakan metode baku penilaian asupan gizi individu, namun kualitas datanya sangat bergantung pada pendampingan enumerator terlatih yang mahal dan terbatas secara geografis. Sistem R24J terkomputerisasi yang telah mapan bersifat mandiri penuh sehingga menghilangkan peran pendampingan tersebut. Penelitian ini merancang dan membangun Atlas Food, sistem survei R24J berbasis web yang memungkinkan pendampingan jarak jauh secara real-time tanpa mengorbankan kepemilikan data responden. Sistem dikembangkan menggunakan metode *Design Science Research Methodology* (DSRM) dengan arsitektur terpisah antara antarmuka berbasis Next.js dan layanan Go yang menyediakan REST API sekaligus *hub* WebSocket. Kontribusi teknis dan kebaruan mencakup integrasi kolaborasi real-time bergaya Figma dengan sinkronisasi langkah *wizard*, model otorisasi peran *fail-closed*, integrasi AI ganda (Asisten AI per-langkah via *chat sidebar* dan rekomendasi naratif berkendala skema), modul gamifikasi dan *leaderboard* survei, serta dukungan luring *offline-first* PWA dengan sinkronisasi idempoten. Pengujian fungsional melalui penelusuran alur *end-to-end* menemukan dan memperbaiki sebelas cacat, lima di antaranya tergolong kehilangan data senyap atau kebuntuan alur. `[⚠ ISI SETELAH PENGUJIAN: hasil uji kotak-hitam, skor SUS, dan latensi sinkronisasi]`
 
-**Kata kunci:** *dietary recall* 24 jam, kolaborasi real-time, WebSocket, *large language model*, sistem informasi gizi
+**Kata kunci:** *dietary recall* 24 jam, kolaborasi real-time, WebSocket, *large language model*, gamifikasi, DSRM
 
 ---
 
 ## ABSTRACT
 
-The 24-hour dietary recall (24HR) is a reference method for assessing individual nutrient intake, yet its data quality depends heavily on trained enumerator assistance, which is costly and geographically constrained. Established computerised 24HR systems are fully self-administered and therefore eliminate that assistance entirely. This study designs and develops Atlas Food, a web-based 24HR survey system enabling remote real-time assistance without compromising respondent data ownership. The system was developed using the Waterfall method with a decoupled architecture between a Next.js interface and a Go service providing both a REST API and a WebSocket hub. Three technical contributions are produced: (1) a cross-user wizard step synchronisation mechanism for single-page applications through an extended `step` attribute on viewport messages; (2) a three-layer per-room authorisation model enforcing owner, editor, and viewer roles at the interface, client, and server layers in a fail-closed manner; and (3) a large-language-model-based nutrition recommendation pipeline with schema-constrained output, per-submission result caching, and an audit trail of model, token, and latency. In support of these, the system provides an offline-first mode built as a Progressive Web App with an IndexedDB queue and idempotent synchronisation, and a live annotation canvas over portion photographs that serves as a pointing aid for the assistant. Functional testing through end-to-end walkthrough identified and fixed eleven defects, five classified as silent data loss or flow deadlock. `[⚠ FILL AFTER TESTING]`
+The 24-hour dietary recall (24HR) is a reference method for assessing individual nutrient intake, yet its data quality depends heavily on trained enumerator assistance, which is costly and geographically constrained. Established computerised 24HR systems are fully self-administered and therefore eliminate that assistance entirely. This study designs and develops Atlas Food, a web-based 24HR survey system enabling remote real-time assistance without compromising respondent data ownership. The system was developed using the Design Science Research Methodology (DSRM) with a decoupled architecture between a Next.js interface and a Go service providing both a REST API and a WebSocket hub. Technical contributions include Figma-style real-time collaboration with wizard step synchronization, a fail-closed role authorization model, dual AI integration (step-by-step conversational assistant via chat sidebar and schema-constrained narrative recommendations), survey gamification and leaderboard modules, and offline-first PWA support with idempotent synchronization. Functional testing through end-to-end walkthrough identified and fixed eleven defects, five classified as silent data loss or flow deadlock. `[⚠ FILL AFTER TESTING]`
 
-**Keywords:** 24-hour dietary recall, real-time collaboration, WebSocket, large language model, nutrition information system
+**Keywords:** 24-hour dietary recall, real-time collaboration, WebSocket, large language model, gamification, DSRM
 
 ---
 
@@ -96,7 +96,7 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 
 | No | Judul Gambar | Bab |
 |---|---|---|
-| Gambar 3.1 | Tahapan penelitian metode *Waterfall* | III |
+| Gambar 3.1 | Tahapan penelitian *Design Science Research Methodology* (DSRM) | III |
 | Gambar 3.2 | Arsitektur sistem Atlas Food | III |
 | Gambar 3.3 | *Use case diagram* sistem | III |
 | Gambar 3.4 | *Activity diagram* pengisian recall | III |
@@ -152,22 +152,22 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 
 Masalah gizi masih menjadi agenda pembangunan kesehatan utama di Indonesia. Survei Kesehatan Indonesia (SKI) 2023 yang mengintegrasikan Riset Kesehatan Dasar dan Survei Status Gizi Balita Indonesia mencatat prevalensi *stunting* nasional sebesar 21,5%, dengan sebaran yang sangat timpang antarprovinsi — Nusa Tenggara Timur tercatat 37,9% sementara Bali mengalami penurunan hingga 7,2% (Badan Kebijakan Pembangunan Kesehatan Kemenkes, 2023). Angka tersebut menunjukkan bahwa perumusan intervensi gizi memerlukan data asupan yang akurat, terperinci, dan dapat dikumpulkan secara berkelanjutan pada skala besar.
 
-Instrumen baku untuk menilai asupan gizi individu adalah *dietary recall* 24 jam (R24J), yaitu metode wawancara terstruktur ketika responden diminta mengingat kembali seluruh makanan dan minuman yang dikonsumsi dalam 24 jam terakhir beserta perkiraan porsinya. R24J dinilai memberikan data asupan berkualitas tinggi dengan bias minimal sehingga menjadi metode yang disukai untuk pemantauan gizi (Subar et al., dalam National Cancer Institute, 2012). Meskipun demikian, pelaksanaan R24J konvensional menghadapi tiga hambatan yang saling berkaitan.
+Instrumen baku untuk menilai asupan gizi individu adalah *dietary recall* 24 jam (R24J), yaitu metode wawancara terstruktur ketika responden diminta mengingat kembali seluruh makanan dan minuman yang dikonsumsi dalam 24 jam terakhir beserta perkiraan porsinya. R24J dinilai memberikan data asupan berkualitas tinggi dengan bias minimal sehingga menjadi metode yang disukai untuk pemantauan gizi (National Cancer Institute, 2012). Meskipun demikian, pelaksanaan R24J konvensional menghadapi tiga hambatan yang saling berkaitan.
 
 **Pertama, ketergantungan pada enumerator terlatih.** Kualitas data R24J sangat ditentukan oleh kemampuan pewawancara melakukan *probing* — menggali komponen makanan yang terlupakan, mengklarifikasi cara pengolahan, dan memvalidasi estimasi porsi. Metode konvensional bersifat mahal dan tidak praktis untuk penelitian berskala besar justru karena bergantung pada pewawancara terlatih dan memerlukan pengulangan untuk menaksir asupan biasa (National Cancer Institute, 2012). Konsekuensinya, penelitian gizi dengan cakupan geografis luas menghadapi pilihan sulit antara biaya perjalanan enumerator atau penurunan mutu data.
 
-**Kedua, bias estimasi porsi.** Responden awam kesulitan menerjemahkan persepsi visual "satu piring nasi" menjadi satuan berat. Sistem R24J terkomputerisasi mengatasi hal ini dengan basis foto porsi; Intake24, misalnya, menyediakan lebih dari 2.400 foto makanan untuk lebih dari 100 jenis makanan yang porsinya diturunkan dari survei diet nasional Inggris (Bradley et al., 2016). Namun penyediaan aset foto semacam ini memerlukan perangkat pengelolaan konten yang dapat dioperasikan oleh ahli gizi non-pemrogram — sesuatu yang jarang disediakan sistem sejenis.
+**Kedua, bias estimasi porsi.** Responden awam kesulitan menerjemahkan persepsi visual "satu piring nasi" menjadi satuan berat. Sistem R24J terkomputerisasi mengatasi hal ini dengan basis foto porsi; Intake24, misalnya, menyediakan lebih dari 3.000 foto makanan yang porsinya diturunkan dari *UK National Diet and Nutrition Surveys* (Bradley et al., 2016), dan tinjauan sistematis menunjukkan bahwa alat bantu estimasi porsi berbasis gambar lebih akurat daripada model makanan maupun peralatan rumah tangga (Amoutzopoulos et al., 2020). Namun penyediaan aset foto semacam ini memerlukan perangkat pengelolaan konten yang dapat dioperasikan oleh ahli gizi non-pemrogram — sesuatu yang jarang disediakan sistem sejenis.
 
 **Ketiga, jeda umpan balik bagi responden.** Pada metode konvensional maupun sebagian besar sistem terkomputerisasi, responden menyerahkan data tanpa memperoleh manfaat langsung. Ketiadaan umpan balik menurunkan motivasi partisipasi dan berpotensi meningkatkan *underreporting*.
 
-Sistem R24J terkomputerisasi yang telah mapan — Intake24 dan ASA24 — dirancang secara **mandiri penuh** (*self-administered*): satu responden, satu sesi, tanpa kehadiran pihak lain pada layar yang sama. Rancangan ini memang berhasil menekan biaya dan meningkatkan kelayakan pengumpulan data berkualitas (National Cancer Institute, 2012), tetapi sekaligus **menghapus sepenuhnya peran pendampingan** yang justru menjadi kekuatan metode wawancara. Uji lapangan Intake24 menunjukkan sistem tersebut mudah digunakan dan lebih dari 75% pengguna merasa asupannya tertangkap dengan akurat, namun hanya 60% peserta yang bersedia ikut berhasil menyelesaikan setidaknya satu *recall* (Bradley et al., 2018) — mengindikasikan masih adanya hambatan penyelesaian yang berpotensi dibantu oleh pendampingan.
+Sistem R24J terkomputerisasi yang telah mapan — Intake24 dan ASA24 — dirancang secara **mandiri penuh** (*self-administered*): satu responden, satu sesi, tanpa kehadiran pihak lain pada layar yang sama. Rancangan ini memang berhasil menekan biaya dan meningkatkan kelayakan pengumpulan data berkualitas (National Cancer Institute, 2012), tetapi sekaligus **menghapus sepenuhnya peran pendampingan** yang justru menjadi kekuatan metode wawancara. Uji lapangan Intake24 menunjukkan sistem tersebut mudah digunakan dan lebih dari 75% pengguna merasa asupannya tertangkap dengan akurat, namun hanya 60% peserta yang bersedia ikut berhasil menyelesaikan setidaknya satu *recall* (Rowland et al., 2018) — mengindikasikan masih adanya hambatan penyelesaian yang berpotensi dibantu oleh pendampingan.
 
 Pada saat yang sama, teknologi kolaborasi multi-pengguna real-time telah matang di ranah perkakas produktivitas. Gutwin dan Greenberg (2002) merumuskan kerangka deskriptif *workspace awareness* yang menjelaskan bahwa kesadaran akan kehadiran dan aktivitas rekan kerja membantu peserta berpindah antara aktivitas individual dan bersama, menyediakan konteks untuk menafsirkan ucapan orang lain, memungkinkan antisipasi tindakan, dan menurunkan usaha koordinasi. Mekanisme konkretnya — kursor bersama, daftar kehadiran, dan penyelarasan tampilan (*follow mode*) — kini menjadi hal lumrah pada perkakas desain dan dokumen daring. Namun **penerapan mekanisme tersebut pada instrumen pengumpulan data gizi belum lazim ditemukan**.
 
 Celah inilah yang menjadi dasar penelitian ini. Pertanyaannya bukan sekadar apakah R24J dapat dikomputerisasi — hal itu sudah terjawab — melainkan **apakah pendampingan enumerator dapat dikembalikan ke dalam sistem R24J mandiri melalui teknologi kolaborasi real-time, tanpa mengorbankan kepemilikan dan validitas data responden**. Persoalan terakhir ini krusial: bila pendamping dapat menulis langsung ke laporan responden, validitas data sebagai laporan *self-report* menjadi tercemar. Diperlukan model kolaborasi yang memungkinkan pendamping **melihat, mengarahkan, dan memverifikasi** tanpa **menulis**, disertai kontrol peran yang tegas dan tidak dapat ditembus.
 
-Selain itu, kemunculan *large language model* (LLM) membuka peluang menutup hambatan kedua dan ketiga secara simultan. Penelitian mutakhir menunjukkan LLM tujuan umum mencapai tingkat akurasi estimasi gizi yang sebanding dengan metode *self-report* tradisional tanpa membebani pengguna (*American Journal of Clinical Nutrition*, 2025). Dalam konteks R24J, potensi LLM hadir pada dua titik intervensi:
-1. **Asisten AI Interaktif per Langkah (Chat Sidebar):** Pendamping percakapan kontekstual di setiap langkah pengisian yang menjembatani bahasa alami Ukuran Rumah Tangga (URT) ke rekomendasi visual foto porsi terdekat dengan aksi satu klik (*1-click action*), serta melakukan *probing* otomatis terhadap bahan makanan yang kerap terlupakan. Di sini peran LLM dibatasi ketat pada interpretasi bahasa dan pencocokan porsi, sedangkan perhitungan zat gizi tetap deterministik mengacu pada tabel komposisi pangan nasional (TKPI 2020).
+Selain itu, kemunculan *large language model* (LLM) membuka peluang menutup hambatan kedua dan ketiga secara simultan. Penelitian mutakhir menunjukkan LLM tujuan umum mencapai tingkat akurasi estimasi gizi yang sebanding dengan metode *self-report* tradisional tanpa membebani pengguna (Fridolfsson et al., 2025). Dalam konteks R24J, potensi LLM hadir pada dua titik intervensi:
+1. **Asisten AI Interaktif per Langkah (Chat Sidebar):** Pendamping percakapan kontekstual di setiap langkah pengisian yang menjembatani bahasa alami Ukuran Rumah Tangga (URT) ke rekomendasi visual foto porsi terdekat dengan aksi satu klik (*1-click action*), serta melakukan *probing* otomatis terhadap bahan makanan yang kerap terlupakan. Di sini peran LLM dibatasi ketat pada interpretasi bahasa dan pencocokan porsi, sedangkan perhitungan zat gizi tetap deterministik mengacu pada tabel komposisi pangan nasional, yaitu Tabel Komposisi Pangan Indonesia (TKPI) 2020 (Kementerian Kesehatan Republik Indonesia, 2020).
 2. **Rekomendasi Naratif Pasca-Laporan:** Menyusun interpretasi naratif dan umpan balik edukatif yang memotivasi di atas angka agregat zat gizi harian yang telah dihitung sistem.
 
 Di samping tantangan pemahaman porsi dan umpan balik, hambatan klasik dalam survei konsumsi diet berulang adalah kebosanan dan tingginya angka putus survei (*drop-off* partisipan mencapai 40% pada studi sejenis). Untuk memitigasi hal ini, penerapan mekanisme **gamifikasi** — meliputi akumulasi poin pengalaman (XP), pelacakan konsistensi hari (*daily streak*), lencana pencapaian, dan papan peringkat (*leaderboard*) survei — diintegrasikan guna memelihara motivasi dan kepatuhan responden tanpa mengorbankan validitas data ilmiah.
@@ -272,11 +272,13 @@ Praktik R24J modern umumnya menerapkan **pendekatan lintasan berganda** (*multip
 
 Komputerisasi R24J bertujuan menghilangkan ketergantungan pada pewawancara sekaligus mengotomatiskan pengodean makanan menjadi nilai gizi. Tiga sistem menjadi pembanding dalam penelitian ini: ASA24 dan Intake24 sebagai rujukan utama, serta myfood24 sebagai pembanding tambahan.
 
-**ASA24** (*Automated Self-Administered 24-Hour Dietary Assessment Tool*) dikembangkan National Cancer Institute sebagai perkakas berbasis web gratis untuk mengumpulkan *recall* yang terkode otomatis. Alur wawancaranya diadaptasi dari *Automated Multiple-Pass Method* (AMPM) milik USDA, yaitu metode lintasan berganda yang terbukti menekan bias pelaporan asupan energi (Moshfegh et al., 2008; Subar et al., 2012) `[⚠ VERIFIKASI kedua rujukan ini pada sumber aslinya sebelum dipakai]`. Sistem ini terdiri atas aplikasi Responden untuk memasukkan data dan aplikasi Peneliti untuk mengelola logistik studi serta memperoleh data pada tingkat zat gizi dan makanan (National Cancer Institute, 2012). Pemisahan dua aplikasi ini sejalan dengan pemisahan modul Responden dan modul Admin pada penelitian ini.
+**ASA24** (*Automated Self-Administered 24-Hour Dietary Assessment Tool*) dikembangkan National Cancer Institute sebagai perkakas berbasis web gratis untuk mengumpulkan *recall* yang terkode otomatis. Alur wawancaranya diadaptasi dari *Automated Multiple-Pass Method* (AMPM) milik USDA, yaitu metode lintasan berganda yang terbukti menekan bias pelaporan asupan energi (Moshfegh et al., 2008; Subar et al., 2012). Sistem ini terdiri atas aplikasi Responden untuk memasukkan data dan aplikasi Peneliti untuk mengelola logistik studi serta memperoleh data pada tingkat zat gizi dan makanan (National Cancer Institute, 2012). Pemisahan dua aplikasi ini sejalan dengan pemisahan modul Responden dan modul Admin pada penelitian ini.
 
-**Intake24** merupakan sistem R24J daring berbasis metode lintasan berganda otomatis yang menyediakan lebih dari 2.400 foto makanan untuk lebih dari 100 jenis makanan, dengan ukuran porsi diturunkan dari *UK National Diet and Nutrition Surveys* (Bradley et al., 2016). Validasi terhadap 167 responden berusia 11–24 tahun menunjukkan kesesuaian yang baik antara Intake24 dan *recall* yang dipandu pewawancara (Bradley et al., 2016). Uji lapangan berikutnya melaporkan sistem ini ramah pengguna, menyenangkan, serta mudah diikuti dan dipahami; lebih dari 75% pengguna merasa asupannya tertangkap akurat, meskipun hanya 60% peserta yang bersedia ikut berhasil menyelesaikan setidaknya satu *recall* (Bradley et al., 2018). Validitas asupan energi Intake24 juga telah diuji terhadap pengukuran pengeluaran energi total menggunakan *doubly labelled water* pada 98 orang dewasa Inggris berusia 40–65 tahun (Foster et al., 2019).
+**Intake24** merupakan sistem R24J daring berbasis metode lintasan berganda otomatis yang menyediakan lebih dari 3.000 foto makanan, dengan ukuran porsi diturunkan dari *UK National Diet and Nutrition Surveys* (Bradley et al., 2016). Studi pembandingan terhadap 180 responden berusia 11–24 tahun (168 di antaranya menyelesaikan sedikitnya satu pasang *recall*) menunjukkan rerata asupan energi dan makronutrien yang serupa dengan *recall* yang dipandu pewawancara; energi rata-rata hanya 1% lebih rendah (Bradley et al., 2016). Uji lapangan berikutnya melaporkan sistem ini ramah pengguna, menyenangkan, serta mudah diikuti dan dipahami; lebih dari 75% pengguna merasa asupannya tertangkap akurat, meskipun hanya 60% peserta yang bersedia ikut berhasil menyelesaikan setidaknya satu *recall* (Rowland et al., 2018). Validitas asupan energi Intake24 juga telah diuji terhadap pengukuran pengeluaran energi total menggunakan *doubly labelled water* pada 98 orang dewasa Inggris berusia 40–65 tahun (Foster et al., 2019).
 
-**myfood24** (*Measure Your Food on One Day*) dikembangkan di University of Leeds sebagai perkakas R24J daring untuk populasi Britania Raya, dengan basis data pangan bermerek yang besar dan foto porsi sebagai alat bantu estimasi (Carter et al., 2015) `[⚠ VERIFIKASI rincian fitur dan angka pada publikasi aslinya; isi sel myfood24 pada Tabel 2.1 dan tabel Subbab 4.7.6 ditulis konservatif dan perlu dicocokkan]`. Sama seperti dua sistem sebelumnya, rancangannya berpusat pada pengisian oleh satu pengguna dalam satu sesi.
+**myfood24** (*Measure Your Food on One Day*) dikembangkan di University of Leeds sebagai perkakas R24J daring untuk populasi Britania Raya. Basis datanya memuat sekitar 45.000 pangan generik dan bermerek beserta ukuran kemasan dan porsinya; foto porsi (tujuh pilihan ukuran) disediakan untuk 100 jenis makanan yang paling sering dikonsumsi; daftar makanan disusun per waktu makan; dan umpan balik zat gizi kepada responden bersifat opsional. Skor SUS median versi rilisnya 73 pada remaja dan 80 pada dewasa (Carter et al., 2015). myfood24 juga menyediakan fungsi *take control* yang memungkinkan peneliti mengambil alih pengisian atas nama responden (Carter et al., 2015) — berbeda dengan pendampingan real-time pada penelitian ini, yang membiarkan responden tetap menjadi satu-satunya pihak yang menulis laporan. Versi Jermannya kemudian divalidasi terhadap catatan makanan tertimbang dan biomarker urin, dengan validitas yang sebanding dengan metode konvensional (Koch et al., 2021). Sama seperti dua sistem sebelumnya, rancangannya berpusat pada pengisian oleh satu pengguna dalam satu sesi.
+
+**Perkembangan terkini.** Tinjauan cakupan atas 17 studi menyimpulkan bahwa selisih dan korelasi asupan yang diperoleh melalui penilaian diet berbasis web — baik *recall* 24 jam maupun catatan makanan — dapat diterima dibandingkan metode tatap muka atau kertas, dan pada tiga dari empat studi yang melaporkan kebergunaan, lebih dari separuh peserta lebih memilih versi web (Murai et al., 2023). Sejumlah negara telah mengembangkan atau mengadaptasi R24J berbasis web untuk pola makan lokalnya: adaptasi untuk orang dewasa dan anak sekolah di Rusia menunjukkan reliabilitas sedang hingga sangat baik terhadap *recall* berpewawancara (Pigat et al., 2023); Web24HR di Jepang menunjukkan korelasi sedang dengan catatan makanan tertimbang dan bias di bawah ±10% untuk sebagian besar zat gizi (Nakadate et al., 2024); dan Intake24 telah diadaptasi untuk Selandia Baru — 84% peserta menilainya mudah digunakan, tetapi pencarian makanan dan estimasi porsi masih menjadi kendala (Follong et al., 2024) — serta untuk Asia Selatan, dengan basis data 2.283 jenis makanan, dievaluasi pada 29.113 orang dewasa, dan dijalankan oleh pewawancara terlatih (Bhagtani et al., 2025). Temuan terakhir ini relevan bagi penelitian ini: pada populasi dengan ragam pangan lokal yang tinggi, keterlibatan pewawancara tetap dipertahankan meskipun perkakasnya sudah terkomputerisasi.
 
 **Tabel 2.1 Perbandingan sistem *dietary recall* terkomputerisasi**
 
@@ -285,7 +287,7 @@ Komputerisasi R24J bertujuan menghilangkan ketergantungan pada pewawancara sekal
 | Pengembang | National Cancer Institute (AS) | Newcastle University (Britania Raya) | University of Leeds (Britania Raya) | Penelitian ini |
 | Mode pengisian | Mandiri | Mandiri | Mandiri | Mandiri **atau** berpendamping real-time |
 | Alur wawancara | Lintasan berganda (adaptasi AMPM) | Lintasan berganda otomatis | Pencarian dan pencatatan per waktu makan | *Wizard* enam langkah yang memetakan lintasan berganda |
-| Estimasi porsi | Foto & ukuran rumah tangga | > 2.400 foto porsi | Foto porsi & ukuran kemasan | Foto *as served* tipe `series`/`range` + berat manual |
+| Estimasi porsi | Foto & ukuran rumah tangga | > 3.000 foto porsi | Foto porsi & ukuran kemasan | Foto *as served* tipe `series`/`range` + berat manual |
 | Pengodean gizi | Otomatis | Otomatis | Otomatis | Otomatis (tabel komposisi internal, dihitung ulang di server) |
 | Kolaborasi real-time | Tidak ada | Tidak ada | Tidak ada | **Ada** (kehadiran, kursor, mode ikut, langkah) |
 | Penunjuk visual bersama pada foto porsi | Tidak ada | Tidak ada | Tidak ada | **Ada** (kanvas langsung: coretan, bentuk, laser) |
@@ -336,7 +338,7 @@ Beberapa persoalan rekayasa yang muncul pada penerapan WebSocket untuk kolaboras
 
 Sistem kolaboratif yang mereplikasi data ke banyak peserta menghadapi persoalan konsistensi ketika dua peserta mengubah objek yang sama secara bersamaan. Dua keluarga solusi mendominasi literatur.
 
-**Operational Transformation (OT)** mentransformasi operasi terhadap operasi konkuren agar seluruh replika mencapai keadaan yang sama. **Conflict-free Replicated Data Types (CRDT)** merupakan tipe data yang memenuhi kondisi matematis tertentu sehingga replikanya dijamin konvergen secara *self-stabilising* tanpa sinkronisasi jarak jauh dan meskipun terjadi sejumlah kegagalan (Shapiro et al., 2011).
+**Operational Transformation (OT)** mentransformasi operasi terhadap operasi konkuren agar seluruh replika mencapai keadaan yang sama. **Conflict-free Replicated Data Types (CRDT)** merupakan tipe data yang memenuhi kondisi matematis tertentu sehingga replikanya dijamin konvergen secara *self-stabilising* tanpa sinkronisasi jarak jauh dan meskipun terjadi sejumlah kegagalan (Shapiro et al., 2011). Kajian yang lebih baru mencatat bahwa jaminan CRDT hanya berlaku pada pembaruan data, sedangkan pembacaan keadaan replika belum tentu aman tanpa koordinasi, sehingga diperlukan model kueri tambahan (Laddad et al., 2022).
 
 Kedua pendekatan tersebut dirancang untuk **penyuntingan bersama** (*co-editing*), yaitu ketika banyak pihak berhak menulis ke dokumen yang sama. Penelitian ini **tidak** menggunakan OT maupun CRDT, dengan alasan yang bersifat metodologis dan bukan teknis: R24J adalah instrumen *self-report* dengan **satu responden sebagai sumber kebenaran tunggal**. Membiarkan pendamping menulis langsung ke laporan akan mencemari validitas data sebagai laporan mandiri responden. Yang dibutuhkan pendamping adalah kemampuan melihat, mengarahkan, dan memverifikasi — kebutuhan yang tepat dijawab oleh model *awareness* (Subbab 2.3), bukan model *co-editing*.
 
@@ -357,11 +359,11 @@ Penegakan juga dilakukan **berlapis** (*defense in depth*): satu lapis pertahana
 
 ## 2.7 *Large Language Model* dan Agen Percakapan Kontekstual
 
-*Large Language Model* (LLM) adalah model bahasa berbasis arsitektur *transformer* yang dilatih pada korpus teks berskala besar dan mampu memproses serta menghasilkan teks alami mengikuti instruksi (*instruction-tuned*). Dalam implementasi perangkat lunak berbasis survei dan kesehatan, pemanfaatan LLM menghadapi dua tantangan utama: sifat probabilistik keluaran dan risiko halusinasi faktual maupun numerik.
+*Large Language Model* (LLM) adalah model bahasa berbasis arsitektur *transformer* yang dilatih pada korpus teks berskala besar dan mampu memproses serta menghasilkan teks alami mengikuti instruksi (*instruction-tuned*). LLM dapat menjawab kueri teks bebas tanpa dilatih khusus untuk tugas tersebut dan telah diuji pada berbagai konteks biomedis dengan hasil yang menjanjikan tetapi beragam (Thirunavukarasu et al., 2023). Evaluasi pada pertanyaan medis menunjukkan bahwa akurasi tinggi pada soal pilihan ganda belum menjamin mutu jawaban terbuka: penilaian manusia masih menemukan celah pada faktualitas, penalaran, dan potensi bahaya, sehingga kerangka evaluasi yang ketat diperlukan sebelum LLM dipakai di ranah klinis (Singhal et al., 2023). Dalam implementasi perangkat lunak berbasis survei dan kesehatan, pemanfaatan LLM menghadapi dua tantangan utama: sifat probabilistik keluaran dan risiko halusinasi faktual maupun numerik.
 
 **Pembangkitan berkendala skema (*schema-constrained generation*).** Pendekatan ini mengatasi ketidakpastian struktur dengan mengunci model agar menghasilkan keluaran JSON yang valid mengikuti spesifikasi skema data tertentu. Bersama parameter *temperature* rendah (misal 0,2), model dipaksa mematuhi struktur medan yang diharapkan oleh sistem hilir, sehingga hasil inferensi dapat diproses secara aman oleh aplikasi tanpa risiko kegagalan parsing.
 
-**Penerapan pada estimasi gizi dan evaluasi literatur.** Kajian mutakhir mengevaluasi performa LLM dalam menaksir berat, energi, dan komposisi makronutrien dari foto makanan terstandar (*American Journal of Clinical Nutrition*, 2025). Studi tersebut menyimpulkan bahwa meskipun LLM memiliki keunggulan pemahaman semantik dan penalaran kontekstual yang setara dengan pencatatan *self-report* tradisional, model tujuan umum masih memperlihatkan *underestimation* sistematis pada porsi besar dan variabilitas kuantitatif tinggi. Oleh karena itu, LLM tujuan umum **tidak boleh ditugaskan menghitung angka kalori dan zat gizi secara mandiri**.
+**Penerapan pada estimasi gizi dan evaluasi literatur.** Fridolfsson et al. (2025) mengevaluasi tiga LLM (ChatGPT-4o, Claude 3.5 Sonnet, dan Gemini 1.5 Pro) dalam menaksir berat, energi, dan komposisi makronutrien dari 52 foto makanan terstandar. ChatGPT dan Claude mencapai akurasi yang sebanding dengan metode *self-report* tradisional tanpa beban bagi pengguna, tetapi seluruh model memperlihatkan *underestimation* sistematis yang makin besar seiring bertambahnya porsi, disertai variabilitas tinggi pada estimasi makronutrien. Temuan serupa dilaporkan O'Hara et al. (2025): ChatGPT-4 mengenali makanan dengan presisi 93% dan cukup baik mengurutkan makanan menurut kandungan gizinya, tetapi buruk dalam menaksir berat porsi sedang dan besar serta nilai absolut zat gizi. Oleh karena itu, LLM tujuan umum **tidak boleh ditugaskan menghitung angka kalori dan zat gizi secara mandiri**.
 
 **Prinsip pemisahan peran dan arsitektur ganda AI.** Temuan tersebut melandasi rancangan kecerdasan buatan pada penelitian ini yang memisahkan secara tegas dua peran:
 1. **Asisten AI Percakapan per Langkah (*Atlas AI Sidebar Companion*):** Responden awam kerap mengingat asupan dalam bahasa kualitatif atau Ukuran Rumah Tangga (URT), misalnya *"2 potong tempe sedang"* atau *"1 centong cekung nasi pulen"*, bukan dalam gramatur pasti. Asisten AI hadir sebagai laci geser (*slide-over drawer*) di sisi layar pengisian yang menerima deskripsi natural responden, membandingkannya dengan daftar foto porsi yang tersedia di basis data, dan merekomendasikan kode porsi terdekat (misal: Porsi B, 50 g). Respon AI dilengkapi tombol aksi satu-klik (*1-click action chips*) yang langsung mengisi pilihan porsi ke formulir tanpa pengetikan manual. Di sini AI berfungsi sebagai **jembatan semantik URT ke opsi visual**, bukan kalkulator numerik.
@@ -371,7 +373,7 @@ Pembagian ini menempatkan LLM pada ranah kekuatan utamanya (pemahaman bahasa dan
 
 ## 2.8 Estimasi Porsi Berbasis Foto
 
-Metode *as served* menyajikan serangkaian foto porsi dengan berat yang telah ditimbang; responden memilih foto yang paling menyerupai porsi yang dikonsumsinya. Metode ini menurunkan beban kognitif dibanding meminta estimasi berat secara langsung. Intake24 memakai pendekatan ini dengan basis foto berskala besar yang porsinya diturunkan dari survei diet nasional (Bradley et al., 2016).
+Metode *as served* menyajikan serangkaian foto porsi dengan berat yang telah ditimbang; responden memilih foto yang paling menyerupai porsi yang dikonsumsinya. Metode ini menurunkan beban kognitif dibanding meminta estimasi berat secara langsung. Tinjauan sistematis atas 334 publikasi mengidentifikasi 542 alat bantu estimasi porsi — 46% di antaranya berupa alat dua dimensi seperti atlas foto — dan menyimpulkan bahwa alat berbasis gambar makanan lebih akurat daripada model makanan maupun peralatan rumah tangga (Amoutzopoulos et al., 2020). Intake24 memakai pendekatan ini dengan basis foto berskala besar yang porsinya diturunkan dari survei diet nasional (Bradley et al., 2016). Pendekatan lain yang berkembang adalah pengenalan makanan otomatis dari foto kamera ponsel melalui tahap segmentasi, klasifikasi, dan estimasi volume atau zat gizi; tinjauan sistematis atas 78 studi menemukan 58% di antaranya memakai *deep learning*, terutama *convolutional neural network* (Dalakleidi et al., 2022). Penelitian ini memilih metode *as served* yang dipandu manusia karena tidak memerlukan set data pelatihan pangan Indonesia berskala besar.
 
 Penelitian ini mengenali dua tipe aset foto porsi berdasarkan karakteristik makanan, terinspirasi dari buku Atlas Makananku (BRIN × UPI):
 
@@ -396,20 +398,22 @@ Penelitian ini menjawab celah tersebut dengan modul **Find Your Food** — katal
 
 Pengumpulan data gizi di lapangan kerap berlangsung di wilayah dengan konektivitas yang tidak stabil. Aplikasi web biasa gagal total pada kondisi ini: halaman tidak termuat, dan — yang lebih merugikan — laporan yang sudah selesai diisi hilang ketika pengiriman gagal.
 
-***Progressive Web App*** (PWA) adalah aplikasi web yang memanfaatkan tiga komponen peramban untuk berperilaku mendekati aplikasi terpasang: **manifes aplikasi** yang membuatnya dapat dipasang ke layar utama, ***service worker*** yaitu skrip latar yang mencegat permintaan jaringan dan dapat melayaninya dari *cache*, serta **penyimpanan sisi klien** seperti IndexedDB untuk data terstruktur. `[⚠ TAMBAHKAN rujukan: spesifikasi W3C Service Workers dan Web App Manifest, atau buku ajar PWA yang dipakai kampusmu]`
+***Progressive Web App*** (PWA) adalah aplikasi web yang memanfaatkan tiga komponen peramban untuk berperilaku mendekati aplikasi terpasang: **manifes aplikasi** yang membuatnya dapat dipasang ke layar utama, ***service worker*** yaitu skrip latar yang mencegat permintaan jaringan dan dapat melayaninya dari *cache*, serta **penyimpanan sisi klien** seperti IndexedDB untuk data terstruktur. Perilaku *service worker* dan manifes aplikasi distandarkan W3C (Chintala & Yanagisawa, 2026; Cáceres et al., 2026). Tinjauan literatur sistematis atas 43 publikasi mengidentifikasi 31 praktik pengembangan PWA dan mencatat bahwa tantangan utamanya masih berkaitan dengan dukungan peramban yang belum seragam (Fauzan et al., 2022).
 
 Arsitektur ***offline-first*** memperlakukan ketiadaan jaringan sebagai keadaan normal, bukan galat. Data ditulis lebih dahulu ke penyimpanan lokal, lalu disinkronkan ke server ketika koneksi tersedia. Dua strategi *cache* yang lazim dipakai dan diterapkan pada penelitian ini adalah ***network-first*** (utamakan jaringan, jatuh ke *cache* bila gagal) untuk halaman, dan ***cache-first*** untuk aset yang jarang berubah seperti gambar.
 
-Pola ini membawa satu persoalan baru: **pengiriman ganda**. Ketika klien mengirim laporan lalu koneksi putus sebelum balasan tiba, klien tidak dapat membedakan "permintaan tidak sampai" dari "permintaan sampai tetapi balasannya hilang". Mengirim ulang pada kasus kedua menghasilkan laporan duplikat — cacat serius pada data penelitian. Solusi bakunya adalah **kunci idempotensi** (*idempotency key*): klien membangkitkan pengenal unik untuk setiap laporan sebelum pengiriman pertama dan menyertakannya pada setiap percobaan; server menyimpan pengenal itu dengan kendala unik dan mengembalikan hasil yang sama bila pengenal yang sama datang lagi. Dengan demikian pengiriman ulang menjadi aman berapa kali pun diulang. `[⚠ TAMBAHKAN rujukan mengenai idempotensi pada sistem terdistribusi]`
+Pola ini membawa satu persoalan baru: **pengiriman ganda**. Ketika klien mengirim laporan lalu koneksi putus sebelum balasan tiba, klien tidak dapat membedakan "permintaan tidak sampai" dari "permintaan sampai tetapi balasannya hilang". Mengirim ulang pada kasus kedua menghasilkan laporan duplikat — cacat serius pada data penelitian. Solusi bakunya adalah **kunci idempotensi** (*idempotency key*): klien membangkitkan pengenal unik untuk setiap laporan sebelum pengiriman pertama dan menyertakannya pada setiap percobaan; server menyimpan pengenal itu dengan kendala unik dan mengembalikan hasil yang sama bila pengenal yang sama datang lagi. Dengan demikian pengiriman ulang menjadi aman berapa kali pun diulang. Spesifikasi HTTP mendefinisikan metode idempoten sebagai metode yang efek terhadap server dari banyak permintaan identik sama dengan efek satu permintaan, sehingga permintaan dapat diulang otomatis bila koneksi putus sebelum balasan terbaca; sebaliknya, permintaan non-idempoten seperti POST tidak boleh diulang otomatis kecuali klien memiliki cara memastikan bahwa semantiknya idempoten atau bahwa permintaan awal belum diterapkan (Fielding et al., 2022, Bagian 9.2.2). Kunci idempotensi adalah mekanisme yang membuat POST pengiriman laporan memenuhi syarat tersebut.
 
 ## 2.11 Gamifikasi dalam Sistem Pemantauan Diet dan Partisipasi Survei
 
 Pengumpulan data diet berbasis recall berulang (*multiple-day recall*) menghadapi fenomena kelelahan responden (*survey fatigue*) yang berujung pada penurunan drastis tingkat penyelesaian (*drop-off rate*) serta pelaporan asupan yang tidak lengkap. Gamifikasi — didefinisikan sebagai penggunaan elemen-elemen rancangan permainan dalam konteks non-game (Deterding et al., 2011) — hadir sebagai pendekatan intervensi perilaku yang memanfaatkan psikologi motivasi.
 
-Berdasarkan *Self-Determination Theory* (Ryan & Deci, 2000), motivasi manusia didorong oleh pemenuhan tiga kebutuhan psikologis dasar: kompetensi (*feeling effective*), otonomi (*feeling in control*), dan keterhubungan (*feeling connected*). Penerapan gamifikasi pada instrumen diet mengoperasionalkan teori ini melalui kerangka trias PBL (*Points, Badges, Leaderboards*) yang dipadukan dengan pelacakan konsistensi:
+Berdasarkan *Self-Determination Theory* (Ryan & Deci, 2000, 2020), motivasi manusia didorong oleh pemenuhan tiga kebutuhan psikologis dasar: kompetensi (*feeling effective*), otonomi (*feeling in control*), dan keterhubungan (*feeling connected*). Penerapan gamifikasi pada instrumen diet mengoperasionalkan teori ini melalui kerangka trias PBL (*Points, Badges, Leaderboards*) yang dipadukan dengan pelacakan konsistensi:
 1. **Poin Pengalaman (XP):** Memberikan umpan balik instan atas tindakan responden (misal menyelesaikan pencatatan satu waktu makan atau menuntaskan laporan harian), memperkuat rasa progres dan kompetensi.
 2. **Jejak Konsistensi Harian (*Daily Streaks*):** Memanfaatkan bias keengganan kehilangan (*loss aversion*) untuk mendorong pengisian rutin setiap hari tanpa jeda, yang sangat krusial bagi survei diet longitudinal.
 3. **Papan Peringkat (*Leaderboard*):** Memfasilitasi perbandingan sosial positif antar partisipan dalam lingkup survei yang sama. Untuk menjaga privasi etis dan validitas data medis, papan peringkat diatur berbasis alias anonim dan semata-mata mengukur **kepatuhan dan kelengkapan pengisian**, bukan kuantitas kalori atau berat badan yang bersifat sensitif.
+
+Bukti empiris efektivitas gamifikasi paling banyak tersedia pada ranah aktivitas fisik. Meta-analisis atas 16 uji acak terkendali (2.407 peserta) menemukan efek kecil hingga sedang intervensi bergamifikasi terhadap aktivitas fisik (Hedges' *g* = 0,42), yang tetap signifikan bahkan dibandingkan intervensi serupa tanpa gamifikasi (Mazeas et al., 2022). Meta-analisis lain atas aplikasi ponsel bergamifikasi mandiri melaporkan efek kecil hingga sedang (*standardized mean difference* = 0,34 pada uji acak terkendali) dengan tingkat kepastian bukti sedang (Yang et al., 2022). Bukti langsung pada instrumen survei diet masih terbatas, sehingga efek gamifikasi pada penelitian ini diperlakukan sebagai hipotesis yang perlu diuji, bukan sebagai hasil yang diasumsikan.
 
 Integrasi elemen gamifikasi ini melengkapi peran kolaborasi real-time dan asisten AI dalam memelihara keterlibatan aktif responden selama proses survei berlangsung.
 
@@ -420,14 +424,14 @@ Integrasi elemen gamifikasi ini melengkapi peran kolaborasi real-time dan asiste
 | No | Penulis & Tahun | Fokus | Metode/Teknologi | Hasil Utama | Celah yang Tersisa |
 |---|---|---|---|---|---|
 | 1 | National Cancer Institute (2012) | ASA24 sebagai sumber daya riset | Aplikasi web, pengodean otomatis, dua aplikasi terpisah | R24J berbiaya rendah dan layak untuk skala besar | Sepenuhnya mandiri; tidak ada pendampingan maupun gamifikasi |
-| 2 | Bradley et al. (2016) | Validasi Intake24 pada remaja | Lintasan berganda otomatis, > 2.400 foto porsi | Kesesuaian baik dengan *recall* berpewawancara (n = 167, usia 11–24) | Tidak ada dukungan kolaborasi dan AI interaktif |
-| 3 | Bradley et al. (2018) | Uji lapangan Intake24 | Survei nasional Skotlandia | Ramah pengguna; > 75% merasa asupan tertangkap akurat; **60%** menyelesaikan ≥ 1 *recall* | Hambatan penyelesaian (drop-off 40%) belum ditangani lewat pendampingan & gamifikasi |
+| 2 | Bradley et al. (2016) | Validasi Intake24 pada remaja | Lintasan berganda otomatis, > 3.000 foto porsi | Rerata energi & makronutrien serupa dengan *recall* berpewawancara (n = 180, usia 11–24) | Tidak ada dukungan kolaborasi dan AI interaktif |
+| 3 | Rowland et al. (2018) | Uji lapangan Intake24 | Survei nasional Skotlandia | Ramah pengguna; > 75% merasa asupan tertangkap akurat; **60%** menyelesaikan ≥ 1 *recall* | Hambatan penyelesaian (drop-off 40%) belum ditangani lewat pendampingan & gamifikasi |
 | 4 | Foster et al. (2019) | Validitas & reliabilitas Intake24 | *Doubly labelled water*, n = 98 dewasa | Validitas asupan energi terukur terhadap standar emas | Ranah validasi gizi, bukan rekayasa sistem interaktif |
-| 5 | Carter et al. (2015) `[⚠ VERIFIKASI]` | Pengembangan myfood24 | Perkakas R24J daring, basis data pangan bermerek, foto porsi | Perkakas layak dipakai untuk populasi Britania Raya | Satu pengguna per sesi; tidak ada pendampingan real-time |
+| 5 | Carter et al. (2015) | Pengembangan myfood24 | Perkakas R24J daring, ± 45.000 pangan generik & bermerek, foto porsi | Layak dipakai remaja dan dewasa Britania Raya (SUS median 73 dan 80) | Satu pengguna per sesi; tidak ada pendampingan real-time |
 | 6 | Gutwin & Greenberg (2002) | Kerangka *workspace awareness* | Teori deskriptif CSCW | Kerangka tiga bagian; *awareness* menurunkan usaha koordinasi | Diterapkan pada *groupware* berbasis dokumen, bukan instrumen survei diet |
 | 7 | Shapiro et al. (2011) | CRDT | Tipe data replikasi bebas konflik | Jaminan konvergensi tanpa sinkronisasi jarak jauh | Ditujukan untuk *co-editing*; tidak sesuai instrumen *self-report* |
 | 8 | Fette & Melnikov (2011) | Protokol WebSocket | RFC 6455 | Kanal dua arah penuh di atas satu koneksi TCP | Protokol dasar; pola penerapan domain survei belum ada |
-| 9 | *Am. J. Clin. Nutr.* (2025) | Evaluasi 3 LLM untuk estimasi gizi dari foto | ChatGPT-4o, Claude 3.5, Gemini 1.5 | Akurasi setara *self-report* tradisional; *underestimation* sistematis pada porsi besar | LLM belum layak untuk kuantifikasi presisi → perlu pembagian peran yang tepat |
+| 9 | Fridolfsson et al. (2025) | Evaluasi 3 LLM untuk estimasi gizi dari foto | ChatGPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro | Akurasi setara *self-report* tradisional; *underestimation* sistematis pada porsi besar | LLM belum layak untuk kuantifikasi presisi → perlu pembagian peran yang tepat |
 | **10** | **Penelitian ini (2026)** | **R24J Kolaboratif + AI Ganda + Gamifikasi** | **Next.js, Go, WebSocket, Groq, PWA, MySQL** | **Sinkronisasi langkah wizard; otorisasi tiga lapis; Asisten AI chat per-step + rekomendasi skema; modul gamifikasi & leaderboard; pengiriman luring idempoten** | **—** |
 
 **Posisi penelitian.** Baris 1–5 menegaskan bahwa komputerisasi R24J telah mapan dan tervalidasi, namun seluruhnya bersifat mandiri penuh dengan tingkat *drop-off* yang signifikan. Baris 6–8 menyediakan landasan teknis kolaborasi real-time yang matang, tetapi belum pernah diterapkan pada instrumen survei gizi. Baris 9 menetapkan batas peran yang tepat bagi LLM di ranah gizi. Penelitian ini menggabungkan ketiga aliran tersebut bersama elemen motivasional gamifikasi dan menyumbang lima kebaruan:
@@ -447,31 +451,35 @@ Di luar tiga kebaruan tersebut, sistem memuat dua **fitur pendukung** yang tidak
 
 ## 3.1 Desain Penelitian
 
-Penelitian ini menggunakan pendekatan **Penelitian dan Pengembangan** (*Research and Development*) dengan model pengembangan perangkat lunak **Waterfall**. Model Waterfall dipilih karena kebutuhan sistem dapat ditetapkan di awal dengan relatif stabil — alur R24J mengikuti metode lintasan berganda yang sudah baku di literatur gizi (Subbab 2.1), sehingga risiko perubahan kebutuhan besar di tengah pengembangan rendah. Model ini juga menghasilkan dokumentasi per tahap yang sesuai dengan tuntutan pelaporan skripsi.
+Penelitian ini menggunakan metodologi **Design Science Research Methodology (DSRM)** yang dirumuskan oleh Peffers et al. (2007). *Design science research* adalah paradigma penelitian yang menjawab persoalan nyata dengan merancang dan mengevaluasi artefak inovatif (vom Brocke et al., 2020). Pendekatan *design science* dipilih karena tujuan utama penelitian ini adalah menghasilkan **artifak teknologi informasi** (*IT artifact*) yang fungsional dan inovatif untuk memecahkan permasalahan nyata pada domain penilaian asupan gizi, yaitu instrumen *dietary recall* 24 jam (R24J) yang memadukan pendampingan kolaboratif real-time, kecerdasan buatan kontekstual, dan gamifikasi.
 
-**Gambar 3.1 Tahapan penelitian metode *Waterfall***
+Metodologi DSRM menyediakan kerangka kerja terstruktur yang mengintegrasikan prinsip-prinsip rekayasa perangkat lunak dengan ketatnya evaluasi ilmiah melalui enam tahapan aktivitas yang berulang (*iterative*).
+
+**Gambar 3.1 Tahapan penelitian *Design Science Research Methodology* (DSRM) (Peffers et al., 2007)**
 
 ```mermaid
 flowchart TD
-    A["1. Analisis Kebutuhan<br/>studi literatur, analisis sistem sejenis,<br/>perumusan kebutuhan fungsional & non-fungsional"] --> B
-    B["2. Perancangan Sistem<br/>arsitektur, UML, ERD,<br/>perancangan antarmuka"] --> C
-    C["3. Implementasi<br/>pengodean backend Go,<br/>frontend Next.js, basis data"] --> D
-    D["4. Pengujian<br/>kotak-hitam, kinerja,<br/>penerimaan pengguna"] --> E
-    E["5. Pemeliharaan<br/>perbaikan cacat,<br/>dokumentasi"]
-    D -.->|"temuan cacat"| C
+    A["1. Identifikasi Masalah & Motivasi<br/><i>Problem Identification & Motivation</i><br/>Analisis bias R24J, ketergantungan enumerator, drop-off survei, & celah kolaborasi"] --> B
+    B["2. Perumusan Tujuan Solusi<br/><i>Define Objectives of a Solution</i><br/>Penetapan sasaran artifak: kebutuhan fungsional (F-01–F-52) & non-fungsional"] --> C
+    C["3. Perancangan & Pengembangan Artifak<br/><i>Design & Development</i><br/>Arsitektur Next.js–Go, WebSocket Hub, UML, ERD, AI Sidebar, Gamifikasi, & CMS"] --> D
+    D["4. Demonstrasi<br/><i>Demonstration</i><br/>Pengujian skenario interaksi: R24J 6 langkah, kolaborasi real-time, AI 1-klik, & PWA luring"] --> E
+    E["5. Evaluasi<br/><i>Evaluation</i><br/>Uji kotak-hitam (103 kasus), latensi sinkronisasi, SUS (n≥20), & telaah pakar gizi"] --> F
+    F["6. Komunikasi<br/><i>Communication</i><br/>Penyusunan naskah skripsi, artikel ilmiah target jurnal SINTA 2, & repositori kode"]
+    E -.->|"iterasi perbaikan cacat / penyempurnaan artifak"| C
 ```
 
-Panah putus-putus dari tahap Pengujian kembali ke Implementasi menunjukkan iterasi perbaikan cacat yang benar-benar terjadi dalam penelitian ini dan dilaporkan pada Subbab 4.3.
+Panah putus-putus dari tahap Evaluasi kembali ke Perancangan & Pengembangan menunjukkan siklus iterasi desain (*design iteration loop*) yang dijalankan ketika pengujian menemukan ketidaksesuaian atau cacat sistem, sebagaimana dibuktikan oleh penemuan dan perbaikan sebelas cacat pada Subbab 4.3.
 
-**Uraian tiap tahap:**
+**Tabel 3.1 Tahapan DSRM, aktivitas penelitian, dan luaran yang dihasilkan**
 
-| Tahap | Kegiatan | Luaran |
+| Tahap DSRM | Aktivitas Penelitian | Luaran |
 |---|---|---|
-| 1. Analisis Kebutuhan | Studi literatur R24J, CSCW, LLM, dan PWA; analisis ASA24, Intake24, & myfood24; perumusan kebutuhan | Tabel 3.2 & 3.3 |
-| 2. Perancangan | Arsitektur sistem, *use case*, *activity*, *sequence*, *class diagram*, ERD, rancangan antarmuka | Gambar 3.2–3.11 |
-| 3. Implementasi | Pengodean layanan Go (REST + WebSocket *hub*), antarmuka Next.js, migrasi basis data | Kode sumber, basis data |
-| 4. Pengujian | Kotak-hitam, penelusuran *end-to-end*, kinerja, UAT | Tabel 4.5–4.12, 4.14 |
-| 5. Pemeliharaan | Perbaikan cacat temuan, dokumentasi teknis | Tabel 4.9 |
+| **1. Identifikasi Masalah & Motivasi**<br/>(*Problem Identification & Motivation*) | Mengidentifikasi hambatan R24J (bias porsi, biaya enumerator, jeda umpan balik, dan kebosanan/drop-off responden); menganalisis literatur CSCW, LLM gizi, dan keterbatasan sistem pembanding (ASA24, Intake24, myfood24); menetapkan nilai ilmiah solusi. | Bab I (Latar Belakang & Rumusan Masalah) dan Bab II (Tinjauan Pustaka & SOTA) |
+| **2. Perumusan Tujuan Solusi**<br/>(*Define Objectives of a Solution*) | Menurunkan sasaran artifak dari analisis masalah: rancangan sistem R24J terkomputerisasi dengan kolaborasi real-time bergaya Figma, kontrol peran *fail-closed*, Asisten AI kontekstual URT, gamifikasi/leaderboard, serta dukungan *offline-first*. | Tabel 3.2 (Kebutuhan Fungsional F-01 s.d. F-52) dan Tabel 3.3 (Kebutuhan Non-Fungsional NF-01 s.d. NF-16) |
+| **3. Perancangan & Pengembangan**<br/>(*Design & Development*) | Merancang arsitektur sistem decoupled Next.js–Go, pemodelan berorientasi objek (Use Case, Activity, Sequence, Class Diagram), perancangan skema basis data MySQL 8 (ERD), pengodean backend Go (Gin + WebSocket Hub), antarmuka Next.js App Router, integrasi Groq LLM, modul gamifikasi, dan CMS anotasi poligon. | Dokumen rancangan teknis (Gambar 3.2–3.11), basis data terstruktur, dan kode sumber artifak Atlas Food |
+| **4. Demonstrasi**<br/>(*Demonstration*) | Mendemonstrasikan kapabilitas artifak melalui penelusuran skenario kasus penggunaan nyata: pengisian recall 6 langkah, pendampingan jarak jauh (kursor, follow mode, live canvas laser pointer), konsultasi porsi URT via Asisten AI Sidebar 1-klik, perolehan XP dan pembaruan leaderboard, serta pengiriman saat luring dengan sinkronisasi idempoten. | Log demonstrasi skenario, rekaman penelusuran *end-to-end*, dan tangkapan layar antarmuka fungsional (Gambar 4.3–4.19) |
+| **5. Evaluasi**<br/>(*Evaluation*) | Menguji dan mengukur kinerja artifak secara komprehensif: pengujian kotak-hitam (*black-box*) pada 103 kasus uji, pengukuran kinerja latensi real-time WebSocket, evaluasi kebergunaan pengguna melalui kuesioner *System Usability Scale* (SUS) (n ≥ 20), telaah pakar (*expert review*) oleh ahli gizi klinis terhadap keluaran LLM, serta resolusi cacat sistem. | Tabel hasil uji kotak-hitam (Tabel 4.5–4.8, 4.14), data metrik latensi, skor SUS, rekap validasi pakar, dan katalog perbaikan cacat (Tabel 4.9) |
+| **6. Komunikasi**<br/>(*Communication*) | Mendiseminasikan prinsip desain, struktur artifak, kebaruan, dan efektivitas hasil penelitian kepada akademisi dan praktisi kesehatan/komputer melalui laporan akademik dan publikasi ilmiah. | Naskah Skripsi lengkap Bab I–V, draf artikel ilmiah target jurnal nasional terakreditasi SINTA 2 (*Atlas_Food_Spesifikasi_Sistem_Jurnal.md*), dan repositori publik kode sumber |
 
 ## 3.2 Populasi dan Sampel
 
@@ -487,7 +495,7 @@ Populasi penelitian dibagi menjadi tiga kelompok sesuai peran dalam sistem:
 
 | Kelompok | Jumlah minimal | Dasar penentuan |
 |---|---|---|
-| Responden survei (UAT) | 20 orang | Ambang lazim agar skor SUS stabil; Sauro & Lewis merekomendasikan n ≥ 20 untuk estimasi rerata yang memadai |
+| Responden survei (UAT) | 20 orang | Tullis & Stetson (2004) menemukan bahwa sedikitnya 12–14 responden diperlukan agar hasil kuesioner kebergunaan cukup andal; pada n = 12, SUS menghasilkan kesimpulan yang sama dengan seluruh data pada ≥ 90% sub-sampel. n = 20 melampaui ambang tersebut |
 | Pendamping/enumerator | 5 orang | Pengujian fitur kolaborasi memerlukan minimal 2 peserta per sesi; 5 memungkinkan variasi kombinasi peran |
 | Administrator | 3 orang | Cukup untuk menguji seluruh modul CRUD dan CMS anotasi |
 | Ahli gizi (penilai keluaran AI) | 2–3 orang | Memungkinkan perhitungan kesepakatan antar-penilai |
@@ -534,20 +542,20 @@ Kriteria eksklusi: peserta yang tidak menyelesaikan seluruh rangkaian tugas peng
 | Layanan eksternal | Groq API | Model bawaan `llama-3.3-70b-versatile` (dapat dikonfigurasi) | Pembangkitan rekomendasi gizi |
 | Pemantauan & penyebaran | Docker Compose, Prometheus, Grafana | — | Penyebaran layanan dan pemantauan metrik |
 | Perkakas | Visual Studio Code, Git, Postman | — | Pengodean, versi, uji API |
-| Bahan | Tabel komposisi pangan | Tabel Komposisi Pangan Indonesia (TKPI) 2020, Kemenkes RI (sementara) | Sumber nilai zat gizi acuan (energi, protein, lemak, karbohidrat per 100 g BDD) |
+| Bahan | Tabel komposisi pangan | Tabel Komposisi Pangan Indonesia (TKPI) 2020 (Kementerian Kesehatan Republik Indonesia, 2020) (sementara) | Sumber nilai zat gizi acuan (energi, protein, lemak, karbohidrat per 100 g BDD) |
 | | Foto porsi *as served* (tipe `series` & `range`) | Terinspirasi Atlas Makananku (BRIN × UPI) | Estimasi porsi visual |
 | | Instrumen SUS | Brooke (1996), 10 butir | Pengukuran kebergunaan |
 
 ## 3.4 Metode Pengumpulan Data
 
-| Teknik | Sumber | Data yang diperoleh | Tahap |
+| Teknik | Sumber | Data yang diperoleh | Tahap DSRM |
 |---|---|---|---|
-| Studi literatur | Artikel jurnal, dokumentasi resmi, RFC | Landasan teori, celah penelitian, praktik baku | 1 |
-| Analisis sistem sejenis | ASA24, Intake24, myfood24 (berdasarkan publikasi) | Perbandingan fitur (Tabel 2.1) | 1 |
-| Observasi & pengujian mandiri | Sistem yang dibangun | Hasil uji kotak-hitam, temuan cacat | 4 |
-| Instrumentasi perangkat lunak | *Log* aplikasi, tabel `ai_result_logs`, `/collab/stats` | Latensi, jumlah token, *throughput* | 4 |
-| Kuesioner | Responden & pendamping | Skor SUS, umpan balik kualitatif | 4 |
-| Penilaian pakar | Ahli gizi | Kelayakan klinis keluaran LLM | 4 |
+| Studi literatur | Artikel jurnal, dokumentasi resmi, RFC | Landasan teori, celah penelitian, praktik baku | 1 (Identifikasi Masalah) |
+| Analisis sistem sejenis | ASA24, Intake24, myfood24 (berdasarkan publikasi) | Perbandingan fitur (Tabel 2.1) | 1 & 2 (Tujuan Solusi) |
+| Observasi & pengujian mandiri | Sistem yang dibangun | Hasil uji kotak-hitam, penelusuran skenario, temuan cacat | 4 & 5 (Demonstrasi & Evaluasi) |
+| Instrumentasi perangkat lunak | *Log* aplikasi, tabel `ai_result_logs`, `/collab/stats` | Latensi, jumlah token, *throughput* | 5 (Evaluasi) |
+| Kuesioner | Responden & pendamping | Skor SUS, umpan balik kualitatif | 5 (Evaluasi) |
+| Penilaian pakar | Ahli gizi | Kelayakan klinis keluaran LLM | 5 (Evaluasi) |
 
 Catatan metodologis: sebagian data kinerja **tidak memerlukan instrumentasi tambahan** karena sistem sudah merekamnya secara rutin — tabel `ai_result_logs` menyimpan `model_used`, `token_used`, dan `latency_ms` untuk setiap analisis yang benar-benar dijalankan, sehingga evaluasi dapat dilakukan terhadap keluaran yang sungguh diterima responden.
 
@@ -638,7 +646,7 @@ Catatan metodologis: sebagian data kinerja **tidak memerlukan instrumentasi tamb
 | NF-08 | Keamanan | Seluruh *endpoint* selain publik memerlukan autentikasi | 401 untuk permintaan tanpa token |
 | NF-09 | Keamanan | Peran *viewer* tidak dapat mengubah data melalui jalur mana pun | Ditolak pada tiga lapis |
 | NF-10 | Keamanan | Peran tidak dapat dinaikkan melalui navigasi ulang tanpa parameter undangan | Peran diingat server per pengguna |
-| NF-11 | Kebergunaan | Sistem memperoleh skor SUS kategori *acceptable* | Skor ≥ 68 `[⚠ VERIFIKASI]` |
+| NF-11 | Kebergunaan | Sistem memperoleh skor SUS kategori *acceptable* | Skor ≥ 68 (rerata acuan SUS; Hyzy et al., 2022) |
 | NF-12 | Kebergunaan | Antarmuka dapat digunakan pada layar telepon pintar | Tidak ada gulir horizontal pada lebar 360 px |
 | NF-13 | Aksesibilitas | Kontrol yang dinonaktifkan tetap terbaca pembaca layar sebagai nonaktif | Atribut `aria-disabled`/`inert` terpasang |
 | NF-14 | Pemeliharaan | Kode terorganisasi per domain bisnis | Tidak ada ketergantungan melingkar antar domain |
@@ -1245,6 +1253,8 @@ Perhitungan skor:
 | = 68 | C — Okay (batas) | Marginal |
 | 51–67,9 | D — Poor | Marginal |
 | < 51 | F — Awful | Not acceptable |
+
+Nilai 68 dipakai sebagai batas karena merupakan rerata acuan SUS (SB 12,5). Meta-analisis atas 117 skor SUS dari 114 aplikasi kesehatan digital menyimpulkan bahwa acuan tersebut tetap sesuai untuk menilai aplikasi kesehatan digital (Hyzy et al., 2022). `[⚠ CANTUMKAN sumber pembagian predikat A–F pada Tabel 3.9 sesuai rujukan yang dipakai kampus/pembimbing — tabel ini belum bersitasi]`
 
 Instrumen SUS versi bahasa Indonesia yang digunakan dilampirkan pada Lampiran B.
 
@@ -1935,10 +1945,10 @@ Keputusan menggolongkan pesan kanvas sebagai pesan yang digerbangi peran patut d
 | Pengiriman saat luring | Tidak didokumentasikan | Tidak didokumentasikan | Tidak didokumentasikan | **Ada** (antrean + idempotensi) |
 | Cakupan zat gizi | Luas (puluhan zat gizi) | Luas | Luas | **Empat makronutrien** |
 | Ukuran basis data pangan | Besar, nasional | Besar, nasional | Besar, termasuk produk bermerek | **Terbatas** `[⚠ ISI jumlah makanan pada basis data saat pengujian]` |
-| Validasi terhadap standar emas | Ya | Ya (*doubly labelled water*) | Ya `[⚠ VERIFIKASI]` | **Belum** (di luar cakupan) |
+| Validasi terhadap standar emas | Ya | Ya (*doubly labelled water*) | Ya (biomarker urin, versi Jerman; Koch et al., 2021) | **Belum** (di luar cakupan) |
 | Skala penggunaan | Nasional (AS) | Nasional (Britania Raya) | Riset & pendidikan (Britania Raya) | **Prototipe** |
 
-Isi kolom sistem pembanding bersumber dari publikasi rujukan pada Subbab 2.2, bukan dari pengujian langsung; sel bertanda `[⚠ VERIFIKASI]` dan seluruh kolom myfood24 perlu dicocokkan dengan sumber aslinya sebelum diserahkan.
+Isi kolom sistem pembanding bersumber dari publikasi rujukan pada Subbab 2.2, bukan dari pengujian langsung; kolom myfood24 telah dicocokkan dengan Carter et al. (2015) dan Koch et al. (2021).
 
 Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dimensi kolaborasi, umpan balik, dan ketahanan terhadap koneksi buruk, namun **tertinggal jauh** pada cakupan zat gizi dan ukuran basis data pangan, **belum tervalidasi secara gizi**, dan belum diuji pada skala nasional seperti ketiga sistem pembanding. Klaim penelitian ini terbatas pada ranah rekayasa perangkat lunak, bukan pada ranah validitas pengukuran asupan.
 
@@ -1992,51 +2002,90 @@ Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dime
 
 # DAFTAR PUSTAKA
 
-> **Catatan format:** daftar berikut menggunakan gaya APA edisi ke-7. **Sesuaikan dengan pedoman institusimu** (banyak kampus mewajibkan IEEE atau gaya selingkung sendiri). Seluruh sumber di bawah ini nyata dan dapat diverifikasi melalui tautan yang disertakan; **verifikasi ulang** halaman, volume, dan nomor terbitan sebelum diserahkan, dan **lengkapi** entri bertanda `[⚠]`.
+> **Catatan format:** daftar berikut menggunakan gaya APA edisi ke-7. **Sesuaikan dengan pedoman institusimu** (banyak kampus mewajibkan IEEE atau gaya selingkung sendiri). Per 14 Oktober 2026 seluruh entri berpengenal DOI telah dicocokkan dengan Crossref (penulis, judul, jurnal, volume, nomor, halaman), dan klaim yang dikutip di teks telah dicocokkan dengan abstrak atau teks lengkap publikasinya. Dari 39 rujukan, 24 terbit tahun 2020 atau sesudahnya; rujukan yang lebih lama dipertahankan karena merupakan sumber primer teori, metode, atau standar yang dipakai (SUS, DSRM, *workspace awareness*, CRDT, WebSocket, gamifikasi, dan validasi sistem pembanding).
 
-Badan Kebijakan Pembangunan Kesehatan, Kementerian Kesehatan Republik Indonesia. (2023). *Survei Kesehatan Indonesia (SKI) 2023: Hasil utama*. Jakarta: Kemenkes RI. https://www.badankebijakan.kemkes.go.id/hasil-ski-2023/
+Amoutzopoulos, B., Page, P., Roberts, C., Roe, M., Cade, J., Steer, T., Baker, R., Hawes, T., Galloway, C., Yu, D., & Almiron-Roig, E. (2020). Portion size estimation in dietary assessment: A systematic review of existing tools, their strengths and limitations. *Nutrition Reviews, 78*(11), 885–900. https://doi.org/10.1093/nutrit/nuz107
+
+Badan Kebijakan Pembangunan Kesehatan, Kementerian Kesehatan Republik Indonesia. (2023). *Survei Kesehatan Indonesia (SKI) 2023: Hasil utama*. Kementerian Kesehatan Republik Indonesia. https://www.badankebijakan.kemkes.go.id/hasil-ski-2023/
+
+Bhagtani, D., Amoutzopoulos, B., Steer, T., Collins, D., Abraham, S., Holmes, B. A., Rai, B. K., Pradeepa, R., Mahmood, S., Shamim, A. A., Mathur, P., Athauda, L., De Silva, L., Khawaja, K. I., Jha, V., Kasturiratne, A., Katulanda, P., Mridha, M. K., Anjana, R. M., . . . Forouhi, N. G. (2025). The adaptation, implementation, and performance evaluation of Intake24, a digital 24-h dietary recall tool for South Asian populations: The South Asia Biobank. *Current Developments in Nutrition, 9*(2), 104543. https://doi.org/10.1016/j.cdnut.2025.104543
 
 Bradley, J., Simpson, E., Poliakov, I., Matthews, J. N. S., Olivier, P., Adamson, A. J., & Foster, E. (2016). Comparison of INTAKE24 (an online 24-h dietary recall tool) with interviewer-led 24-h recall in 11–24 year-old. *Nutrients, 8*(6), 358. https://doi.org/10.3390/nu8060358
 
-Bradley, J., Simpson, E., Poliakov, I., Matthews, J. N. S., Olivier, P., Adamson, A. J., & Foster, E. (2018). Field testing of the use of Intake24—An online 24-hour dietary recall system. *Nutrients, 10*(11), 1690. https://doi.org/10.3390/nu10111690 — https://pmc.ncbi.nlm.nih.gov/articles/PMC6266941/
+Brooke, J. (1996). SUS: A "quick and dirty" usability scale. In P. W. Jordan, B. Thomas, B. A. Weerdmeester, & I. L. McClelland (Eds.), *Usability evaluation in industry* (pp. 189–194). Taylor & Francis.
 
-Brooke, J. (1996). SUS: A "quick and dirty" usability scale. In P. W. Jordan, B. Thomas, B. A. Weerdmeester, & I. L. McClelland (Eds.), *Usability evaluation in industry* (pp. 189–194). London: Taylor & Francis.
+Cáceres, M., Murphy, D., Liebel, C., Giuca, M., Kostiainen, A., Gustafson, A., Lamouri, M., Dolin, R., Christiansen, K. R., & González, D. (Eds.). (2026). *Web application manifest* (W3C Working Draft). World Wide Web Consortium. Diakses 14 Oktober 2026, dari https://www.w3.org/TR/appmanifest/
 
-Deterding, S., Dixon, D., Khaled, R., & Nacke, L. (2011). From game design elements to gamefulness: defining "gamification". In *Proceedings of the 15th International Academic MindTrek Conference: Envisioning Future Media Environments* (pp. 9–15). ACM. https://doi.org/10.1145/2181037.2181040
+Carter, M. C., Albar, S. A., Morris, M. A., Mulla, U. Z., Hancock, N., Evans, C. E., Alwan, N. A., Greenwood, D. C., Hardie, L. J., Frost, G. S., Wark, P. A., & Cade, J. E. (2015). Development of a UK online 24-h dietary assessment tool: myfood24. *Nutrients, 7*(6), 4016–4032. https://doi.org/10.3390/nu7064016
 
-Fette, I., & Melnikov, A. (2011). *The WebSocket Protocol* (RFC 6455). Internet Engineering Task Force. https://www.rfc-editor.org/rfc/rfc6455
+Chintala, M., & Yanagisawa, Y. (Eds.). (2026). *Service workers nightly* (W3C Candidate Recommendation Draft). World Wide Web Consortium. Diakses 14 Oktober 2026, dari https://www.w3.org/TR/service-workers/
 
-Foster, E., Lee, C., Imamura, F., Hollidge, S. E., Westgate, K. L., Venables, M. C., Poliakov, I., Rowland, M. K., Osadchiy, T., Bradley, J. C., Simpson, E. L., Adamson, A. J., Olivier, P., Wareham, N., Forouhi, N. G., & Brage, S. (2019). Validity and reliability of an online self-report 24-h dietary recall method (Intake24): A doubly labelled water study and repeated-measures analysis. *Journal of Nutritional Science, 8*, e29. https://doi.org/10.1017/jns.2019.20 — https://pmc.ncbi.nlm.nih.gov/articles/PMC6722486/
+Dalakleidi, K. V., Papadelli, M., Kapolos, I., & Papadimitriou, K. (2022). Applying image-based food-recognition systems on dietary assessment: A systematic review. *Advances in Nutrition, 13*(6), 2590–2619. https://doi.org/10.1093/advances/nmac078
+
+Deterding, S., Dixon, D., Khaled, R., & Nacke, L. (2011). From game design elements to gamefulness: Defining "gamification". In *Proceedings of the 15th International Academic MindTrek Conference: Envisioning Future Media Environments* (pp. 9–15). ACM. https://doi.org/10.1145/2181037.2181040
+
+Fauzan, R., Krisnahati, I., Nurwibowo, B. D., & Wibowo, D. A. (2022). A systematic literature review on progressive web application practice and challenges. *IPTEK The Journal for Technology and Science, 33*(1), 43–58. https://doi.org/10.12962/j20882033.v33i1.13904
+
+Fette, I., & Melnikov, A. (2011). *The WebSocket protocol* (RFC 6455). Internet Engineering Task Force. https://doi.org/10.17487/RFC6455
+
+Fielding, R., Nottingham, M., & Reschke, J. (Eds.). (2022). *HTTP semantics* (RFC 9110). Internet Engineering Task Force. https://doi.org/10.17487/RFC9110
+
+Follong, B., Haliburton, C., Mackay, S., Maiquez, M., Grey, J., & Ni Mhurchu, C. (2024). Evaluating user experiences and preferred features of a web-based 24-hour dietary assessment tool: Usability study. *JMIR Formative Research, 8*, e63823. https://doi.org/10.2196/63823
+
+Foster, E., Lee, C., Imamura, F., Hollidge, S. E., Westgate, K. L., Venables, M. C., Poliakov, I., Rowland, M. K., Osadchiy, T., Bradley, J. C., Simpson, E. L., Adamson, A. J., Olivier, P., Wareham, N., Forouhi, N. G., & Brage, S. (2019). Validity and reliability of an online self-report 24-h dietary recall method (Intake24): A doubly labelled water study and repeated-measures analysis. *Journal of Nutritional Science, 8*, e29. https://doi.org/10.1017/jns.2019.20
+
+Fridolfsson, J., Sjöberg, E., Thiwång, M., & Pettersson, S. (2025). Performance evaluation of 3 large language models for nutritional content estimation from food images. *Current Developments in Nutrition, 9*(10), 107556. https://doi.org/10.1016/j.cdnut.2025.107556
 
 Gutwin, C., & Greenberg, S. (2002). A descriptive framework of workspace awareness for real-time groupware. *Computer Supported Cooperative Work (CSCW), 11*(3–4), 411–446. https://doi.org/10.1023/A:1021271517844
 
-National Cancer Institute. (2012). *ASA24® Dietary Assessment Tool*. Epidemiology and Genomics Research Program, National Cancer Institute. https://epi.grants.cancer.gov/asa24/
+Hyzy, M., Bond, R., Mulvenna, M., Bai, L., Dix, A., Leigh, S., & Hunt, S. (2022). System Usability Scale benchmarking for digital health apps: Meta-analysis. *JMIR mHealth and uHealth, 10*(8), e37290. https://doi.org/10.2196/37290
+
+Kementerian Kesehatan Republik Indonesia. (2020). *Tabel komposisi pangan Indonesia (TKPI) 2020*. Direktorat Gizi Masyarakat, Direktorat Jenderal Kesehatan Masyarakat, Kementerian Kesehatan Republik Indonesia.
+
+Koch, S. A. J., Conrad, J., Cade, J. E., Weinhold, L., Alexy, U., & Nöthlings, U. (2021). Validation of the web-based self-administered 24-h dietary recall myfood24-Germany: Comparison with a weighed dietary record and biomarkers. *European Journal of Nutrition, 60*(7), 4069–4082. https://doi.org/10.1007/s00394-021-02547-7
+
+Laddad, S., Power, C., Milano, M., Cheung, A., Crooks, N., & Hellerstein, J. M. (2022). Keep CALM and CRDT on. *Proceedings of the VLDB Endowment, 16*(4), 856–863. https://doi.org/10.14778/3574245.3574268
+
+Mazeas, A., Duclos, M., Pereira, B., & Chalabaev, A. (2022). Evaluating the effectiveness of gamification on physical activity: Systematic review and meta-analysis of randomized controlled trials. *Journal of Medical Internet Research, 24*(1), e26779. https://doi.org/10.2196/26779
+
+Moshfegh, A. J., Rhodes, D. G., Baer, D. J., Murayi, T., Clemens, J. C., Rumpler, W. V., Paul, D. R., Sebastian, R. S., Kuczynski, K. J., Ingwersen, L. A., Staples, R. C., & Cleveland, L. E. (2008). The US Department of Agriculture Automated Multiple-Pass Method reduces bias in the collection of energy intakes. *The American Journal of Clinical Nutrition, 88*(2), 324–332. https://doi.org/10.1093/ajcn/88.2.324
+
+Murai, U., Tajima, R., Matsumoto, M., Sato, Y., Horie, S., Fujiwara, A., Koshida, E., Okada, E., Sumikura, T., Yokoyama, T., Ishikawa, M., Kurotani, K., & Takimoto, H. (2023). Validation of dietary intake estimated by web-based dietary assessment methods and usability using dietary records or 24-h dietary recalls: A scoping review. *Nutrients, 15*(8), 1816. https://doi.org/10.3390/nu15081816
+
+Nakadate, M., Kobayashi, S., Ishihara, J., Takachi, R., Sugawara, S., Hoshina, Y., Kito, K., Kotemori, A., Maruya, S., Suzuki, A., Obara, T., Ishikuro, M., Ueno, F., Noda, A., Aizawa, M., Takahashi, I., Yonezawa, Y., Yamashita, T., Suzuki, S., . . . Kuriyama, S. (2024). Validity of a web-based 24-hour dietary recall of energy and nutrient intakes in Japanese adults. *Nutrients, 16*(23), 4140. https://doi.org/10.3390/nu16234140
+
+National Cancer Institute. (2012). *ASA24® dietary assessment tool*. Epidemiology and Genomics Research Program, National Cancer Institute. https://epi.grants.cancer.gov/asa24/
+
+O'Hara, C., Kent, G., Flynn, A. C., Gibney, E. R., & Timon, C. M. (2025). An evaluation of ChatGPT for nutrient content estimation from meal photographs. *Nutrients, 17*(4), 607. https://doi.org/10.3390/nu17040607
+
+Peffers, K., Tuunanen, T., Rothenberger, M. A., & Chatterjee, S. (2007). A design science research methodology for information systems research. *Journal of Management Information Systems, 24*(3), 45–77. https://doi.org/10.2753/MIS0742-1222240302
+
+Pigat, S., Soshina, M., Berezhnaya, Y., & Kryzhanovskaya, E. (2023). Web-based 24-hour dietary recall tool for Russian adults and school-aged children: Validation study. *JMIR Formative Research, 7*, e41774. https://doi.org/10.2196/41774
+
+Rowland, M. K., Adamson, A. J., Poliakov, I., Bradley, J., Simpson, E., Olivier, P., & Foster, E. (2018). Field testing of the use of Intake24—An online 24-hour dietary recall system. *Nutrients, 10*(11), 1690. https://doi.org/10.3390/nu10111690
 
 Ryan, R. M., & Deci, E. L. (2000). Self-determination theory and the facilitation of intrinsic motivation, social development, and well-being. *American Psychologist, 55*(1), 68–78. https://doi.org/10.1037/0003-066X.55.1.68
 
-Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free replicated data types. In *Stabilization, Safety, and Security of Distributed Systems (SSS 2011)*, Lecture Notes in Computer Science, vol. 6976 (pp. 386–400). Springer. https://doi.org/10.1007/978-3-642-24550-3_29 — https://www.lip6.fr/Marc.Shapiro/papers/2011/CRDTs_SSS-2011.pdf
+Ryan, R. M., & Deci, E. L. (2020). Intrinsic and extrinsic motivation from a self-determination theory perspective: Definitions, theory, practices, and future directions. *Contemporary Educational Psychology, 61*, 101860. https://doi.org/10.1016/j.cedpsych.2020.101860
 
-`[⚠ LENGKAPI]` Penulis, A. B., dkk. (2025). Performance evaluation of 3 large language models for nutritional content estimation from food images. *The American Journal of Clinical Nutrition*. https://pubmed.ncbi.nlm.nih.gov/41081011/ — **verifikasi nama penulis, volume, nomor, dan halaman melalui tautan tersebut.**
+Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free replicated data types. In X. Défago, F. Petit, & V. Villain (Eds.), *Stabilization, Safety, and Security of Distributed Systems (SSS 2011)* (Lecture Notes in Computer Science, Vol. 6976, pp. 386–400). Springer. https://doi.org/10.1007/978-3-642-24550-3_29
 
-`[⚠ VERIFIKASI — rujukan pembanding, ditulis dari ingatan penyusun draf; cocokkan penulis, volume, halaman, dan DOI pada sumber aslinya sebelum dipakai]` Carter, M. C., Albar, S. A., Morris, M. A., Mulla, U. Z., Hancock, N., Evans, C. E., Alwan, N. A., Greenwood, D. C., Hardie, L. J., Frost, G. S., Wark, P. A., & Cade, J. E. (2015). Development of a UK online 24-h dietary assessment tool: myfood24. *Nutrients, 7*(6), 4016–4032. https://doi.org/10.3390/nu7064016
+Singhal, K., Azizi, S., Tu, T., Mahdavi, S. S., Wei, J., Chung, H. W., Scales, N., Tanwani, A., Cole-Lewis, H., Pfohl, S., Payne, P., Seneviratne, M., Gamble, P., Kelly, C., Babiker, A., Schärli, N., Chowdhery, A., Mansfield, P., Demner-Fushman, D., . . . Natarajan, V. (2023). Large language models encode clinical knowledge. *Nature, 620*(7972), 172–180. https://doi.org/10.1038/s41586-023-06291-2
 
-`[⚠ VERIFIKASI — sda.]` Moshfegh, A. J., Rhodes, D. G., Baer, D. J., Murayi, T., Clemens, J. C., Rumpler, W. V., Paul, D. R., Sebastian, R. S., Kuczynski, K. J., Ingwersen, L. A., Staples, R. C., & Cleveland, L. E. (2008). The US Department of Agriculture Automated Multiple-Pass Method reduces bias in the collection of energy intakes. *The American Journal of Clinical Nutrition, 88*(2), 324–332. https://doi.org/10.1093/ajcn/88.2.324
+Subar, A. F., Kirkpatrick, S. I., Mittl, B., Zimmerman, T. P., Thompson, F. E., Bingley, C., Willis, G., Islam, N. G., Baranowski, T., McNutt, S., & Potischman, N. (2012). The Automated Self-Administered 24-hour dietary recall (ASA24): A resource for researchers, clinicians, and educators from the National Cancer Institute. *Journal of the Academy of Nutrition and Dietetics, 112*(8), 1134–1137. https://doi.org/10.1016/j.jand.2012.04.016
 
-`[⚠ VERIFIKASI — sda.]` Subar, A. F., Kirkpatrick, S. I., Mittl, B., Zimmerman, T. P., Thompson, F. E., Bingley, C., Willis, G., Islam, N. G., Baranowski, T., McNutt, S., & Potischman, N. (2012). The Automated Self-Administered 24-hour dietary recall (ASA24): A resource for researchers, clinicians, and educators from the National Cancer Institute. *Journal of the Academy of Nutrition and Dietetics, 112*(8), 1134–1137. https://doi.org/10.1016/j.jand.2012.04.016
+Thirunavukarasu, A. J., Ting, D. S. J., Elangovan, K., Gutierrez, L., Tan, T. F., & Ting, D. S. W. (2023). Large language models in medicine. *Nature Medicine, 29*(8), 1930–1940. https://doi.org/10.1038/s41591-023-02448-8
 
-`[⚠ TAMBAHKAN]` Rujukan mengenai *Progressive Web App*, *service worker*, dan arsitektur *offline-first* untuk Subbab 2.10 (mis. spesifikasi W3C *Service Workers* dan *Web App Manifest*), serta rujukan mengenai idempotensi pada sistem terdistribusi.
+Tullis, T. S., & Stetson, J. N. (2004, Juni). *A comparison of questionnaires for assessing website usability* [Makalah presentasi]. Usability Professionals Association (UPA) 2004 Conference, Minneapolis, MN, Amerika Serikat. https://web.archive.org/web/20050310050235/http://home.comcast.net/~tomtullis/publications/UPA2004TullisStetson.pdf
 
-`[⚠ TAMBAHKAN]` Rujukan berbahasa Indonesia mengenai penerapan R24J di Indonesia (jurnal gizi nasional).
+vom Brocke, J., Hevner, A., & Maedche, A. (2020). Introduction to design science research. In J. vom Brocke, A. Hevner, & A. Maedche (Eds.), *Design science research. Cases* (pp. 1–13). Springer. https://doi.org/10.1007/978-3-030-46781-4_1
 
-Kementerian Kesehatan Republik Indonesia. (2020). *Tabel Komposisi Pangan Indonesia (TKPI) 2020*. Direktorat Gizi Masyarakat, Direktorat Jenderal Kesehatan Masyarakat, Kementerian Kesehatan Republik Indonesia.
+Yang, Y., Hu, H., & Koenigstorfer, J. (2022). Effects of gamified smartphone applications on physical activity: A systematic review and meta-analysis. *American Journal of Preventive Medicine, 62*(4), 602–613. https://doi.org/10.1016/j.amepre.2021.10.005
 
-`[⚠ TAMBAHKAN]` Sauro, J., & Lewis, J. R. (2016). *Quantifying the user experience: Practical statistics for user research* (2nd ed.) — bila dipakai sebagai dasar penentuan ukuran sampel dan interpretasi SUS.
-
-`[⚠ TAMBAHKAN]` Rujukan mengenai model pengembangan Waterfall (mis. Pressman atau Sommerville) sesuai buku ajar yang dipakai kampusmu.
-
-> **Target jumlah rujukan:** sebagian besar pedoman skripsi mensyaratkan minimal 20–30 rujukan dengan sebagian besar terbit dalam 5–10 tahun terakhir. Saat ini tersedia 9 rujukan inti; **tambahkan sekitar 15 lagi**, terutama untuk landasan teori BAB II yang masih bertumpu pada sedikit sumber.
+`[⚠ TAMBAHKAN bila tersedia]` Rujukan berbahasa Indonesia mengenai penerapan R24J di Indonesia (jurnal gizi nasional terindeks SINTA). Proyek validasi Intake24 untuk populasi Indonesia (Monash University, 2022–2024) belum ditemukan publikasi hasilnya per Oktober 2026.
 
 ---
+
 
 # LAMPIRAN
 
