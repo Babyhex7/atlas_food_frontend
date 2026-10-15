@@ -284,23 +284,24 @@ Komputerisasi R24J bertujuan menghilangkan ketergantungan pada pewawancara sekal
 
 | Aspek | ASA24 | Intake24 | myfood24 | Atlas Food (penelitian ini) |
 |---|---|---|---|---|
-| Pengembang | National Cancer Institute (AS) | Newcastle University (Britania Raya) | University of Leeds (Britania Raya) | Penelitian ini |
-| Mode pengisian | Mandiri | Mandiri | Mandiri | Mandiri **atau** berpendamping real-time |
+| Pengembang | National Cancer Institute (AS) | Newcastle Univ. / Cambridge Univ. (Britania Raya) | University of Leeds / Dietary Assessment Ltd | Penelitian ini |
+| Arsitektur *Backend* | Terpusat terkelola NCI (Java/.NET, basis data FNDDS) | Layanan API *open-source* (Scala/Play Framework, Kotlin, PostgreSQL) | *Cloud SaaS* terkelola komersial (API berbasis web, McCance & Widdowson) | Layanan modular Go (Gin) + *hub* WebSocket *in-memory* + MySQL (TKPI 2020) |
+| Mode pengisian | Mandiri penuh | Mandiri penuh (atau wawancara tatap muka) | Mandiri penuh (fitur *take control* ambil alih layar) | Mandiri **atau** berpendamping *real-time* |
 | Alur wawancara | Lintasan berganda (adaptasi AMPM) | Lintasan berganda otomatis | Pencarian dan pencatatan per waktu makan | *Wizard* enam langkah yang memetakan lintasan berganda |
-| Estimasi porsi | Foto & ukuran rumah tangga | > 3.000 foto porsi | Foto porsi & ukuran kemasan | Foto *as served* tipe `series`/`range` + berat manual |
+| Estimasi porsi | Foto deret & ukuran rumah tangga | > 3.000 foto porsi (*as served* & *guide images*) | Foto porsi & ukuran kemasan | Foto *as served* tipe `series`, `range`, `guide` + berat manual |
 | Pengodean gizi | Otomatis | Otomatis | Otomatis | Otomatis (tabel komposisi internal, dihitung ulang di server) |
-| Kolaborasi real-time | Tidak ada | Tidak ada | Tidak ada | **Ada** (kehadiran, kursor, mode ikut, langkah) |
+| Kolaborasi *real-time* | Tidak ada | Tidak ada | Tidak ada | **Ada** (kehadiran, kursor, mode ikut, langkah) |
 | Penunjuk visual bersama pada foto porsi | Tidak ada | Tidak ada | Tidak ada | **Ada** (kanvas langsung: coretan, bentuk, laser) |
 | Kontrol peran sesi | — | — | — | **Ada** (*owner*/*editor*/*viewer*, tiga lapis) |
 | Umpan balik ke responden | Terbatas | Terbatas | Ringkasan gizi | Rekomendasi berbasis LLM berkendala skema |
-| Asisten AI per langkah (*chat sidebar*) | Tidak ada | Tidak ada | Tidak ada | **Ada** (konsultan URT → porsi foto, chip 1-klik, stateless) |
+| Asisten AI per langkah (*chat sidebar*) | Tidak ada | Tidak ada | Tidak ada | **Ada** (konsultan URT → porsi foto, *chip* 1-klik, *stateless*) |
 | Gamifikasi & papan peringkat (*leaderboard*) | Tidak ada | Tidak ada | Tidak ada | **Ada** (XP waktu makan, *daily streak*, *leaderboard* survei) |
-| CMS anotasi foto | Tidak dipublikasikan | Tidak dipublikasikan | Tidak dipublikasikan | **Ada** (poligon, draft→published) |
-| Katalog porsi interaktif di luar alur survei | Tidak ada | Tidak ada | Tidak ada | **Ada** (*Find Your Food*; API publik tanpa token) |
-| Pengiriman saat luring | Tidak didokumentasikan | Tidak didokumentasikan | Tidak didokumentasikan | **Ada** (antrean IndexedDB + sinkronisasi idempoten) |
+| CMS anotasi foto | Dikelola internal NCI; portal peneliti tanpa editor foto | **Ada** (*Admin Tool: Image Maps & Guide Images Editor* berbasis poligon vektor) | Portal peneliti untuk pangan kustom; foto dikurasi internal | **Ada** (*Food Annotation CMS* mandiri berbasis web, poligon SVG, alur *draft*→*published*) |
+| Katalog porsi interaktif publik di luar survei | Tidak ada | Tidak ada | Tidak ada | **Ada** (*Find Your Food*; *endpoint* publik tanpa token) |
+| Pengiriman saat luring (*offline*) | **Tidak didukung** (*strictly online-only*; NCI, 2012) | Antarmuka web PWA terkini mendukung *cache* aset; sinkronisasi luring terbatas | Berbasis web/aplikasi *online-only* | **Ada** (*offline-first* PWA, antrean IndexedDB + sinkronisasi idempoten) |
 | Basis pangan | Amerika Serikat (FNDDS) | Britania Raya (McCance & Widdowson) | Britania Raya (McCance & Widdowson) | Indonesia (TKPI 2020, Kemenkes RI — sementara) |
 
-Keterangan "tidak ada" dan "tidak didokumentasikan" merujuk pada apa yang dilaporkan dalam publikasi rujukan, bukan hasil pengujian langsung terhadap sistem pembanding. Perbedaan pada baris **kolaborasi real-time**, **kontrol peran sesi**, **asisten AI per langkah**, serta **gamifikasi & leaderboard** itulah yang menjadi pembeda utama dan kebaruan penelitian ini; baris lain yang bercetak tebal merupakan fitur pendukung.
+Hasil perbandingan di atas disusun berdasarkan dokumentasi teknis resmi, repositori publik, serta publikasi rujukan masing-masing sistem (NCI, 2012; Bradley et al., 2016; Carter et al., 2015; MRC Epidemiology Unit, 2024). Pembeda mendasar dan kebaruan utama penelitian ini bertumpu pada **kolaborasi *real-time* berkesadaran ruang (*workspace awareness*)**, **kontrol peran sesi *fail-closed***, **asisten AI dialogis per langkah**, serta **mekanisme gamifikasi survei berulang**, yang tidak dimiliki oleh ketiga sistem mapan tersebut. Sementara itu, fitur CMS anotasi foto dan ketahanan luring PWA memperkuat aspek operasional sistem di lapangan.
 
 ## 2.3 *Computer-Supported Cooperative Work* dan *Workspace Awareness*
 
@@ -1943,22 +1944,23 @@ Keputusan menggolongkan pesan kanvas sebagai pesan yang digerbangi peran patut d
 
 | Aspek | ASA24 | Intake24 | myfood24 | Atlas Food |
 |---|---|---|---|---|
-| Pendampingan jarak jauh di dalam aplikasi | Tidak | Tidak | Tidak | **Ya** |
+| Pendampingan jarak jauh di dalam aplikasi | Tidak | Tidak | Tidak | **Ya** (kolaborasi real-time) |
 | Kontrol peran sesi | — | — | — | **Tiga lapis, *fail-closed*** |
 | Penyelarasan langkah *wizard* | — | — | — | **Ya** |
 | Penunjuk visual bersama pada foto porsi | Tidak | Tidak | Tidak | **Ya** (kanvas langsung, laser) |
 | Umpan balik ke responden | Terbatas | Terbatas | Ringkasan gizi | **Rekomendasi LLM berkendala skema** |
 | Katalog porsi di luar alur survei | Tidak ada | Tidak ada | Tidak ada | **Ada** (*Find Your Food*; API tanpa token, halaman web v1 memerlukan login) |
-| Tipe visualisasi foto porsi | Deret foto | Deret foto | Deret foto | **Dua tipe** (`series` deret foto, `range` foto panduan berarea) |
-| Pengiriman saat luring | Tidak didokumentasikan | Tidak didokumentasikan | Tidak didokumentasikan | **Ada** (antrean + idempotensi) |
+| Tipe visualisasi foto porsi | Deret foto | Deret foto & *guide images* | Deret foto & ukuran kemasan | **Tiga tipe terpadu** (`series` deret foto, `range` foto bertingkat, `guide` komposit multi-item) |
+| Pengiriman saat luring (*offline*) | **Tidak didukung** (*strictly online-only*) | PWA *caching* aset (sinkronisasi luring terbatas) | Berbasis web *online-only* | **Ada** (*offline-first* PWA, antrean IndexedDB + sinkronisasi idempoten) |
+| CMS anotasi foto | Dikelola internal NCI | Ada (*Admin Tool Image Maps*) | Terbatas (kurasi internal) | **Ada** (*Food Annotation CMS* mandiri berbasis web) |
 | Cakupan zat gizi | Luas (puluhan zat gizi) | Luas | Luas | **Empat makronutrien** |
 | Ukuran basis data pangan | Besar, nasional | Besar, nasional | Besar, termasuk produk bermerek | **Terbatas** `[⚠ ISI jumlah makanan pada basis data saat pengujian]` |
 | Validasi terhadap standar emas | Ya | Ya (*doubly labelled water*) | Ya (biomarker urin, versi Jerman; Koch et al., 2021) | **Belum** (di luar cakupan) |
 | Skala penggunaan | Nasional (AS) | Nasional (Britania Raya) | Riset & pendidikan (Britania Raya) | **Prototipe** |
 
-Isi kolom sistem pembanding bersumber dari publikasi rujukan pada Subbab 2.2, bukan dari pengujian langsung; kolom myfood24 telah dicocokkan dengan Carter et al. (2015) dan Koch et al. (2021).
+Isi kolom sistem pembanding bersumber dari dokumentasi resmi dan publikasi rujukan yang telah diverifikasi pada Subbab 2.2; kolom ASA24 merujuk pada NCI (2012), kolom Intake24 pada Bradley et al. (2016) dan repositori terbuka MRC Epidemiology Unit (2024), serta kolom myfood24 pada Carter et al. (2015) dan Koch et al. (2021).
 
-Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dimensi kolaborasi, umpan balik, dan ketahanan terhadap koneksi buruk, namun **tertinggal jauh** pada cakupan zat gizi dan ukuran basis data pangan, **belum tervalidasi secara gizi**, dan belum diuji pada skala nasional seperti ketiga sistem pembanding. Klaim penelitian ini terbatas pada ranah rekayasa perangkat lunak, bukan pada ranah validitas pengukuran asupan.
+Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dimensi kolaborasi, kontrol peran, umpan balik, dan ketahanan terhadap koneksi buruk di lapangan, namun **tertinggal jauh** pada cakupan zat gizi dan ukuran basis data pangan, **belum tervalidasi secara gizi**, dan belum diuji pada skala nasional seperti ketiga sistem pembanding. Klaim penelitian ini terbatas pada ranah rekayasa perangkat lunak, bukan pada ranah validitas pengukuran asupan.
 
 ---
 ---
