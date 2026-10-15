@@ -375,16 +375,23 @@ Pembagian ini menempatkan LLM pada ranah kekuatan utamanya (pemahaman bahasa dan
 
 Metode *as served* menyajikan serangkaian foto porsi dengan berat yang telah ditimbang; responden memilih foto yang paling menyerupai porsi yang dikonsumsinya. Metode ini menurunkan beban kognitif dibanding meminta estimasi berat secara langsung. Tinjauan sistematis atas 334 publikasi mengidentifikasi 542 alat bantu estimasi porsi — 46% di antaranya berupa alat dua dimensi seperti atlas foto — dan menyimpulkan bahwa alat berbasis gambar makanan lebih akurat daripada model makanan maupun peralatan rumah tangga (Amoutzopoulos et al., 2020). Intake24 memakai pendekatan ini dengan basis foto berskala besar yang porsinya diturunkan dari survei diet nasional (Bradley et al., 2016). Pendekatan lain yang berkembang adalah pengenalan makanan otomatis dari foto kamera ponsel melalui tahap segmentasi, klasifikasi, dan estimasi volume atau zat gizi; tinjauan sistematis atas 78 studi menemukan 58% di antaranya memakai *deep learning*, terutama *convolutional neural network* (Dalakleidi et al., 2022). Penelitian ini memilih metode *as served* yang dipandu manusia karena tidak memerlukan set data pelatihan pangan Indonesia berskala besar.
 
-Penelitian ini mengenali dua tipe aset foto porsi berdasarkan karakteristik makanan, terinspirasi dari buku Atlas Makananku (BRIN × UPI):
+Penelitian ini mengacu pada klasifikasi visual dalam buku **Atlas Makananku** (diterbitkan atas kerja sama BRIN × UPI), yang membagi visualisasi foto pangan menjadi **tiga tipe konten**:
 
-**Tabel 2.3 Tipe foto porsi `series` dan `range`**
+1. **`Series` (Foto Berseri):** Terdiri atas 4–8 foto terpisah yang disusun secara bertahap dari porsi terkecil ke terbesar dengan penimbangan berat gramatur presisi (contoh: Nasi Putih 50 g hingga 350 g, diberi kode porsi A–H). Tipe ini digunakan untuk makanan yang dapat ditakar bertingkat secara fleksibel.
+2. **`Guide` (Foto Panduan Tunggal):** Satu foto yang memuat beberapa variasi ukuran kemasan, potongan, atau jenis makanan sekaligus dalam satu bingkai (contoh: makanan/minuman kemasan pabrikan, biskuit, atau kue jajanan pasar dalam berbagai kemasan/potongan).
+3. **`Range` (Foto Rentang Alami):** Satu foto atau representasi sajian yang memperlihatkan variasi bentuk, ukuran, atau potongan alami yang tidak bertahap secara linier ketat (contoh: aneka buah utuh, potongan daging/ayam alami, atau ikan).
 
-| Tipe (`photo_type`) | Deskripsi | Perilaku antarmuka |
-|---|---|---|
-| `series` | 4–8 foto terpisah dan bertahap dari porsi kecil ke besar (contoh: Nasi 50 g → 350 g, diberi kode A–H) | Satu foto utama dengan deret *thumbnail* yang dapat digulir horizontal; klik *thumbnail* → foto menjadi tampilan utama dengan animasi transisi halus |
-| `range` | **Foto panduan** (*guide image*): satu foto yang memuat seluruh variasi ukuran sekaligus (contoh: berbagai ukuran Ayam Goreng dalam satu bingkai) | Satu foto besar dengan label kode dan berat setiap ukuran sebagai *overlay*; bila foto tersebut memiliki anotasi terbitan, area poligon tiap ukuran dapat ditampilkan/disembunyikan dan dipilih |
+Dalam implementasi arsitektur digital sistem Atlas Food, tipe `Guide` dan `Range` memiliki kesamaan karakteristik visual dan interaksi: keduanya berbasis **satu foto induk tunggal** (*single master image*) yang memuat representasi multiporsi dengan kebutuhan penandaan titik berat/label. Oleh karena itu, pada tingkat basis data dan antarmuka, perancangan disederhanakan secara elegan:
 
-Perbedaan tipe ini disimpan pada kolom `photo_type ENUM('series', 'range')` di tabel `foods`, sehingga antarmuka dapat memilih komponen visualisasi yang sesuai secara dinamis tanpa perubahan kode.
+**Tabel 2.3 Tipe foto porsi: perbandingan konsep `Atlas Makananku` dan implementasi sistem**
+
+| Tipe Konsep (*Atlas Makananku*) | Karakteristik Visual | Pemetaan di Basis Data (`photo_type` / `method_type`) | Perilaku Antarmuka Pengguna (`PortionPhotoViewer`) |
+|---|---|---|---|
+| **`Series`** | 4–8 foto terpisah bertahap dari kecil ke besar (kode porsi A–H) | `photo_type = 'series'`<br/>`method_type = 'as_served'` | Satu foto utama aktif dengan deret *thumbnail* horizontal (A–H) yang dapat digulir; klik *thumbnail* mengubah foto utama dan berat porsi dengan animasi transisi |
+| **`Guide`** | Satu foto memuat multiporsi/multikemasan dalam satu bingkai | `photo_type = 'range'`<br/>`method_type = 'guide_image'` | Satu foto hero besar dengan *overlay* pil label/kode dan berat porsi; mendukung interaksi sorot (*hover*) dan klik pada area/label item |
+| **`Range`** | Satu foto variasi ukuran/bentuk alami tidak bertahap linier | `photo_type = 'range'`<br/>`method_type = 'guide_image'` | Satu foto hero besar dengan *overlay* label variasi; mendukung penumpangan kanvas anotasi poligon terbitan (*published annotation polygon*) |
+
+Perbedaan tipe ini disimpan pada kolom `photo_type ENUM('series', 'range')` di tabel `foods` serta tabel konfigurasi porsi `food_portion_size_methods` (`method_type ∈ {'as_served', 'guide_image', 'weight'}`). Dengan arsitektur ini, antarmuka dapat memilih komponen visualisasi yang sesuai secara dinamis tanpa perlu perubahan kode program.
 
 Tantangan praktisnya adalah **pengelolaan aset**. Foto sajian majemuk (satu piring berisi nasi, lauk, dan sayur) tidak dapat dipetakan ke satu entri makanan. Penelitian ini menjawabnya dengan CMS anotasi: admin menggambar poligon area di atas foto, menautkan setiap area ke entri makanan, lalu menerbitkannya melalui siklus *draft* → *published*. Pendekatan ini memindahkan pengetahuan domain dari kode program ke basis data, sehingga penambahan aset tidak memerlukan penyebaran ulang aplikasi dan dapat dikerjakan ahli gizi non-pemrogram.
 
@@ -495,6 +502,7 @@ Populasi penelitian dibagi menjadi tiga kelompok sesuai peran dalam sistem:
 
 | Kelompok | Jumlah minimal | Dasar penentuan |
 |---|---|---|
+| Partisipan Uji Internal (*Formative Usability Walkthrough*) | 5–7 orang | Menurut Lewis & Sauro (2021) dan Alhadreti (2021), pengujian kebergunaan formatif berbasis penelusuran tugas (*task walkthrough*) dengan 5–7 partisipan sudah mencapai titik efisiensi optimal (*point of diminishing returns*) yang mampu mengungkap 80%–85% cacat interaksi antarmuka dan friksi alur pengisian sebelum evaluasi sumatif lapangan. Faulkner (2003) juga membuktikan secara empiris bahwa 5 partisipan menemukan rerata 85,5% masalah kebergunaan dan kelompok 6–7 partisipan mengidentifikasi >90% masalah kritis |
 | Responden survei (UAT) | 20 orang | Tullis & Stetson (2004) menemukan bahwa sedikitnya 12–14 responden diperlukan agar hasil kuesioner kebergunaan cukup andal; pada n = 12, SUS menghasilkan kesimpulan yang sama dengan seluruh data pada ≥ 90% sub-sampel. n = 20 melampaui ambang tersebut |
 | Pendamping/enumerator | 5 orang | Pengujian fitur kolaborasi memerlukan minimal 2 peserta per sesi; 5 memungkinkan variasi kombinasi peran |
 | Administrator | 3 orang | Cukup untuk menguji seluruh modul CRUD dan CMS anotasi |
@@ -2006,6 +2014,8 @@ Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dime
 
 Amoutzopoulos, B., Page, P., Roberts, C., Roe, M., Cade, J., Steer, T., Baker, R., Hawes, T., Galloway, C., Yu, D., & Almiron-Roig, E. (2020). Portion size estimation in dietary assessment: A systematic review of existing tools, their strengths and limitations. *Nutrition Reviews, 78*(11), 885–900. https://doi.org/10.1093/nutrit/nuz107
 
+Alhadreti, O. (2021). Assessing the usability of university websites: An empirical comparison of usability testing methods. *International Journal of Human-Computer Interaction, 37*(14), 1362–1375. https://doi.org/10.1080/10447318.2021.1898828
+
 Badan Kebijakan Pembangunan Kesehatan, Kementerian Kesehatan Republik Indonesia. (2023). *Survei Kesehatan Indonesia (SKI) 2023: Hasil utama*. Kementerian Kesehatan Republik Indonesia. https://www.badankebijakan.kemkes.go.id/hasil-ski-2023/
 
 Bhagtani, D., Amoutzopoulos, B., Steer, T., Collins, D., Abraham, S., Holmes, B. A., Rai, B. K., Pradeepa, R., Mahmood, S., Shamim, A. A., Mathur, P., Athauda, L., De Silva, L., Khawaja, K. I., Jha, V., Kasturiratne, A., Katulanda, P., Mridha, M. K., Anjana, R. M., . . . Forouhi, N. G. (2025). The adaptation, implementation, and performance evaluation of Intake24, a digital 24-h dietary recall tool for South Asian populations: The South Asia Biobank. *Current Developments in Nutrition, 9*(2), 104543. https://doi.org/10.1016/j.cdnut.2025.104543
@@ -2026,6 +2036,8 @@ Deterding, S., Dixon, D., Khaled, R., & Nacke, L. (2011). From game design eleme
 
 Fauzan, R., Krisnahati, I., Nurwibowo, B. D., & Wibowo, D. A. (2022). A systematic literature review on progressive web application practice and challenges. *IPTEK The Journal for Technology and Science, 33*(1), 43–58. https://doi.org/10.12962/j20882033.v33i1.13904
 
+Faulkner, L. (2003). Beyond the five-user assumption: Benefits of increasing sample size in usability testing. *Behavior Research Methods, Instruments, & Computers, 35*(3), 379–383. https://doi.org/10.3758/BF03195514
+
 Fette, I., & Melnikov, A. (2011). *The WebSocket protocol* (RFC 6455). Internet Engineering Task Force. https://doi.org/10.17487/RFC6455
 
 Fielding, R., Nottingham, M., & Reschke, J. (Eds.). (2022). *HTTP semantics* (RFC 9110). Internet Engineering Task Force. https://doi.org/10.17487/RFC9110
@@ -2045,6 +2057,8 @@ Kementerian Kesehatan Republik Indonesia. (2020). *Tabel komposisi pangan Indone
 Koch, S. A. J., Conrad, J., Cade, J. E., Weinhold, L., Alexy, U., & Nöthlings, U. (2021). Validation of the web-based self-administered 24-h dietary recall myfood24-Germany: Comparison with a weighed dietary record and biomarkers. *European Journal of Nutrition, 60*(7), 4069–4082. https://doi.org/10.1007/s00394-021-02547-7
 
 Laddad, S., Power, C., Milano, M., Cheung, A., Crooks, N., & Hellerstein, J. M. (2022). Keep CALM and CRDT on. *Proceedings of the VLDB Endowment, 16*(4), 856–863. https://doi.org/10.14778/3574245.3574268
+
+Lewis, J. R., & Sauro, J. (2021). Usability and user experience: Design and evaluation. In G. Salvendy & W. Karwowski (Eds.), *Handbook of Human Factors and Ergonomics* (5th ed., pp. 972–1015). John Wiley & Sons. https://doi.org/10.1002/9781119634782.ch38
 
 Mazeas, A., Duclos, M., Pereira, B., & Chalabaev, A. (2022). Evaluating the effectiveness of gamification on physical activity: Systematic review and meta-analysis of randomized controlled trials. *Journal of Medical Internet Research, 24*(1), e26779. https://doi.org/10.2196/26779
 
@@ -2077,6 +2091,8 @@ Subar, A. F., Kirkpatrick, S. I., Mittl, B., Zimmerman, T. P., Thompson, F. E., 
 Thirunavukarasu, A. J., Ting, D. S. J., Elangovan, K., Gutierrez, L., Tan, T. F., & Ting, D. S. W. (2023). Large language models in medicine. *Nature Medicine, 29*(8), 1930–1940. https://doi.org/10.1038/s41591-023-02448-8
 
 Tullis, T. S., & Stetson, J. N. (2004, Juni). *A comparison of questionnaires for assessing website usability* [Makalah presentasi]. Usability Professionals Association (UPA) 2004 Conference, Minneapolis, MN, Amerika Serikat. https://web.archive.org/web/20050310050235/http://home.comcast.net/~tomtullis/publications/UPA2004TullisStetson.pdf
+
+Venable, J., Pries-Heje, J., & Baskerville, R. (2016). FEDS: a framework for evaluation in design science research. *European Journal of Information Systems, 25*(1), 77–89. https://doi.org/10.1057/ejis.2014.36
 
 vom Brocke, J., Hevner, A., & Maedche, A. (2020). Introduction to design science research. In J. vom Brocke, A. Hevner, & A. Maedche (Eds.), *Design science research. Cases* (pp. 1–13). Springer. https://doi.org/10.1007/978-3-030-46781-4_1
 
