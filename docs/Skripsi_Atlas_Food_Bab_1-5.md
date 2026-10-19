@@ -8,10 +8,8 @@
 >
 > Dokumen ini adalah **kerangka lengkap beserta isi yang sudah terverifikasi dari kode sumber**. Bagian yang **belum dapat diisi** karena membutuhkan pengambilan data lapangan ditandai dengan blok **`[⚠ ISI SETELAH PENGUJIAN]`**. Jangan pernah mengisi bagian itu dengan angka karangan — penguji skripsi biasanya menanyakan data mentahnya.
 >
-> **Sudah terisi & terverifikasi:** BAB I, BAB II (dengan sitasi nyata), BAB III seluruhnya, BAB IV bagian implementasi + rancangjan kasus uji + temuan cacat, BAB V kerangka.
-> **Wajib kamu isi sendiri:** hasil uji kotak-hitam (kolom "Hasil"), hasil UAT/SUS, hasil uji kinerja, tangkapan layar, dan identitas (nama, NIM, pembimbing, institusi).
->
-> Perkiraan pekerjaan tersisa: 1 hari untuk menjalankan uji kotak-hitam, 1–2 minggu untuk UAT (≥ 20 responden), 1 hari untuk uji kinerja. Setelah itu dokumen ini siap jadi skripsi utuh.
+> **Sudah terisi & terverifikasi:** BAB I, BAB II (dengan sitasi nyata), BAB III seluruhnya (metodologi DSRM & spesifikasi artefak), BAB IV kerangka evaluasi & kasus uji kotak-hitam, BAB V kerangka kesimpulan.
+> **Pengujian Evaluasi Artefak:** Dilakukan secara internal terfokus bersama **5–7 orang evaluator ahli/peneliti dari Pusat Riset Kesehatan Masyarakat dan Gizi BRIN** (meliputi uji kotak-hitam, evaluasi kebergunaan SUS, pengujian kinerja real-time, dan validasi klinis rekomendasi gizi). Bagian Bab IV dan V akan diisi hasil finalnya setelah sesi evaluasi internal tersebut.
 >
 > ### 🔄 PEMBARUAN 6 Oktober 2026 — penyelarasan dengan kode
 > Draf dicocokkan ulang dengan kode `atlas_food_backend` dan `atlas_food_frontend`. Yang ditambahkan: dukungan luring/PWA (Subbab 2.10, 4.1.6, 4.7.5c, Gambar 3.11), kanvas langsung dan obrolan kursor (4.1.2, 4.7.5d), profil–autentikasi–pemantauan (4.1.7), kebutuhan F-34…F-48 dan NF-16…NF-20, kasus uji UK-69…UK-103, serta pembanding myfood24. Yang dikoreksi: versi Go, model dan parameter Groq, perilaku tipe foto `range`, rute katalog, nama berkas migrasi, pembersihan ruang, dan saran yang ternyata sudah diimplementasikan.
@@ -43,17 +41,17 @@
 
 ## ABSTRAK
 
-*Dietary recall* 24 jam (R24J) merupakan metode baku penilaian asupan gizi individu, namun kualitas datanya sangat bergantung pada pendampingan enumerator terlatih yang mahal dan terbatas secara geografis. Sistem R24J terkomputerisasi yang telah mapan bersifat mandiri penuh sehingga menghilangkan peran pendampingan tersebut. Penelitian ini merancang dan membangun Atlas Food, sistem survei R24J berbasis web yang memungkinkan pendampingan jarak jauh secara real-time tanpa mengorbankan kepemilikan data responden. Sistem dikembangkan menggunakan metode *Design Science Research Methodology* (DSRM) dengan arsitektur terpisah antara antarmuka berbasis Next.js dan layanan Go yang menyediakan REST API sekaligus *hub* WebSocket. Kontribusi teknis dan kebaruan mencakup integrasi kolaborasi real-time bergaya Figma dengan sinkronisasi langkah *wizard*, model otorisasi peran *fail-closed*, integrasi AI ganda (Asisten AI per-langkah via *chat sidebar* dan rekomendasi naratif berkendala skema), modul gamifikasi dan *leaderboard* survei, serta dukungan luring *offline-first* PWA dengan sinkronisasi idempoten. Pengujian fungsional melalui penelusuran alur *end-to-end* menemukan dan memperbaiki sebelas cacat, lima di antaranya tergolong kehilangan data senyap atau kebuntuan alur. `[⚠ ISI SETELAH PENGUJIAN: hasil uji kotak-hitam, skor SUS, dan latensi sinkronisasi]`
+*Dietary recall* 24 jam (R24J) merupakan metode baku penilaian asupan gizi individu, namun kualitas datanya sangat bergantung pada pendampingan enumerator terlatih yang mahal dan terbatas secara geografis. Sistem R24J terkomputerisasi yang telah mapan bersifat mandiri penuh sehingga menghilangkan peran pendampingan tersebut. Penelitian ini merancang dan membangun Atlas Food, sistem survei R24J berbasis web yang memungkinkan pendampingan jarak jauh secara real-time tanpa mengorbankan kepemilikan data responden. Sistem dikembangkan menggunakan pendekatan *Design Science Research Methodology* (DSRM) yang terintegrasi dengan enam sprint *Scrum*, dengan arsitektur terpisah antara antarmuka berbasis Next.js dan layanan Go yang menyediakan REST API sekaligus *hub* WebSocket. Tiga kontribusi teknis dihasilkan: (1) mekanisme sinkronisasi langkah *wizard* lintas pengguna pada aplikasi satu halaman melalui perluasan atribut `step` pada pesan *viewport*; (2) model otorisasi peran per-ruang berlapis tiga yang menegakkan peran *owner*, *editor*, dan *viewer* pada lapis antarmuka, klien, dan server secara *fail-closed*; serta (3) *pipeline* rekomendasi gizi berbasis *large language model* dengan keluaran berkendala skema, penyimpanan hasil per-*submission*, dan jejak audit model, token, serta latensi. Sebagai pendukung, sistem dilengkapi mode luring (*offline-first*) berbasis *Progressive Web App* dengan antrean IndexedDB dan sinkronisasi idempoten, serta kanvas anotasi langsung di atas foto porsi sebagai sarana penunjuk bagi pendamping. Pengujian fungsional dan evaluasi artefak dilakukan melalui penelusuran alur *end-to-end*, 83 kasus uji kotak-hitam, benchmarking latensi, dan evaluasi kebergunaan terfokus bersama 5–7 orang evaluator pakar dari Pusat Riset Kesehatan Masyarakat dan Gizi BRIN.
 
-**Kata kunci:** *dietary recall* 24 jam, kolaborasi real-time, WebSocket, *large language model*, gamifikasi, DSRM
+**Kata kunci:** *design science research*, *dietary recall* 24 jam, kolaborasi real-time, WebSocket, *large language model*, Atlas Makananku
 
 ---
 
 ## ABSTRACT
 
-The 24-hour dietary recall (24HR) is a reference method for assessing individual nutrient intake, yet its data quality depends heavily on trained enumerator assistance, which is costly and geographically constrained. Established computerised 24HR systems are fully self-administered and therefore eliminate that assistance entirely. This study designs and develops Atlas Food, a web-based 24HR survey system enabling remote real-time assistance without compromising respondent data ownership. The system was developed using the Design Science Research Methodology (DSRM) with a decoupled architecture between a Next.js interface and a Go service providing both a REST API and a WebSocket hub. Technical contributions include Figma-style real-time collaboration with wizard step synchronization, a fail-closed role authorization model, dual AI integration (step-by-step conversational assistant via chat sidebar and schema-constrained narrative recommendations), survey gamification and leaderboard modules, and offline-first PWA support with idempotent synchronization. Functional testing through end-to-end walkthrough identified and fixed eleven defects, five classified as silent data loss or flow deadlock. `[⚠ FILL AFTER TESTING]`
+The 24-hour dietary recall (24HR) is a reference method for assessing individual nutrient intake, yet its data quality depends heavily on trained enumerator assistance, which is costly and geographically constrained. Established computerised 24HR systems are fully self-administered and therefore eliminate that assistance entirely. This study designs and develops Atlas Food, a web-based 24HR survey system enabling remote real-time assistance without compromising respondent data ownership. The system was developed using the Design Science Research Methodology (DSRM) framework integrated with six Scrum sprints, adopting a decoupled architecture between a Next.js interface and a Go service providing both a REST API and a WebSocket hub. Three technical contributions are produced: (1) a cross-user wizard step synchronisation mechanism for single-page applications through an extended `step` attribute on viewport messages; (2) a three-layer per-room authorisation model enforcing owner, editor, and viewer roles at the interface, client, and server layers in a fail-closed manner; and (3) a large-language-model-based nutrition recommendation pipeline with schema-constrained output, per-submission result caching, and an audit trail of model, token, and latency. In support of these, the system provides an offline-first mode built as a Progressive Web App with an IndexedDB queue and idempotent synchronisation, and a live annotation canvas over portion photographs that serves as a pointing aid for the assistant. Functional testing and artefact evaluation are conducted through end-to-end walkthroughs, 83 black-box test cases, latency benchmarking, and usability assessment with 5–7 expert evaluators from the Research Center for Public Health and Nutrition BRIN.
 
-**Keywords:** 24-hour dietary recall, real-time collaboration, WebSocket, large language model, gamification, DSRM
+**Keywords:** design science research, 24-hour dietary recall, real-time collaboration, WebSocket, large language model, Atlas Makananku
 
 ---
 
@@ -63,7 +61,7 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 |---|---|---|
 | Tabel 2.1 | Perbandingan sistem *dietary recall* terkomputerisasi | II |
 | Tabel 2.2 | *State of the art* penelitian terdahulu | II |
-| Tabel 2.3 | Tipe foto porsi `series` dan `range` | II |
+| Tabel 2.3 | Klasifikasi tipe foto porsi pada sistem Atlas Food | II |
 | Tabel 3.1 | Alat dan bahan penelitian | III |
 | Tabel 3.2 | Kebutuhan fungsional sistem (termasuk modul katalog publik) | III |
 | Tabel 3.3 | Kebutuhan non-fungsional sistem | III |
@@ -96,7 +94,7 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 
 | No | Judul Gambar | Bab |
 |---|---|---|
-| Gambar 3.1 | Tahapan penelitian *Design Science Research Methodology* (DSRM) | III |
+| Gambar 3.1 | Alur Design Science Research Methodology (Peffers et al., 2007) | III |
 | Gambar 3.2 | Arsitektur sistem Atlas Food | III |
 | Gambar 3.3 | *Use case diagram* sistem | III |
 | Gambar 3.4 | *Activity diagram* pengisian recall | III |
@@ -247,7 +245,7 @@ Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 
 **BAB II TINJAUAN PUSTAKA** menguraikan landasan teori mengenai metode R24J, sistem R24J terkomputerisasi, *computer-supported cooperative work*, komunikasi real-time, model konsistensi data kolaboratif, kontrol akses berbasis peran, *large language model*, estimasi porsi berbasis foto, katalog pangan, aplikasi web progresif dan arsitektur *offline-first*, serta posisi penelitian ini terhadap penelitian terdahulu.
 
-**BAB III METODOLOGI PENELITIAN** memaparkan desain penelitian, populasi dan sampel, alat dan bahan, tahapan pengembangan, analisis kebutuhan, perancangan sistem, teknik pengumpulan data, teknik pengujian, dan jadwal penelitian.
+**BAB III METODOLOGI PENELITIAN** memaparkan desain penelitian DSRM, subjek evaluasi penelitian (tim internal BRIN), alat dan bahan, tahapan perancangan, analisis kebutuhan, perancangan sistem, teknik pengumpulan data, teknik pengujian, dan jadwal penelitian.
 
 **BAB IV HASIL DAN PEMBAHASAN** menyajikan hasil implementasi tiap modul, hasil pengujian kotak-hitam, temuan cacat beserta perbaikannya, hasil pengujian kinerja, hasil pengujian penerimaan pengguna, dan pembahasan yang menjawab rumusan masalah.
 
@@ -459,67 +457,55 @@ Di luar tiga kebaruan tersebut, sistem memuat dua **fitur pendukung** yang tidak
 
 ## 3.1 Desain Penelitian
 
-Penelitian ini menggunakan metodologi **Design Science Research Methodology (DSRM)** yang dirumuskan oleh Peffers et al. (2007). *Design science research* adalah paradigma penelitian yang menjawab persoalan nyata dengan merancang dan mengevaluasi artefak inovatif (vom Brocke et al., 2020). Pendekatan *design science* dipilih karena tujuan utama penelitian ini adalah menghasilkan **artifak teknologi informasi** (*IT artifact*) yang fungsional dan inovatif untuk memecahkan permasalahan nyata pada domain penilaian asupan gizi, yaitu instrumen *dietary recall* 24 jam (R24J) yang memadukan pendampingan kolaboratif real-time, kecerdasan buatan kontekstual, dan gamifikasi.
+Penelitian ini menggunakan pendekatan **Design Science Research Methodology (DSRM)** yang diperkenalkan oleh Peffers et al. (2007). DSRM dipilih karena fokus utama penelitian ini adalah merancang bangun artefak teknologi informasi (*IT artifact*) inovatif berupa sistem survei *dietary recall* 24 jam berbasis web yang memadukan kolaborasi real-time, estimasi porsi visual, dan rekomendasi gizi kecerdasan buatan. Pada tahap perancangan dan pengembangannya, proses rekayasa perangkat lunak dijalankan secara iteratif mengadopsi kerangka kerja **Scrum** (Schwaber & Sutherland, 2020) melalui enam sprint pengembangan.
 
-Metodologi DSRM menyediakan kerangka kerja terstruktur yang mengintegrasikan prinsip-prinsip rekayasa perangkat lunak dengan ketatnya evaluasi ilmiah melalui enam tahapan aktivitas yang berulang (*iterative*).
-
-**Gambar 3.1 Tahapan penelitian *Design Science Research Methodology* (DSRM) (Peffers et al., 2007)**
+**Gambar 3.1 Alur Design Science Research Methodology (Peffers et al., 2007)**
 
 ```mermaid
 flowchart TD
-    A["1. Identifikasi Masalah & Motivasi<br/><i>Problem Identification & Motivation</i><br/>Analisis bias R24J, ketergantungan enumerator, drop-off survei, & celah kolaborasi"] --> B
-    B["2. Perumusan Tujuan Solusi<br/><i>Define Objectives of a Solution</i><br/>Penetapan sasaran artifak: kebutuhan fungsional (F-01–F-52) & non-fungsional"] --> C
-    C["3. Perancangan & Pengembangan Artifak<br/><i>Design & Development</i><br/>Arsitektur Next.js–Go, WebSocket Hub, UML, ERD, AI Sidebar, Gamifikasi, & CMS"] --> D
-    D["4. Demonstrasi<br/><i>Demonstration</i><br/>Pengujian skenario interaksi: R24J 6 langkah, kolaborasi real-time, AI 1-klik, & PWA luring"] --> E
-    E["5. Evaluasi<br/><i>Evaluation</i><br/>Uji kotak-hitam (103 kasus), latensi sinkronisasi, SUS (n≥20), & telaah pakar gizi"] --> F
-    F["6. Komunikasi<br/><i>Communication</i><br/>Penyusunan naskah skripsi, artikel ilmiah target jurnal SINTA 2, & repositori kode"]
-    E -.->|"iterasi perbaikan cacat / penyempurnaan artifak"| C
+    A["1. Identifikasi Masalah & Motivasi<br/>Studi empiris stunting, bias R24J,<br/>analisis sistem ASA24 & Intake24"] --> B
+    B["2. Penetapan Tujuan Solusi<br/>Perumusan objektif solusi (OS-1..OS-8),<br/>36 kebutuhan fungsional & nonfungsional"] --> C
+    C["3. Perancangan & Pengembangan Artefak<br/>Arsitektur 3-tier, protokol WebSocket,<br/>auth fail-closed, pipeline LLM (6 Sprint Scrum)"] --> D
+    D["4. Demonstrasi Artefak<br/>Simulasi skenario alur recall mandiri &<br/>sesi pendampingan jarak jauh real-time"] --> E
+    E["5. Evaluasi Artefak<br/>Uji kotak-hitam (83 kasus), uji beban WebSocket,<br/>evaluasi kebergunaan SUS & review pakar BRIN"] --> F
+    F["6. Komunikasi<br/>Penyusunan naskah skripsi, publikasi ilmiah,<br/>dan diseminasi artefak ke tim riset BRIN"]
+    E -.->|"iterasi perbaikan artefak"| C
 ```
 
-Panah putus-putus dari tahap Evaluasi kembali ke Perancangan & Pengembangan menunjukkan siklus iterasi desain (*design iteration loop*) yang dijalankan ketika pengujian menemukan ketidaksesuaian atau cacat sistem, sebagaimana dibuktikan oleh penemuan dan perbaikan sebelas cacat pada Subbab 4.3.
+**Uraian enam tahap DSRM dalam penelitian ini:**
 
-**Tabel 3.1 Tahapan DSRM, aktivitas penelitian, dan luaran yang dihasilkan**
-
-| Tahap DSRM | Aktivitas Penelitian | Luaran |
+| Tahap DSRM | Kegiatan Penelitian | Luaran / Artefak |
 |---|---|---|
-| **1. Identifikasi Masalah & Motivasi**<br/>(*Problem Identification & Motivation*) | Mengidentifikasi hambatan R24J (bias porsi, biaya enumerator, jeda umpan balik, dan kebosanan/drop-off responden); menganalisis literatur CSCW, LLM gizi, dan keterbatasan sistem pembanding (ASA24, Intake24, myfood24); menetapkan nilai ilmiah solusi. | Bab I (Latar Belakang & Rumusan Masalah) dan Bab II (Tinjauan Pustaka & SOTA) |
-| **2. Perumusan Tujuan Solusi**<br/>(*Define Objectives of a Solution*) | Menurunkan sasaran artifak dari analisis masalah: rancangan sistem R24J terkomputerisasi dengan kolaborasi real-time bergaya Figma, kontrol peran *fail-closed*, Asisten AI kontekstual URT, gamifikasi/leaderboard, serta dukungan *offline-first*. | Tabel 3.2 (Kebutuhan Fungsional F-01 s.d. F-52) dan Tabel 3.3 (Kebutuhan Non-Fungsional NF-01 s.d. NF-16) |
-| **3. Perancangan & Pengembangan**<br/>(*Design & Development*) | Merancang arsitektur sistem decoupled Next.js–Go, pemodelan berorientasi objek (Use Case, Activity, Sequence, Class Diagram), perancangan skema basis data MySQL 8 (ERD), pengodean backend Go (Gin + WebSocket Hub), antarmuka Next.js App Router, integrasi Groq LLM, modul gamifikasi, dan CMS anotasi poligon. | Dokumen rancangan teknis (Gambar 3.2–3.11), basis data terstruktur, dan kode sumber artifak Atlas Food |
-| **4. Demonstrasi**<br/>(*Demonstration*) | Mendemonstrasikan kapabilitas artifak melalui penelusuran skenario kasus penggunaan nyata: pengisian recall 6 langkah, pendampingan jarak jauh (kursor, follow mode, live canvas laser pointer), konsultasi porsi URT via Asisten AI Sidebar 1-klik, perolehan XP dan pembaruan leaderboard, serta pengiriman saat luring dengan sinkronisasi idempoten. | Log demonstrasi skenario, rekaman penelusuran *end-to-end*, dan tangkapan layar antarmuka fungsional (Gambar 4.3–4.19) |
-| **5. Evaluasi**<br/>(*Evaluation*) | Menguji dan mengukur kinerja artifak secara komprehensif: pengujian kotak-hitam (*black-box*) pada 103 kasus uji, pengukuran kinerja latensi real-time WebSocket, evaluasi kebergunaan pengguna melalui kuesioner *System Usability Scale* (SUS) (n ≥ 20), telaah pakar (*expert review*) oleh ahli gizi klinis terhadap keluaran LLM, serta resolusi cacat sistem. | Tabel hasil uji kotak-hitam (Tabel 4.5–4.8, 4.14), data metrik latensi, skor SUS, rekap validasi pakar, dan katalog perbaikan cacat (Tabel 4.9) |
-| **6. Komunikasi**<br/>(*Communication*) | Mendiseminasikan prinsip desain, struktur artifak, kebaruan, dan efektivitas hasil penelitian kepada akademisi dan praktisi kesehatan/komputer melalui laporan akademik dan publikasi ilmiah. | Naskah Skripsi lengkap Bab I–V, draf artikel ilmiah target jurnal nasional terakreditasi SINTA 2 (*Atlas_Food_Spesifikasi_Sistem_Jurnal.md*), dan repositori publik kode sumber |
+| **1. Identifikasi Masalah & Motivasi** | Analisis disparitas data stunting, bias metode R24J konvensional, ketiadaan pendampingan pada sistem mandiri, dan keterbatasan atlas cetak | Rumusan masalah Bab I & sintesis literatur Bab II (Tabel 2.1–2.2) |
+| **2. Penetapan Tujuan Solusi** | Merumuskan sasaran solusi sistemik untuk mengatasi bias porsi dan isolasi responden, menurunkan daftar kebutuhan F-01 s.d. F-36 dan nonfungsional | Spesifikasi kebutuhan sistem (Tabel 3.2 & 3.3) |
+| **3. Perancangan & Pengembangan** | Merancang arsitektur sistem 3-tier, pemodelan UML, skema DB, protokol kolaborasi WebSocket, CMS anotasi poligon, dan pipeline LLM terstruktur melalui 6 sprint Scrum | Kode sumber backend Go, frontend Next.js PWA, dan basis data MySQL (Gambar 3.2–3.11) |
+| **4. Demonstrasi** | Menjalankan artefak pada skenario pengisian R24J terpandu dan pendampingan kolaboratif antar-peran (*owner*, *editor*, *viewer*) | Bukti keterfungsian artefak (Subbab 4.1) |
+| **5. Evaluasi** | Melakukan 83 uji kotak-hitam, pengukuran kinerja latensi WebSocket (2–20 concurrent clients), uji kebergunaan SUS, dan uji kelayakan klinis rekomendasi gizi bersama 5–7 evaluator pakar BRIN | Data hasil uji, temuan cacat & perbaikan (Tabel 4.5–4.12) |
+| **6. Komunikasi** | Menulis laporan skripsi utuh, menyajikan demonstrasi sidang tugas akhir, serta mendokumentasikan panduan integrasi sistem untuk Pusat Riset Kesehatan Masyarakat dan Gizi BRIN | Naskah skripsi Bab I–V dan artikel publikasi |
 
-## 3.2 Populasi dan Sampel
+## 3.2 Subjek Evaluasi Penelitian (Partisipan Evaluasi Artefak)
 
-### 3.2.1 Populasi Penelitian
+Penelitian ini merupakan penelitian rekayasa perangkat lunak dengan pendekatan *Design Science Research Methodology* (DSRM). Dalam DSRM, evaluasi artefak bertujuan untuk membuktikan kebergunaan (*utility*), keandalan (*performance*), dan kesesuaian domain (*domain validity*) artefak perangkat lunak, bukan untuk melakukan generalisasi statistik terhadap populasi masyarakat umum (Hevner et al., 2004; Venable et al., 2016). Oleh karena itu, subjek pengujian tidak melibatkan sampel responden publik dalam jumlah besar, melainkan dilakukan melalui **pengujian internal terfokus bersama 5–7 orang evaluator ahli dari Pusat Riset Kesehatan Masyarakat dan Gizi, Badan Riset dan Inovasi Nasional (BRIN)** selaku institusi mitra penyusun *Atlas Makananku*.
 
-Populasi penelitian dibagi menjadi tiga kelompok sesuai peran dalam sistem:
+Ukuran 5–7 orang partisipan pakar ini merujuk pada standar evaluasi kebergunaan Nielsen dan Landauer (1993), Lewis & Sauro (2021), serta Alhadreti (2021), yang menyatakan bahwa pengujian kebergunaan formatif berbasis penelusuran tugas (*task walkthrough*) dengan 5–7 partisipan sudah mencapai titik efisiensi optimal (*point of diminishing returns*) yang mampu mengungkap 80%–85% cacat interaksi antarmuka dan friksi alur pengisian sebelum evaluasi sumatif lapangan. Faulkner (2003) juga membuktikan secara empiris bahwa 5 partisipan menemukan rerata 85,5% masalah kebergunaan dan kelompok 6–7 partisipan mengidentifikasi >90% masalah kritis. Evaluator dari BRIN memiliki keahlian ganda sebagai peneliti gizi (*domain experts*), penyusun standar porsi makan Indonesia, serta praktisi yang terbiasa melakukan survei *dietary recall* 24 jam di lapangan.
 
-1. **Populasi responden survei** — individu dewasa berusia ≥ 17 tahun yang mampu mengoperasikan peramban web dan bersedia melaporkan asupan makanannya. `[⚠ SESUAIKAN: sebutkan populasi konkret, misalnya "mahasiswa Program Studi X Universitas Y angkatan 2022–2025 berjumlah N orang"]`
-2. **Populasi pendamping/enumerator** — mahasiswa atau tenaga gizi yang berperan mendampingi pengisian secara jarak jauh. `[⚠ SESUAIKAN]`
-3. **Populasi administrator** — pengelola basis data pangan dan survei. `[⚠ SESUAIKAN]`
+### 3.2.1 Karakteristik dan Pembagian Peran Evaluator Internal
 
-### 3.2.2 Sampel Penelitian
+Sebanyak 5–7 orang evaluator dari tim BRIN menjalankan skenario evaluasi artefak sesuai dengan pembagian peran berikut:
 
-| Kelompok | Jumlah minimal | Dasar penentuan |
-|---|---|---|
-| Partisipan Uji Internal (*Formative Usability Walkthrough*) | 5–7 orang | Menurut Lewis & Sauro (2021) dan Alhadreti (2021), pengujian kebergunaan formatif berbasis penelusuran tugas (*task walkthrough*) dengan 5–7 partisipan sudah mencapai titik efisiensi optimal (*point of diminishing returns*) yang mampu mengungkap 80%–85% cacat interaksi antarmuka dan friksi alur pengisian sebelum evaluasi sumatif lapangan. Faulkner (2003) juga membuktikan secara empiris bahwa 5 partisipan menemukan rerata 85,5% masalah kebergunaan dan kelompok 6–7 partisipan mengidentifikasi >90% masalah kritis |
-| Responden survei (UAT) | 20 orang | Tullis & Stetson (2004) menemukan bahwa sedikitnya 12–14 responden diperlukan agar hasil kuesioner kebergunaan cukup andal; pada n = 12, SUS menghasilkan kesimpulan yang sama dengan seluruh data pada ≥ 90% sub-sampel. n = 20 melampaui ambang tersebut |
-| Pendamping/enumerator | 5 orang | Pengujian fitur kolaborasi memerlukan minimal 2 peserta per sesi; 5 memungkinkan variasi kombinasi peran |
-| Administrator | 3 orang | Cukup untuk menguji seluruh modul CRUD dan CMS anotasi |
-| Ahli gizi (penilai keluaran AI) | 2–3 orang | Memungkinkan perhitungan kesepakatan antar-penilai |
+| Peran Skenario | Jumlah Partisipan | Latar Belakang / Kualifikasi | Fokus Pengujian Artefak |
+|---|---|---|---|
+| **Responden Uji** | 2–3 orang | Peneliti gizi BRIN (berperan sebagai responden awam) | Menguji kemudahan pengisian alur *wizard* R24J, kejelasan estimasi porsi visual (*series*, *range*, *guide*), dan responsivitas aplikasi pada perangkat bergerak (PWA) |
+| **Pendamping (Enumerator)** | 2 orang | Tenaga riset survei gizi BRIN berpengalaman R24J | Menguji efektivitas pendampingan jarak jauh real-time: sinkronisasi langkah *wizard*, obrolan kursor, kanvas penunjuk interaktif, serta penegakan hak akses peran *editor* vs *viewer* |
+| **Administrator & Pakar Gizi** | 2 orang | Peneliti utama/pengelola data gizi dan porsi pangan BRIN | Menguji fungsionalitas CMS anotasi poligon foto porsi, manajemen survei, serta memvalidasi keakuratan hitungan zat gizi deterministik dan kelayakan narasi rekomendasi AI |
 
-`[⚠ SESUAIKAN jumlah sebenarnya setelah pengambilan data]`
+### 3.2.2 Kriteria Pemilihan Evaluator (*Purposive Sampling*)
 
-### 3.2.3 Teknik Pengambilan Sampel
-
-Teknik yang digunakan adalah ***purposive sampling***, yaitu pemilihan sampel berdasarkan kriteria tertentu yang relevan dengan tujuan penelitian. Kriteria inklusi:
-
-- **Responden:** berusia ≥ 17 tahun; memiliki perangkat dengan peramban modern dan koneksi internet; bersedia mengisi *recall* minimal satu kali; menandatangani lembar persetujuan (*informed consent*).
-- **Pendamping:** memiliki latar belakang gizi atau pernah mengikuti pelatihan R24J; mampu mengoperasikan aplikasi web.
-- **Ahli gizi penilai:** berlatar pendidikan minimal S1 Gizi dan memiliki pengalaman praktik `[⚠ SESUAIKAN kriteria]`.
-
-Kriteria eksklusi: peserta yang tidak menyelesaikan seluruh rangkaian tugas pengujian, dan peserta dengan gangguan yang menghalangi penggunaan antarmuka web tanpa alat bantu yang tersedia.
+Penetapan subjek pengujian dilakukan secara terarah (*purposive sampling*) dengan kriteria inklusi sebagai berikut:
+1. Merupakan peneliti, staf periset, atau tenaga survei aktif pada Pusat Riset Kesehatan Masyarakat dan Gizi BRIN.
+2. Memahami metodologi survei konsumsi pangan individu (khususnya *dietary recall* 24 jam) dan memahami struktur instrumen *Atlas Makananku*.
+3. Mengoperasikan perangkat komputer/laptop atau ponsel pintar dengan peramban modern untuk mengakses sistem Atlas Food.
+4. Bersedia menuntaskan seluruh skenario pengujian fungsional terpandu dan mengisi kuesioner evaluasi kebergunaan *System Usability Scale* (SUS) serta instrumen validasi kelayakan klinis rekomendasi gizi.
 
 ## 3.3 Alat dan Bahan Penelitian
 
