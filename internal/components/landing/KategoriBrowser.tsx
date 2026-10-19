@@ -13,6 +13,7 @@ import {
   CATEGORY_DESCRIPTION_FALLBACK,
   CATEGORY_DESCRIPTIONS,
   categoryCoverImage,
+  CATEGORY_SAMPLE_PHOTOS,
 } from "./landingData";
 import { LandingImage } from "./LandingImage";
 import styles from "./KategoriPage.module.css";
@@ -232,7 +233,8 @@ export function KategoriBrowser() {
 function CategoryCard({ entry, variant }: { entry: Entry; variant: CardVariant }) {
   const { category, foods, hasFoods } = entry;
   const showSamples = variant === "feature" || variant === "tall";
-  const samples = showSamples ? foods.slice(0, SAMPLE_COUNT) : [];
+  const photos = variant === "feature" ? CATEGORY_SAMPLE_PHOTOS[category.code] ?? [] : [];
+  const samples = showSamples && photos.length === 0 ? foods.slice(0, SAMPLE_COUNT) : [];
   const count = foods.length >= FOOD_LIMIT ? `${FOOD_LIMIT}+` : foods.length;
 
   return (
@@ -257,7 +259,22 @@ function CategoryCard({ entry, variant }: { entry: Entry; variant: CardVariant }
       <div className={styles.cardBody}>
         <h2 className={styles.cardTitle}>{category.name}</h2>
 
-        {samples.length > 0 ? (
+        {photos.length > 0 ? (
+          <ul className={styles.cardPhotos}>
+            {photos.slice(0, SAMPLE_COUNT).map((photo) => (
+              <li key={photo.name}>
+                <LandingImage
+                  src={photo.image}
+                  alt=""
+                  sizes="160px"
+                  ratio="1 / 1"
+                  className={styles.cardPhoto}
+                />
+                <span>{photo.name}</span>
+              </li>
+            ))}
+          </ul>
+        ) : samples.length > 0 ? (
           <ul className={styles.cardSamples}>
             {samples.map((food) => (
               <li key={food.id}>{food.name}</li>

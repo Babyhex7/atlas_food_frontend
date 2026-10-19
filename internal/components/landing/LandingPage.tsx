@@ -323,7 +323,7 @@ export function LandingPage() {
               </div>
 
               <LandingImage
-                src={LANDING_ASSETS.foodGrid}
+                src={LANDING_ASSETS.databaseGrid}
                 alt="Koleksi hidangan pada database Atlas Food"
                 sizes="(max-width: 960px) 100vw, 528px"
                 ratio="528 / 295"

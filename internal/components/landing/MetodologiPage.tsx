@@ -171,7 +171,7 @@ export function MetodologiPage() {
             </div>
 
             <LandingImage
-              src={LANDING_ASSETS.whyDeveloped}
+              src={LANDING_ASSETS.methodologyHero}
               alt="Ilustrasi pencatatan konsumsi makanan dengan Atlas Food"
               sizes="(max-width: 960px) 100vw, 552px"
               ratio="552 / 312"

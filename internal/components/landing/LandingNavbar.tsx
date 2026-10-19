@@ -35,7 +35,7 @@ export function LandingNavbar() {
             <LandingImage
               src={LANDING_ASSETS.logoUpi}
               alt="UPI"
-              sizes="64px"
+              sizes="132px"
               fit="contain"
               className={styles.logoUpi}
               priority

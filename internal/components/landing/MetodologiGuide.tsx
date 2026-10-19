@@ -112,7 +112,7 @@ const GUIDES: Guide[] = [
     ],
     example: "Responden makan biskuit berbentuk bulat ukuran sedang.",
     tip: "Pastikan ketebalan, bentuk ukuran, dan potongan makanan, bukan hanya luas permukaannya.",
-    image: LANDING_ASSETS.referenceGuide,
+    image: LANDING_ASSETS.referenceRange,
     caption: "Visualisasi: Rangkaian ukuran jeruk (50g - 300g)",
   },
 ];

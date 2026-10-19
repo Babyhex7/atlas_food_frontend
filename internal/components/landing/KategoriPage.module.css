@@ -336,6 +336,27 @@
   line-height: 20px;
 }
 
+.cardPhotos {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.cardPhotos li {
+  display: grid;
+  gap: 8px;
+  color: var(--landing-body);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.cardPhoto {
+  border: 1px solid rgba(230, 189, 185, 0.6);
+  border-radius: 4px;
+}
+
 .cardLink {
   display: inline-flex;
   align-items: center;

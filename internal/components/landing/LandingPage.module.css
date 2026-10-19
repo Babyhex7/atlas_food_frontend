@@ -155,9 +155,10 @@
   height: 32px;
 }
 
+/* Logo UPI horizontal (rasio ±4,7 : 1). */
 .logoUpi {
-  width: 64px;
-  height: 32px;
+  width: 132px;
+  height: 28px;
 }
 
 .logoAtlas {

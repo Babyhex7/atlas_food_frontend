@@ -7,6 +7,7 @@ export const LANDING_ASSETS = {
   logoUpi: "/images/landing/logo-upi.png",
   logoAtlas: "/images/landing/atlas-food-logo.png",
   foodGrid: "/images/landing/food-grid.png",
+  databaseGrid: "/images/landing/database-grid.png",
   whyDeveloped: "/images/landing/why-developed.png",
   visualReference: "/images/landing/visual-reference.png",
   referenceSeries: "/images/landing/reference-series.png",
@@ -17,6 +18,7 @@ export const LANDING_ASSETS = {
   ctaCollage: "/images/landing/cta-collage.png",
   categoriesHero: "/images/landing/kategori-hero.png",
   categoriesCta: "/images/landing/kategori-cta.png",
+  methodologyHero: "/images/landing/metodologi-hero.png",
   atlasCover: "/images/landing/atlas-makananku-cover.png",
   flowOpenAtlas: "/images/landing/metodologi-buka-atlas.png",
   flowComparePhoto: "/images/landing/metodologi-bandingkan-foto.png",
@@ -28,6 +30,16 @@ export const LANDING_ASSETS = {
 export function categoryCoverImage(code: string): string {
   return `/images/landing/kategori/${code}.png`;
 }
+
+/** Foto contoh hidangan yang ditampilkan di kartu kategori unggulan. */
+export const CATEGORY_SAMPLE_PHOTOS: Record<string, Array<{ name: string; image: string }>> = {
+  MP: [
+    { name: "Nasi Putih", image: "/images/landing/kategori/sampel/nasi-putih.png" },
+    { name: "Nasi Goreng", image: "/images/landing/kategori/sampel/nasi-goreng.png" },
+    { name: "Bubur", image: "/images/landing/kategori/sampel/bubur.png" },
+    { name: "Mi Goreng", image: "/images/landing/kategori/sampel/mi-goreng.png" },
+  ],
+};
 
 /** Foto anggota tim: public/images/landing/tim/<nama-anggota>.png */
 export function teamPhoto(slug: string): string {
@@ -57,6 +69,7 @@ export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   AK: "Makanan Siap Saji",
   MDL: "Minyak dan Lemak",
   GK: "Gula dan Pemanis",
+  AH: "Alat Makan dan Alat Ukur Rumah Tangga",
 };
 
 export const CATEGORY_DESCRIPTION_FALLBACK = "Koleksi bahan pangan Indonesia.";
