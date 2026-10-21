@@ -3,11 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { PortionPhoto } from "@/internal/types/food.types";
 import { getImageUrl, isGuideType } from "@/internal/lib/image";
-import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid, Eye, EyeOff, Shapes } from "lucide-react";
+import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid, Eye, EyeOff } from "lucide-react";
 import { AnnotationHoverOverlay } from "@/internal/domain/annotation/components/AnnotationHoverOverlay";
 import { useCollab } from "@/internal/domain/collab";
 import { usePublishedAnnotationsByFood } from "@/internal/domain/annotation/hooks/useAnnotationQueries";
-import { areaColor } from "@/internal/domain/annotation/constants/annotationStatus";
 import type { FoodImage } from "@/internal/domain/annotation/types/annotation";
 
 interface PortionPhotoViewerProps {
@@ -51,65 +50,6 @@ function PhotoImg({
   );
 }
 
-// ─── Interactive Detected Area Chips Strip (Intake24 style) ───────────────────
-function DetectedAreasStrip({
-  areas,
-  selectedAreaId,
-  onSelectArea,
-}: {
-  areas: FoodImage["areas"];
-  selectedAreaId: string | null;
-  onSelectArea: (id: string | null) => void;
-}) {
-  if (!areas || areas.length === 0) return null;
-
-  return (
-    <div className="rounded-xl border border-border bg-surface-alt p-3.5 flex flex-col gap-2.5 animate-fade-in">
-      <div className="flex items-center justify-between text-xs font-medium text-text-muted flex-wrap gap-1">
-        <span className="flex items-center gap-1.5 font-semibold text-text-primary">
-          <Shapes size={14} className="text-primary" />
-          Kenali Bagian Makanan ({areas.length} bagian terdeteksi)
-        </span>
-        <span className="text-[11px] text-text-muted">Arahkan kursor atau klik untuk sorot area</span>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {areas.map((area, idx) => {
-          const color = areaColor(idx);
-          const isSelected = area.id === selectedAreaId;
-
-          return (
-            <button
-              key={area.id}
-              type="button"
-              onClick={() => onSelectArea(isSelected ? null : area.id)}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-fast ${
-                isSelected
-                  ? "border-primary bg-primary text-white shadow-xs"
-                  : "border-border bg-surface text-text-secondary hover:border-primary/50 hover:bg-surface-alt"
-              }`}
-            >
-              <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: isSelected ? "#ffffff" : color }}
-              />
-              <span>{area.name}</span>
-              {area.weight_gram != null && area.weight_gram > 0 && (
-                <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold ${
-                    isSelected ? "bg-white/20 text-white" : "bg-surface-alt text-text-muted border border-border"
-                  }`}
-                >
-                  {area.weight_gram}g
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // ─── Tampilan Guide (range) — 1 foto besar, semua label sebagai overlay pill ──
 function GuidePhotoView({
@@ -199,12 +139,6 @@ function GuidePhotoView({
         </div>
       </div>
 
-      {/* Bagian makanan terdeteksi (Intake24 style) */}
-      <DetectedAreasStrip
-        areas={currentAreas}
-        selectedAreaId={selectedAreaId}
-        onSelectArea={setSelectedAreaId}
-      />
 
       {/* Tabel porsi */}
       <div>
@@ -385,12 +319,6 @@ function SeriesPhotoView({
         </div>
       </div>
 
-      {/* Bagian makanan terdeteksi (Intake24 style) */}
-      <DetectedAreasStrip
-        areas={currentAreas}
-        selectedAreaId={selectedAreaId}
-        onSelectArea={setSelectedAreaId}
-      />
 
       {/* Thumbnail strip porsi */}
       <div>

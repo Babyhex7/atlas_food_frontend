@@ -71,8 +71,11 @@ export function AnnotatedFoodViewer({
             const color = areaColor(index);
             const isHot = area.id === highlightedId;
 
-            // Sesuai permintaan: daleman poligon kosongan (fill kosong), pinggiran menyala blurry (neon glow)
-            const strokeOpacity = visiblePolygons || isHot ? 1 : 0;
+            // Di sisi user (overlay=true): poligon hanya terlihat saat di-hover atau aktif (isHot).
+            // Foto diam tampil bersih tanpa coretan poligon.
+            // Di sisi admin preview (overlay=false): poligon terlihat jika visiblePolygons=true.
+            const isVisible = overlay ? (visiblePolygons && isHot) : (visiblePolygons || isHot);
+            const strokeOpacity = isVisible ? 1 : 0;
             const strokeWidth = isHot ? 3.5 : 2.5;
 
             return (
@@ -88,10 +91,10 @@ export function AnnotatedFoodViewer({
                 strokeLinecap="round"
                 className="cursor-pointer transition-[stroke-width,stroke-opacity] duration-200 ease-out pointer-events-auto"
                 style={{
-                  pointerEvents: "all",
+                  pointerEvents: visiblePolygons ? "all" : "none",
                   filter: isHot
                     ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 0 3px ${color})`
-                    : visiblePolygons
+                    : isVisible
                     ? `drop-shadow(0 0 5px ${color}) drop-shadow(0 0 2px ${color})`
                     : "none",
                 }}
@@ -114,24 +117,34 @@ export function AnnotatedFoodViewer({
             );
           })}
 
-          {/* Label area di tengah centroid masing-masing poligon */}
+          {/* Label area di tengah centroid masing-masing poligon (hanya di admin preview jika showLabels aktif) */}
           {showLabels &&
-            visiblePolygons &&
+            !overlay &&
             areas.map((area, index) => {
               const centroid = polygonCentroid(area.polygon);
               if (!centroid) return null;
               const isHot = area.id === highlightedId;
+              const isLabelVisible = visiblePolygons && (showLabels || isHot);
+
+              if (!isLabelVisible) return null;
+
               const color = areaColor(index);
+              const labelText =
+                area.weight_gram != null && area.weight_gram > 0
+                  ? `${area.name} (${area.weight_gram}g)`
+                  : area.name;
+              const pillWidth = Math.max(70, Math.min(150, labelText.length * 7.5 + 24));
+              const pillHeight = 24;
 
               return (
-                <g key={`label-${area.id}`} className="pointer-events-none transition-opacity">
+                <g key={`label-${area.id}`} className="pointer-events-none transition-opacity animate-fade-in">
                   <rect
-                    x={centroid[0] - 40}
-                    y={centroid[1] - 12}
-                    width={80}
-                    height={24}
-                    rx={12}
-                    fill="rgba(0, 0, 0, 0.75)"
+                    x={centroid[0] - pillWidth / 2}
+                    y={centroid[1] - pillHeight / 2}
+                    width={pillWidth}
+                    height={pillHeight}
+                    rx={pillHeight / 2}
+                    fill="rgba(0, 0, 0, 0.85)"
                     stroke={color}
                     strokeWidth={isHot ? 2 : 1}
                     className="backdrop-blur-sm"
@@ -146,25 +159,35 @@ export function AnnotatedFoodViewer({
                     fontWeight="600"
                     className="select-none"
                   >
-                    {area.name.length > 10 ? `${area.name.slice(0, 9)}…` : area.name}
+                    {labelText.length > 18 ? `${labelText.slice(0, 17)}…` : labelText}
                   </text>
                 </g>
               );
             })}
         </svg>
 
-        {overlay && highlighted && (
-          <div className="absolute left-3 bottom-3 z-10 pointer-events-none animate-fade-in">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/85 text-white text-sm font-semibold shadow-md backdrop-blur-sm border border-white/20">
-              <span>{highlighted.name}</span>
-              {highlighted.weight_gram != null && highlighted.weight_gram > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-white font-medium">
-                  {highlighted.weight_gram} g
-                </span>
-              )}
-            </span>
-          </div>
-        )}
+        {(() => {
+          if (!overlay || !highlighted) return null;
+          // Hilangkan nama jika generik seperti "Area 1", "Area 2", dsb.
+          const isGenericAreaName = /^area(\s*\d+)?$/i.test(highlighted.name.trim());
+          const hasWeight = highlighted.weight_gram != null && highlighted.weight_gram > 0;
+          const displayName = isGenericAreaName ? null : highlighted.name;
+
+          if (!displayName && !hasWeight) return null;
+
+          return (
+            <div className="absolute left-3 bottom-3 z-10 pointer-events-none animate-fade-in">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/85 text-white text-sm font-semibold shadow-md backdrop-blur-sm border border-white/20">
+                {displayName && <span>{displayName}</span>}
+                {hasWeight && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-white font-medium">
+                    {highlighted.weight_gram} g
+                  </span>
+                )}
+              </span>
+            </div>
+          );
+        })()}
       </div>
 
       {!overlay && (
