@@ -71,12 +71,10 @@ export function AnnotatedFoodViewer({
             const color = areaColor(index);
             const isHot = area.id === highlightedId;
 
-            // Di sisi user (overlay=true): poligon hanya terlihat saat di-hover atau aktif (isHot).
-            // Foto diam tampil bersih tanpa coretan poligon.
-            // Di sisi admin preview (overlay=false): poligon terlihat jika visiblePolygons=true.
+            // Garis tajam dihilangkan total — murni pendaran kabut blur lembut (full blur glow)
             const isVisible = overlay ? (visiblePolygons && isHot) : (visiblePolygons || isHot);
-            const strokeOpacity = isVisible ? 1 : 0;
-            const strokeWidth = isHot ? 3.5 : 2.5;
+            const strokeOpacity = isVisible ? (isHot ? 0.85 : 0.5) : 0;
+            const strokeWidth = isHot ? 5 : 2;
 
             return (
               <polygon
@@ -89,13 +87,13 @@ export function AnnotatedFoodViewer({
                 strokeWidth={strokeWidth}
                 strokeLinejoin="round"
                 strokeLinecap="round"
-                className="cursor-pointer transition-[stroke-width,stroke-opacity] duration-200 ease-out pointer-events-auto"
+                className="cursor-pointer transition-[stroke-width,stroke-opacity,filter] duration-200 ease-out pointer-events-auto"
                 style={{
                   pointerEvents: visiblePolygons ? "all" : "none",
                   filter: isHot
-                    ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 0 3px ${color})`
+                    ? `blur(4px) drop-shadow(0 0 8px ${color}) drop-shadow(0 0 18px ${color})`
                     : isVisible
-                    ? `drop-shadow(0 0 5px ${color}) drop-shadow(0 0 2px ${color})`
+                    ? `blur(2px) drop-shadow(0 0 6px ${color}88)`
                     : "none",
                 }}
                 tabIndex={0}
