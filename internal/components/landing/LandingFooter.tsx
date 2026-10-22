@@ -1,56 +1,86 @@
 import Link from "next/link";
-import { UtensilsCrossed } from "lucide-react";
-import { CONTAINER_CLASS, loginWithRedirect } from "@/internal/lib/layout";
+import { AtSign, BookOpenText, Globe, GraduationCap } from "lucide-react";
+import { LANDING_NAVIGATION } from "./landingData";
+import styles from "./LandingPage.module.css";
 
-const NAV_ITEMS = [
-  { href: loginWithRedirect("/find-food"), label: "Find Your Food" },
-  { href: loginWithRedirect("/surveys"),   label: "Survey Recall"  },
-  { href: "/register",                     label: "Daftar Akun"    },
+// Halaman informasi belum tersedia; tautan sementara tetap di footer.
+const INFORMATION_LINKS = [
+  "Kebijakan Privasi",
+  "Syarat Penggunaan",
+  "Kontak Peneliti",
+  "Pusat Bantuan",
 ];
 
 export function LandingFooter() {
   return (
-    <footer className="bg-text-primary border-t border-border text-[#e5e7eb]">
-      <div className={`${CONTAINER_CLASS} pt-12 pb-8`}>
-        <div className="grid md:grid-cols-3 gap-8 mb-8">
-
-          {/* Brand */}
+    <footer id="kontak" className={styles.footer}>
+      <div className={styles.footerInner}>
+        <div className={styles.footerGrid}>
           <div>
-            <p className="flex items-center gap-2 text-lg font-bold text-white mb-2">
-              <UtensilsCrossed size={18} aria-hidden /> Atlas Food
+            <p className={styles.footerBrand}>
+              <BookOpenText size={36} aria-hidden />
+              Atlas Food
             </p>
-            <p className="text-sm text-[#9ca3af] leading-relaxed m-0">
-              Estimasi porsi makan orang dewasa Indonesia — dikembangkan oleh BRIN bersama UPI.
+            <p className={styles.footerAbout}>
+              Sistem referensi digital untuk estimasi porsi makanan Indonesia yang dikembangkan
+              melalui kolaborasi strategis BRIN dan Universitas Pendidikan Indonesia.
             </p>
+            <div className={styles.footerSocial}>
+              <a href="#kontak" aria-label="Website Atlas Food">
+                <Globe size={18} aria-hidden />
+              </a>
+              <a href="#kontak" aria-label="Institusi akademik Atlas Food">
+                <GraduationCap size={18} aria-hidden />
+              </a>
+              <a href="mailto:info@atlasfood.id" aria-label="Email Atlas Food">
+                <AtSign size={18} aria-hidden />
+              </a>
+            </div>
           </div>
 
-          {/* Nav */}
           <div>
-            <p className="font-semibold text-white mb-3 text-sm">Navigasi</p>
-            <ul className="list-none p-0 m-0 flex flex-col gap-2">
-              {NAV_ITEMS.map((item) => (
+            <h3 className={styles.footerTitle}>Navigasi</h3>
+            <ul className={styles.footerLinks}>
+              {LANDING_NAVIGATION.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="footer-nav-link">
-                    {item.label}
-                  </Link>
+                  <Link href={item.href}>{item.label}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* About */}
           <div>
-            <p className="font-semibold text-white mb-3 text-sm">Tentang</p>
-            <p className="text-sm text-[#9ca3af] leading-relaxed m-0">
-              262+ hidangan · 13 kategori · Referensi visual terstandar untuk penelitian gizi dan tenaga kesehatan.
-            </p>
+            <h3 className={styles.footerTitle}>Informasi</h3>
+            <ul className={styles.footerLinks}>
+              {INFORMATION_LINKS.map((label) => (
+                <li key={label}>
+                  <Link href="#kontak">{label}</Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
+          <div>
+            <h3 className={styles.footerTitle}>Instansi Partner</h3>
+            <div className={styles.footerPartner}>
+              <strong>BRIN</strong>
+              <span>Badan Riset dan Inovasi Nasional</span>
+            </div>
+            <div className={styles.footerPartner}>
+              <strong>UPI</strong>
+              <span>Universitas Pendidikan Indonesia</span>
+            </div>
+          </div>
         </div>
 
-        {/* Bottom */}
-        <div className="pt-6 border-t border-[#374151] text-center text-xs text-[#6b7280]">
-          © {new Date().getFullYear()} Atlas Food · BRIN × UPI
+        <div className={styles.footerBottom}>
+          <p>
+            {`© ${new Date().getFullYear()} Atlas Food. Hak cipta dilindungi. Kolaborasi Riset BRIN & UPI.`}
+          </p>
+          <div>
+            <Link href="#kontak">Privasi</Link>
+            <Link href="#kontak">Ketentuan</Link>
+          </div>
         </div>
       </div>
     </footer>
