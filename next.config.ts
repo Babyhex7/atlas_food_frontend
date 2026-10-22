@@ -33,6 +33,7 @@ const nextConfig: NextConfig = {
     WS_URL: process.env.WS_URL || process.env.NEXT_PUBLIC_WS_URL || "",
     NEXT_PUBLIC_API_URL: process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "",
     NEXT_PUBLIC_WS_URL: process.env.WS_URL || process.env.NEXT_PUBLIC_WS_URL || "",
+    NEXT_PUBLIC_STORAGE_BASE_URL: process.env.STORAGE_BASE_URL || process.env.NEXT_PUBLIC_STORAGE_BASE_URL || "",
   },
   // Izinkan HMR dari origin dev (Hyper-V/WSL bridge + localhost).
   allowedDevOrigins: ["172.18.16.1", "localhost", "127.0.0.1"],
@@ -64,8 +65,14 @@ const nextConfig: NextConfig = {
         port: "8081",
         pathname: "/uploads/**",
       },
-      // MinIO / object storage (prod) — semua path di bawah bucket
-      ...(storageHostname
+      // Cloudflare R2 default public domain
+      {
+        protocol: "https",
+        hostname: "pub-b2f72286c4da4fe1b67e2d892478a459.r2.dev",
+        pathname: "/**",
+      },
+      // MinIO / Cloudflare R2 / Object Storage kustom
+      ...(storageHostname && storageHostname !== "pub-b2f72286c4da4fe1b67e2d892478a459.r2.dev"
         ? [
             {
               protocol: "https" as const,
