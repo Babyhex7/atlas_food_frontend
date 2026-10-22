@@ -10,6 +10,7 @@ export type NutrientType = {
   code: string;
   name: string;
   unit_id: number;
+  unit?: NutrientUnit;
   display_order: number;
   is_active: boolean;
 };
@@ -21,10 +22,12 @@ export type FoodNutrient = {
 };
 
 export type CalculatedNutrient = {
-  code: string;
-  name: string;
+  type_id?: number;
+  code?: string;
+  name?: string;
   unit: string;
   value: number;
 };
 
 export type NutritionMap = Record<string, CalculatedNutrient>;
+

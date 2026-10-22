@@ -15,12 +15,19 @@ export type Food = {
   created_at: string;
 };
 
+export type FoodNutrientInput = {
+  type_id: number;
+  value_per_100g: number;
+};
+
 export type CreateFoodRequest = {
   code: string;
   name: string;
   local_name?: string;
   description?: string;
+  photo_type?: "series" | "range";
   category_id?: string;
+  nutrients?: FoodNutrientInput[];
 };
 
 export type UpdateFoodRequest = Partial<CreateFoodRequest> & {

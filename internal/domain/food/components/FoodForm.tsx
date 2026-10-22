@@ -8,7 +8,9 @@ import { Input } from "@/internal/pkg/components/Input";
 import { PageHeader } from "@/internal/pkg/components/PageHeader";
 import { cn } from "@/internal/lib/cn";
 import { useAdminCategories } from "@/internal/domain/category/hooks/useCategoryQueries";
+import { useNutrientTypes, DEFAULT_NUTRIENT_TYPES } from "@/internal/domain/nutrition";
 import { useCreateFood, useDeleteFood, useFoodDetail, useUpdateFood } from "../hooks/useFoodQueries";
+import type { FoodNutrientInput } from "../types/food";
 import { foodValidation } from "../schemas/foodSchema";
 import { FoodPhotosSection } from "./FoodPhotosSection";
 
@@ -23,6 +25,11 @@ export function FoodForm() {
 
   const { data: existing, isLoading } = useFoodDetail(isEdit ? foodId : undefined);
   const { data: categories } = useAdminCategories();
+  const { data: nutrientTypesData } = useNutrientTypes();
+  const nutrientTypes =
+    nutrientTypesData && nutrientTypesData.length > 0
+      ? nutrientTypesData
+      : DEFAULT_NUTRIENT_TYPES;
 
   const create = useCreateFood();
   const update = useUpdateFood(foodId);
@@ -35,6 +42,7 @@ export function FoodForm() {
   const [categoryId, setCategoryId] = useState("");
   const [photoType, setPhotoType] = useState<"series" | "range">("series");
   const [isActive, setIsActive] = useState(true);
+  const [nutrientValues, setNutrientValues] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   const busy = create.isPending || update.isPending || remove.isPending;
@@ -50,7 +58,36 @@ export function FoodForm() {
     setCategoryId(existing.category_id ?? "");
     setPhotoType(existing.photo_type === "range" ? "range" : "series");
     setIsActive(existing.is_active);
+
+    const initialNutrients: Record<number, string> = {};
+    if (existing.nutrients) {
+      for (const [codeKey, detail] of Object.entries(existing.nutrients)) {
+        let typeId = (detail as any)?.type_id;
+        if (!typeId) {
+          const match = nutrientTypes.find((t) => t.code.toLowerCase() === codeKey.toLowerCase());
+          if (match) typeId = match.id;
+        }
+        if (typeId) {
+          initialNutrients[typeId] = String(detail.value);
+        }
+      }
+    }
+    setNutrientValues(initialNutrients);
   }
+
+  const handleFillZero = () => {
+    const updated: Record<number, string> = { ...nutrientValues };
+    for (const t of nutrientTypes) {
+      if (updated[t.id] === undefined || updated[t.id].trim() === "") {
+        updated[t.id] = "0";
+      }
+    }
+    setNutrientValues(updated);
+  };
+
+  const handleResetNutrients = () => {
+    setNutrientValues({});
+  };
 
   function validate(): string | null {
     const trimmedCode = code.trim();
@@ -71,6 +108,19 @@ export function FoodForm() {
     if (localName.trim().length > foodValidation.localName.maxLength) {
       return `Nama lokal maksimal ${foodValidation.localName.maxLength} karakter`;
     }
+
+    for (const [typeIdStr, val] of Object.entries(nutrientValues)) {
+      if (val.trim() !== "") {
+        const num = Number(val);
+        if (isNaN(num)) {
+          return "Nilai zat gizi harus berupa angka yang valid";
+        }
+        if (num < 0) {
+          const type = nutrientTypes.find((t) => t.id === Number(typeIdStr));
+          return `Nilai ${type?.name ?? "zat gizi"} tidak boleh bernilai negatif`;
+        }
+      }
+    }
     return null;
   }
 
@@ -85,6 +135,13 @@ export function FoodForm() {
 
     setError(null);
 
+    const nutrientsPayload: FoodNutrientInput[] = Object.entries(nutrientValues)
+      .filter(([_, val]) => val.trim() !== "" && !isNaN(Number(val)))
+      .map(([typeIdStr, val]) => ({
+        type_id: Number(typeIdStr),
+        value_per_100g: Number(val),
+      }));
+
     const payload = {
       code: code.trim(),
       name: name.trim(),
@@ -92,6 +149,7 @@ export function FoodForm() {
       description: description.trim(),
       photo_type: photoType,
       category_id: categoryId,
+      nutrients: nutrientsPayload,
     };
 
     try {
@@ -276,6 +334,89 @@ export function FoodForm() {
                     </label>
                   </div>
                 )}
+              </div>
+            </section>
+
+            <section className={SECTION}>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="m-0 text-base font-semibold text-text-primary">
+                      Kandungan Gizi (per 100 gram)
+                    </h2>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                      DKBM / TKPI
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-text-muted">
+                    Nilai zat gizi per 100 gram bahan makanan. Akan dihitung secara proporsional sesuai gram porsi responden di Survey Recall.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleFillZero}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-text-secondary hover:bg-surface-alt hover:text-text-primary transition-fast"
+                    title="Isi nilai 0 untuk zat gizi yang belum diisi"
+                  >
+                    Isi 0 yang kosong
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResetNutrients}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-text-muted hover:border-danger/30 hover:text-danger transition-fast"
+                    title="Kosongkan seluruh nilai gizi"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {nutrientTypes.map((type) => {
+                  const val = nutrientValues[type.id] ?? "";
+                  const unitSymbol =
+                    type.unit?.symbol ||
+                    (type.code === "energy" ? "kkal" : type.id >= 7 ? "mg" : "g");
+
+                  return (
+                    <div
+                      key={type.id}
+                      className="flex flex-col gap-1.5 rounded-lg border border-border/80 bg-surface-alt/30 p-3 hover:border-border transition-base"
+                    >
+                      <div className="flex items-center justify-between">
+                        <label
+                          htmlFor={`nutrient-${type.id}`}
+                          className="text-xs font-semibold text-text-primary cursor-pointer"
+                        >
+                          {type.name}
+                        </label>
+                        <span className="font-mono text-[11px] font-medium text-text-muted">
+                          {unitSymbol}
+                        </span>
+                      </div>
+                      <div className="relative flex items-center">
+                        <input
+                          id={`nutrient-${type.id}`}
+                          type="number"
+                          step="any"
+                          min="0"
+                          placeholder="0.0"
+                          value={val}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            setNutrientValues((prev) => ({ ...prev, [type.id]: raw }));
+                          }}
+                          className="w-full rounded-md border-[1.5px] border-border bg-surface py-2 pl-3 pr-14 font-mono text-sm text-text-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-base focus:border-primary focus:shadow-focus"
+                        />
+                        <span className="pointer-events-none absolute right-3 text-xs font-medium text-text-muted">
+                          {unitSymbol}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </section>
 
