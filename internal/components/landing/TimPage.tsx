@@ -562,7 +562,7 @@ export function TimPage() {
 function CollageImage({ index, ratio }: { index: number; ratio: string }) {
   return (
     <LandingImage
-      src={`/images/landing/tim-kolase-${index}.png`}
+      src={`/images/landing/tim-kolase/kolase-${index}.png`}
       alt=""
       sizes="(max-width: 960px) 50vw, 268px"
       ratio={ratio}
