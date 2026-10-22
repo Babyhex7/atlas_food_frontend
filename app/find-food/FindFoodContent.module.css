@@ -16,7 +16,7 @@
   background: var(--catalog-canvas);
   color: var(--catalog-ink);
   font-family:
-    Inter,
+    var(--font-jakarta),
     ui-sans-serif,
     system-ui,
     -apple-system,

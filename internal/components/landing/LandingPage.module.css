@@ -11,7 +11,7 @@
   --landing-shadow: 0 10px 40px -10px rgba(11, 28, 48, 0.12);
   background: #fff;
   color: var(--landing-ink);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   overflow: clip;
 }
 

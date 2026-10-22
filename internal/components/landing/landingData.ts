@@ -17,7 +17,7 @@ export const LANDING_ASSETS = {
   categoryFeatured: "/images/landing/category-featured.png",
   ctaCollage: "/images/landing/cta-collage.png",
   categoriesHero: "/images/landing/kategori-hero.png",
-  categoriesCta: "/images/landing/kategori-cta.png",
+  categoriesCta: "",
   methodologyHero: "/images/landing/metodologi-hero.png",
   atlasCover: "/images/landing/atlas-makananku-cover.png",
   flowOpenAtlas: "/images/landing/metodologi-buka-atlas.png",

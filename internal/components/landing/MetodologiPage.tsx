@@ -305,7 +305,7 @@ export function MetodologiPage() {
                   src={LANDING_ASSETS.flowOpenAtlas}
                   alt="Atlas Food dibuka pada perangkat petugas"
                   sizes="(max-width: 640px) 100vw, 352px"
-                  ratio="292 / 234"
+                  ratio="340 / 234"
                   className={`${styles.flowImage} ${styles.flowImageDevice}`}
                 />
               </FlowStep>
