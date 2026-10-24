@@ -7,6 +7,17 @@ import { canEditRoom } from "../lib/messageRouter";
 import type { CollabSend } from "./useWebSocket";
 import type { CanvasPoint } from "../types/collab";
 
+/**
+ * Interval kirim batch titik coretan (ms).
+ *
+ * Server membatasi 50 pesan/detik per client (checkRateLimit di BE) dan pesan
+ * yang melewati batas DIBUANG. 16 ms (~62 pesan/detik) + cursor_move (~15/detik)
+ * membuat coretan cepat terpotong dan memunculkan banner "Terlalu banyak pesan".
+ * 40 ms (~25/detik) tetap halus karena semua titik tetap dikirim (di-batch),
+ * dan latensi tambahannya masih jauh di bawah target < 100 ms.
+ */
+export const CANVAS_BATCH_INTERVAL_MS = 40;
+
 interface UseLiveCanvasOptions {
   containerRef: React.RefObject<HTMLElement | null>;
   send: CollabSend;
@@ -62,7 +73,7 @@ export function useLiveCanvas({ containerRef, send, targetImageId }: UseLiveCanv
     [containerRef]
   );
 
-  // Flush titik-titik coretan tertahan ke WebSocket per 16ms (60 FPS throttling)
+  // Flush titik-titik coretan tertahan ke WebSocket per CANVAS_BATCH_INTERVAL_MS
   const flushPendingPoints = useCallback(() => {
     if (pendingPoints.current.length === 0 || !currentStrokeId.current) return;
     const pointsToSend = [...pendingPoints.current];
@@ -78,6 +89,24 @@ export function useLiveCanvas({ containerRef, send, targetImageId }: UseLiveCanv
     });
   }, [appendPointsToStroke, send]);
 
+  // Laser: render lokal + kirim ke peserta lain. Server tidak memantulkan pesan
+  // ke pengirimnya sendiri, jadi tanpa setLaserPoint lokal enumerator tidak
+  // bisa melihat laser yang ia arahkan.
+  const emitLaser = useCallback(
+    (pt: CanvasPoint) => {
+      setLaserPoint({
+        userId: selfUserId || "local",
+        username: "",
+        color: activeColor,
+        x: pt.x,
+        y: pt.y,
+        timestamp: Date.now(),
+      });
+      send("canvas_laser_move", { x: pt.x, y: pt.y, color: activeColor });
+    },
+    [setLaserPoint, selfUserId, activeColor, send]
+  );
+
   // Handler mulai menggambar / laser
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
@@ -86,11 +115,7 @@ export function useLiveCanvas({ containerRef, send, targetImageId }: UseLiveCanv
       if (!pt) return;
 
       if (activeTool === "laser") {
-        send("canvas_laser_move", {
-          x: pt.x,
-          y: pt.y,
-          color: activeColor,
-        });
+        emitLaser(pt);
         return;
       }
 
@@ -121,9 +146,9 @@ export function useLiveCanvas({ containerRef, send, targetImageId }: UseLiveCanv
         y: pt.y,
       });
 
-      // Start 60 FPS batch timer
+      // Start batch timer
       if (!batchIntervalRef.current) {
-        batchIntervalRef.current = setInterval(flushPendingPoints, 16);
+        batchIntervalRef.current = setInterval(flushPendingPoints, CANVAS_BATCH_INTERVAL_MS);
       }
     },
     [
@@ -132,6 +157,7 @@ export function useLiveCanvas({ containerRef, send, targetImageId }: UseLiveCanv
       isCanvasVisible,
       getNormalizedPoint,
       activeTool,
+      emitLaser,
       send,
       activeColor,
       activeWidth,
@@ -151,11 +177,7 @@ export function useLiveCanvas({ containerRef, send, targetImageId }: UseLiveCanv
 
       if (activeTool === "laser") {
         if (e.buttons === 1 || e.pointerType === "touch") {
-          send("canvas_laser_move", {
-            x: pt.x,
-            y: pt.y,
-            color: activeColor,
-          });
+          emitLaser(pt);
         }
         return;
       }
@@ -163,7 +185,7 @@ export function useLiveCanvas({ containerRef, send, targetImageId }: UseLiveCanv
       if (!isDrawing.current || !currentStrokeId.current) return;
       pendingPoints.current.push(pt);
     },
-    [canEdit, isDrawingMode, isCanvasVisible, getNormalizedPoint, activeTool, send, activeColor]
+    [canEdit, isDrawingMode, isCanvasVisible, getNormalizedPoint, activeTool, emitLaser]
   );
 
   // Handler penutupan stroke

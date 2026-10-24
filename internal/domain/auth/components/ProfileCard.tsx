@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   Loader2, User, Shield, Camera, LogOut, Settings, Search,
   X, Upload, Image as ImageIcon, Eye, EyeOff, Lock, CheckCircle2,
@@ -749,11 +749,17 @@ function RecallHistorySection() {
   );
 }
 
+const noopSubscribe = () => () => {};
+
 export function ProfileCard() {
   const { user, isAuthenticated } = useAuth();
   const logout = useLogout();
   const updateUser = useAuthStore((state) => state.updateUser);
-  const isLoading = !user && Boolean(getAccessToken());
+  // Cookie token hanya terbaca di browser. Selama hydration, render HARUS sama
+  // dengan HTML server (yang tidak bisa membaca cookie) — kalau tidak React
+  // melempar "Hydration failed" dan me-render ulang seluruh halaman.
+  const hasHydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const isLoading = !hasHydrated || (!user && Boolean(getAccessToken()));
   const [activeSection, setActiveSection] = useState<ActiveSection>("personal");
 
   const [photoModal, setPhotoModal] = useState<PhotoModal>(null);

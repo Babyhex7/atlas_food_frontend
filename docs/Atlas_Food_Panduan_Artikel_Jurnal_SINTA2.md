@@ -1084,25 +1084,67 @@ Berikut adalah 32 rujukan akademis primer (prioritas 2020–2026 dan rujukan fon
 
 ## E4. Praktik Terbaik Penulisan
 
-**Bahasa & gaya**
-- Ikuti bahasa yang ditentukan jurnal; bila Inggris, gunakan *proofreading* manusia/profesional.
-- Kalimat aktif, langsung; satu paragraf satu gagasan.
-- Istilah asing miring, didefinisikan sekali, dipakai **konsisten** (pilih "pendamping" *atau* "enumerator").
-- Hindari klaim berlebihan ("sangat efektif", "pertama di dunia").
-- Hindari gaya manual pengguna ("user klik tombol ...") dan potongan kode panjang (pakai *pseudocode* pendek bila perlu).
+### E4.1 Standar Rasa Bahasa SINTA 2 Modern (Formal, Presisi, & Mengalir)
 
-**Angka & satuan:** spasi sebelum satuan (`250 ms`); desimal sesuai bahasa naskah; angka di abstrak, hasil, kesimpulan **identik**.
+Naskah jurnal SINTA 2 menuntut bahasa ilmiah yang **objektif dan berbobot tanpa menjadi kaku, klise, atau bertele-tele**. Hindari gaya skripsi konvensional yang dipenuhi kalimat pasif bertumpuk dan kata sambung mubazir.
 
-**Konversi skripsi → artikel**
+| Pola Skripsi Kaku / Robotik (Hindari) | Pola SINTA 2 Modern (Presisi & Mengalir) | Rationale |
+|---|---|---|
+| *"Adapun tujuan daripada penelitian ini adalah untuk membuat suatu sistem..."* | *"Penelitian ini bertujuan merancang dan mengevaluasi sistem..."* | Menghapus kata mubazir (*adapun, daripada, suatu*). Langsung pada esensi tindakan. |
+| *"Aplikasi ini sangat bagus, cepat, dan mudah digunakan oleh siapa saja."* | *"Pendekatan ini memangkas beban kognitif responden melalui penyederhanaan interaksi satu-klik..."* | Mengganti klaim opini subjektif dengan terminologi ilmiah (*cognitive load*). |
+| *"Penulis/kami menggunakan WebSocket agar pengguna bisa saling melihat kursor."* | *"Penerapan protokol WebSocket memfasilitasi mekanisme workspace awareness melalui sinkronisasi kursor real-time..."* | Menjaga prinsip impersonal dan mengaitkannya ke teori formal (*Gutwin & Greenberg*). |
+| *"Model LLM dipakai untuk menghitung kalori makanan secara pintar."* | *"Model bahasa besar (LLM) difungsikan sebagai parser semantik bahasa alami, sementara kalkulasi zat gizi dieksekusi secara deterministik..."* | Menegaskan batasan peran teknis dan mitigasi risiko halusinasi. |
 
-| Skripsi | Artikel |
+**Aturan Kebahasaan Kunci:**
+1. **Prinsip Impersonal:** Hilangkan kata ganti orang pertama/kedua (*kami, saya, penulis, kita*). Gunakan konstruksi pasif formal atau jadikan subjek penelitian sebagai agen (*"Penelitian ini mengusulkan...", "Sistem mengevaluasi..."*).
+2. **Pembersihan Kata Klise Akademik:** Singkirkan kata pembuka kosong seperti *Adapun*, *Bahwasanya*, *Di mana* (sebagai terjemahan salah dari *where*), *Guna untuk*, dan *Dapat diketahui bahwa*.
+3. **Kaidah Satu Gagasan:** Batasi panjang kalimat antara 15–25 kata. Jika satu kalimat memuat lebih dari dua klausa bertingkat, pisahkan menjadi dua kalimat mandiri dengan transisi logis yang kuat (*Kendati demikian*, *Dengan demikian*, *Sebaliknya*).
+4. **Tipografi & Istilah Asing:**
+   - Istilah komputasi khusus tetap dalam bahasa Inggris dan dicetak miring (*italic*): *real-time collaboration*, *workspace awareness*, *schema-constrained*, *fail-closed*, *coalescing*, *throttling*, *probing*.
+   - Padanan Indonesia yang sudah lazim digunakan secara konsisten: *latensi*, *rekonsiliasi*, *penilaian asupan pangan*, *beban kognitif*, *tenggat*.
+   - Spasi sebelum satuan metrik (`250 ms`, `50 g`, `100 kcal`).
+
+---
+
+### E4.2 Master Prompt Pemoles Naskah Ilmiah (AI Writing & Refinement Prompt)
+
+Gunakan prompt berikut pada model LLM saat memoles naskah mentah `.md` atau mengonversi bab skripsi menjadi teks jurnal SINTA 2:
+
+```markdown
+Kamu adalah seorang Editor Senior Jurnal Ilmiah Komputer dan Informatika Terakreditasi SINTA 2 (spesialisasi gaya selingkung Jurnal RESTI / IEEE).
+
+Tugasmu:
+Tulis ulang / poles teks berikut agar memenuhi standar penulisan artikel ilmiah SINTA 2 dengan gaya bahasa formal, elegan, presisi, dan mengalir secara alami (tidak kaku, tidak bertele-tele, dan tidak terdengar seperti terjemahan mesin).
+
+Kaidah Penulisan Wajib:
+1. Impersonal & Akademik: Hapus kata "kami", "penulis", "saya", "kita". Gunakan sudut pandang objektif/pasif ilmiah (misal: "Penelitian ini mengusulkan...", "Evaluasi dilakukan melalui...").
+2. Bersihkan Kata Mubazir: Haram menggunakan kata sambung klise yang melemahkan kalimat seperti "Adapun", "Bahwasanya", "Daripada", "Di mana", "Guna untuk", "Dapat disimpulkan bahwa".
+3. Kepadatan Makna (Conciseness): Setiap kalimat harus memiliki proposisi ilmiah yang jelas. Hindari kalimat deklaratif kosong tanpa data atau argumen teknis.
+4. Perlakuan Istilah Teknis:
+   - Gunakan padanan baku jika sudah lumrah (misal: "rekayasa perangkat lunak", "basis data", "beban kognitif").
+   - Jika istilah asing lebih presisi secara komputasi, pertahankan dalam bahasa Inggris dengan format miring/italic (misal: real-time collaboration, fail-closed, coalescing, throttling, workspace awareness, prompt injection).
+5. Transisi Paragraf yang Mengalir: Pastikan kalimat pertama tiap paragraf menjadi topik utama (topic sentence) dan memiliki transisi logis yang mulus ke argumen berikutnya.
+6. Pertahankan Substansi Teknis: Jangan mengubah terminologi arsitektur sistem (Go, Gin, Next.js, Redis, WebSocket, Groq LLaMA-3.1, TKPI 2020) dan jangan mengarang angka hasil evaluasi.
+
+Format Output:
+Tampilkan langsung naskah hasil perbaikan dalam format Markdown yang rapi, disertai 2-3 poin ringkas mengenai perbaikan struktural/linguistik yang telah dilakukan.
+
+Berikut draf teks yang harus dipoles:
+[TEMPELKAN TEKS .MD ANDA DI SINI]
+```
+
+---
+
+### E4.3 Strategi Konversi Skripsi → Artikel Jurnal
+
+| Skripsi | Artikel Jurnal SINTA 2 |
 |---|---|
-| Bab II penuh definisi | Dilebur ke Pendahuluan, hanya yang dipakai untuk argumen |
-| Kebutuhan F-01…F-52 | Dihapus / 1 kalimat |
-| Semua diagram UML | 2–3 yang mendukung kontribusi |
-| Kotak-hitam per fitur | Ringkas: jumlah kasus & % lulus |
-| Pembahasan per RM | Per RQ + pembanding literatur |
-| Jadwal, sistematika penulisan | Dihapus |
+| Bab II penuh teori definisi dasar | Dilebur ke Pendahuluan; hanya teori yang menjadi landasan solusi (*workspace awareness*, *DSRM*, *limitasi LLM nutrisi*) |
+| Kebutuhan F-01…F-52 ditulis butir per butir | Diringkas menjadi satu tabel kapabilitas arsitektural atau 1 paragraf ringkas |
+| Semua diagram UML (use case, activity, ERD) | Pilih 2–3 diagram arsitektural kunci (Diagram Alur Kolaborasi Real-Time & Pipeline LLM) |
+| Kotak-hitam uji fungsional per fitur berhalaman-halaman | Ringkas dalam 1 tabel evaluasi: kategori, jumlah skenario uji, tingkat kelulusan (%) |
+| Pembahasan terpisah dari hasil | Gabungkan dalam **Hasil dan Pembahasan**: sajikan data numerik diikuti komparasi dengan riset terdahulu |
+| Jadwal penelitian, sistematika penulisan bab | Dihapus sepenuhnya |
 
 **Sebelum kirim:** minta 1–2 orang yang tidak terlibat membaca dan menjawab "apa kontribusinya?" dalam satu kalimat. Siapkan *cover letter* (kontribusi, kesesuaian cakupan, pernyataan orisinalitas).
 

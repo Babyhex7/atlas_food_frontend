@@ -96,16 +96,30 @@ export function LiveCanvasOverlay({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Adjust canvas resolution to match container pixel dimensions
+    // Adjust canvas resolution to match container pixel dimensions.
+    //
+    // Mengisi canvas.width/height SELALU menghapus seluruh isi canvas, meski
+    // nilainya sama. Jadi ukuran hanya disetel bila benar-benar berubah, dan
+    // setiap resize WAJIB diikuti render() — dulu callback ResizeObserver
+    // (termasuk callback awal yang selalu terpanggil saat observe()) menghapus
+    // coretan tepat setelah digambar sehingga canvas selalu tampak kosong.
     const updateCanvasSize = () => {
       const rect = container.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
+      const nextWidth = Math.round(rect.width * dpr);
+      const nextHeight = Math.round(rect.height * dpr);
+      if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+        canvas.width = nextWidth;
+        canvas.height = nextHeight;
+      }
+      // setTransform (bukan scale) agar skala DPR tidak menumpuk antar pemanggilan
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
-    const resizeObserver = new ResizeObserver(updateCanvasSize);
+    const resizeObserver = new ResizeObserver(() => {
+      updateCanvasSize();
+      render();
+    });
     resizeObserver.observe(container);
     updateCanvasSize();
 
@@ -257,6 +271,7 @@ export function LiveCanvasOverlay({
     >
       <canvas
         ref={canvasRef}
+        data-testid="live-canvas"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

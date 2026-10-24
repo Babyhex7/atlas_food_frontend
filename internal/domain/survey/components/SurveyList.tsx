@@ -70,6 +70,11 @@ export function SurveyList() {
     },
   });
 
+  const closeDeleteModal = () => {
+    setConfirmDeleteId(null);
+    deleteMutation.reset();
+  };
+
   // Endpoint daftar survey belum punya parameter pencarian/status/urutan, jadi
   // penyaringan dikerjakan di sini. Aman karena satu admin hanya memegang
   // puluhan survey, bukan ribuan.
@@ -267,25 +272,31 @@ export function SurveyList() {
         <div
           className="modal-overlay"
           onClick={(e) => {
-            if (e.target === e.currentTarget) setConfirmDeleteId(null);
+            if (e.target === e.currentTarget) closeDeleteModal();
           }}
         >
           <div className="modal modal-sm">
             <div className="modal-header">
               <AlertTriangle size={18} className="text-danger" />
               <h3 className="modal-title">Hapus Survey?</h3>
-              <button className="modal-close" onClick={() => setConfirmDeleteId(null)}>
+              <button className="modal-close" onClick={closeDeleteModal}>
                 <X size={14} />
               </button>
             </div>
             <div className="modal-body">
               <p className="m-0 text-sm text-text-muted">
-                Tindakan ini tidak dapat dibatalkan. Semua data submission pada survey ini akan ikut
-                terhapus.
+                Tindakan ini tidak dapat dibatalkan. Survey yang sudah diikuti responden tidak bisa
+                dihapus — ubah statusnya menjadi Closed untuk menutupnya.
               </p>
+              {deleteMutation.isError && (
+                <p role="alert" className="mt-3 mb-0 text-sm text-danger">
+                  {/* apiClient (internal/pkg/api) melempar Error berisi pesan server. */}
+                  {deleteMutation.error?.message || "Gagal menghapus survey. Coba lagi."}
+                </p>
+              )}
             </div>
             <div className="modal-footer">
-              <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteId(null)}>
+              <Button variant="secondary" size="sm" onClick={closeDeleteModal}>
                 Batal
               </Button>
               <Button

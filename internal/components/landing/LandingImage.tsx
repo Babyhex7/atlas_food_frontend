@@ -32,13 +32,16 @@ export function LandingImage({
   priority = false,
   fallback,
 }: LandingImageProps) {
-  const [isMissing, setIsMissing] = useState(false);
+  const [failed, setFailed] = useState(false);
+  // src kosong (aset belum disiapkan, mis. categoriesCta: "") langsung dianggap
+  // hilang — <Image src=""> memicu error "missing required src" di next/image.
+  const isMissing = failed || !src;
   const imageRef = useRef<HTMLImageElement>(null);
 
   // Error yang terjadi sebelum hidrasi tidak memicu onError.
   useEffect(() => {
     const image = imageRef.current;
-    if (image?.complete && image.naturalWidth === 0) setIsMissing(true);
+    if (image?.complete && image.naturalWidth === 0) setFailed(true);
   }, []);
 
   if (isMissing && fallback) return <>{fallback}</>;
@@ -64,7 +67,7 @@ export function LandingImage({
         sizes={sizes}
         priority={priority}
         style={{ objectFit: fit }}
-        onError={() => setIsMissing(true)}
+        onError={() => setFailed(true)}
       />
     </div>
   );

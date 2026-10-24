@@ -18,6 +18,7 @@ import type { FoodDetail, PortionPhoto } from "@/internal/domain/food/types/food
 import type { RecallFood } from "../types/recall";
 import type { SelectedPortion } from "@/internal/domain/portion/types/portion";
 import { useCollab } from "@/internal/domain/collab";
+import { getImageUrl } from "@/internal/lib/image";
 import {
   Banner,
   Button,
@@ -599,18 +600,7 @@ export function Step3Portion({
 
                       {/* Photo Thumbnail Container */}
                       <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-surface-alt">
-                        {photo.thumbnail_url || photo.image_url ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={photo.thumbnail_url ?? photo.image_url}
-                            alt={photo.label}
-                            className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center">
-                            <ImageOff aria-hidden className="h-6 w-6 text-text-placeholder" />
-                          </div>
-                        )}
+                        <PortionThumb src={photo.thumbnail_url || photo.image_url} alt={photo.label} />
                       </div>
 
                       {/* Info porsi di bawah foto (sesuai desain screenshot) */}
@@ -719,5 +709,36 @@ export function Step3Portion({
         </Button>
       </StepNav>
     </StepShell>
+  );
+}
+
+/**
+ * Foto referensi porsi.
+ *
+ * Path dari API relatif ("/uploads/atlas/..."), jadi WAJIB di-resolve lewat
+ * getImageUrl — tanpa itu browser meminta gambar ke origin frontend dan semua
+ * foto porsi tampil rusak. Bila file tetap gagal dimuat, tampilkan ikon
+ * pengganti alih-alih ikon gambar rusak bawaan browser.
+ */
+function PortionThumb({ src, alt }: { src?: string | null; alt: string }) {
+  const resolved = getImageUrl(src);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+
+  if (!resolved || failedSrc === resolved) {
+    return (
+      <div className="flex h-full w-full items-center justify-center" data-testid="portion-photo-fallback">
+        <ImageOff aria-hidden className="h-6 w-6 text-text-placeholder" />
+      </div>
+    );
+  }
+
+  return (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src={resolved}
+      alt={alt}
+      onError={() => setFailedSrc(resolved)}
+      className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
+    />
   );
 }
