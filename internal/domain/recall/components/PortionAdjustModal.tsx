@@ -53,11 +53,13 @@ export function PortionAdjustModal({
   customGram = "",
   onCustomGram,
 }: PortionAdjustModalProps) {
+  const [prevPhoto, setPrevPhoto] = useState(photo);
   const [imgErrored, setImgErrored] = useState(false);
 
-  useEffect(() => {
+  if (photo !== prevPhoto) {
+    setPrevPhoto(photo);
     setImgErrored(false);
-  }, [photo]);
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

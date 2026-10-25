@@ -516,7 +516,7 @@ function RecallHistorySection() {
         ) : filteredSubmissions.length === 0 ? (
           <div className="py-10 flex flex-col items-center justify-center gap-2 text-center border border-dashed border-border rounded-xl bg-surface-alt p-6">
             <p className="font-semibold text-text-primary text-sm m-0">Tidak ditemukan riwayat yang sesuai</p>
-            <p className="text-xs text-text-muted m-0">Tidak ada riwayat recall yang cocok dengan kata kunci "{searchQuery}".</p>
+            <p className="text-xs text-text-muted m-0">Tidak ada riwayat recall yang cocok dengan kata kunci &ldquo;{searchQuery}&rdquo;.</p>
             <button
               onClick={() => setSearchQuery("")}
               className="btn btn-secondary btn-xs mt-2"
