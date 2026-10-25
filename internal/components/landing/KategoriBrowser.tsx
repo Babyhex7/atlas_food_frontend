@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Search } from "lucide-react";
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useQueries } from "@tanstack/react-query";
 import { useCategories } from "@/internal/domain/category/hooks/useCategoryQueries";
 import type { Category } from "@/internal/domain/category/types/category";
@@ -165,28 +166,37 @@ export function KategoriBrowser() {
             <option value="count">Hidangan terbanyak</option>
           </select>
 
-          <button type="submit" className={styles.searchButton}>
+          <motion.button
+            type="submit"
+            className={styles.searchButton}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+          >
             Cari
-          </button>
+          </motion.button>
         </form>
 
         <div className={styles.chips}>
-          <button
+          <motion.button
             type="button"
             className={`${styles.chip} ${filters.sort === "count" ? "" : styles.chipActive}`}
             aria-pressed={filters.sort !== "count"}
             onClick={resetFilters}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.94 }}
           >
             Semua
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             type="button"
             className={`${styles.chip} ${filters.sort === "count" ? styles.chipActive : ""}`}
             aria-pressed={filters.sort === "count"}
             onClick={() => setFilters({ ...filters, sort: "count" })}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.94 }}
           >
             Populer
-          </button>
+          </motion.button>
           {/* Backend belum mengirim tanggal dibuat, jadi "Terbaru" belum bisa diurutkan. */}
           <button type="button" className={styles.chip} disabled title="Belum tersedia">
             Terbaru
@@ -203,7 +213,7 @@ export function KategoriBrowser() {
             ))
           ) : visible.length > 0 ? (
             visible.map((entry, index) => (
-              <CategoryCard key={entry.category.id} entry={entry} variant={variantAt(index)} />
+              <CategoryCard key={entry.category.id} entry={entry} variant={variantAt(index)} index={index} />
             ))
           ) : categories.length > 0 ? (
             <p className={styles.empty}>
@@ -230,7 +240,7 @@ export function KategoriBrowser() {
   );
 }
 
-function CategoryCard({ entry, variant }: { entry: Entry; variant: CardVariant }) {
+function CategoryCard({ entry, variant, index = 0 }: { entry: Entry; variant: CardVariant; index?: number }) {
   const { category, foods, hasFoods } = entry;
   const showSamples = variant === "feature" || variant === "tall";
   const photos = variant === "feature" ? CATEGORY_SAMPLE_PHOTOS[category.code] ?? [] : [];
@@ -238,59 +248,69 @@ function CategoryCard({ entry, variant }: { entry: Entry; variant: CardVariant }
   const count = foods.length >= FOOD_LIMIT ? `${FOOD_LIMIT}+` : foods.length;
 
   return (
-    <Link
-      href={`/find-food/category/${category.code}`}
-      className={`${styles.card} ${VARIANT_CLASS[variant]}`}
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.45, delay: Math.min(index * 0.04, 0.3), ease: [0.21, 0.47, 0.32, 0.98] }}
+      whileHover={{ y: -6, transition: { duration: 0.22, ease: "easeOut" } }}
+      className={VARIANT_CLASS[variant]}
+      style={{ display: "contents" }}
     >
-      <div className={styles.cardMedia}>
-        <LandingImage
-          src={categoryCoverImage(category.code)}
-          alt=""
-          sizes={
-            variant === "feature"
-              ? "(max-width: 640px) 100vw, 760px"
-              : "(max-width: 640px) 100vw, (max-width: 960px) 50vw, 380px"
-          }
-          className={styles.cardImage}
-        />
-        {hasFoods ? <span className={styles.cardCount}>{count} Hidangan</span> : null}
-      </div>
+      <Link
+        href={`/find-food/category/${category.code}`}
+        className={`${styles.card} ${VARIANT_CLASS[variant]}`}
+      >
+        <div className={styles.cardMedia}>
+          <LandingImage
+            src={categoryCoverImage(category.code)}
+            alt=""
+            sizes={
+              variant === "feature"
+                ? "(max-width: 640px) 100vw, 760px"
+                : "(max-width: 640px) 100vw, (max-width: 960px) 50vw, 380px"
+            }
+            className={styles.cardImage}
+          />
+          {hasFoods ? <span className={styles.cardCount}>{count} Hidangan</span> : null}
+        </div>
 
-      <div className={styles.cardBody}>
-        <h2 className={styles.cardTitle}>{category.name}</h2>
+        <div className={styles.cardBody}>
+          <h2 className={styles.cardTitle}>{category.name}</h2>
 
-        {photos.length > 0 ? (
-          <ul className={styles.cardPhotos}>
-            {photos.slice(0, SAMPLE_COUNT).map((photo) => (
-              <li key={photo.name}>
-                <LandingImage
-                  src={photo.image}
-                  alt=""
-                  sizes="160px"
-                  ratio="1 / 1"
-                  className={styles.cardPhoto}
-                />
-                <span>{photo.name}</span>
-              </li>
-            ))}
-          </ul>
-        ) : samples.length > 0 ? (
-          <ul className={styles.cardSamples}>
-            {samples.map((food) => (
-              <li key={food.id}>{food.name}</li>
-            ))}
-          </ul>
-        ) : variant !== "compact" ? (
-          <p className={styles.cardText}>
-            {CATEGORY_DESCRIPTIONS[category.code] ?? CATEGORY_DESCRIPTION_FALLBACK}
-          </p>
-        ) : null}
+          {photos.length > 0 ? (
+            <ul className={styles.cardPhotos}>
+              {photos.slice(0, SAMPLE_COUNT).map((photo) => (
+                <li key={photo.name}>
+                  <LandingImage
+                    src={photo.image}
+                    alt=""
+                    sizes="160px"
+                    ratio="1 / 1"
+                    className={styles.cardPhoto}
+                  />
+                  <span>{photo.name}</span>
+                </li>
+              ))}
+            </ul>
+          ) : samples.length > 0 ? (
+            <ul className={styles.cardSamples}>
+              {samples.map((food) => (
+                <li key={food.id}>{food.name}</li>
+              ))}
+            </ul>
+          ) : variant !== "compact" ? (
+            <p className={styles.cardText}>
+              {CATEGORY_DESCRIPTIONS[category.code] ?? CATEGORY_DESCRIPTION_FALLBACK}
+            </p>
+          ) : null}
 
-        <span className={styles.cardLink}>
-          Lihat Kategori
-          <ArrowRight size={variant === "compact" ? 14 : 20} aria-hidden />
-        </span>
-      </div>
-    </Link>
+          <span className={styles.cardLink}>
+            Lihat Kategori
+            <ArrowRight size={variant === "compact" ? 14 : 20} aria-hidden />
+          </span>
+        </div>
+      </Link>
+    </motion.div>
   );
 }

@@ -1,8 +1,11 @@
+"use client";
+
 // Halaman Tim Peneliti ("Tim di Balik Atlas Food").
 // Navbar dan footer dipakai bersama dengan Landing; hanya carousel peneliti yang berjalan di client.
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
 import {
   Aperture,
   BadgeCheck,
@@ -29,6 +32,7 @@ import { LandingFooter } from "./LandingFooter";
 import { LandingImage } from "./LandingImage";
 import { LandingNavbar } from "./LandingNavbar";
 import { TimCarousel } from "./TimCarousel";
+import { FadeInView, FloatingMockup, StaggerContainer, StaggerItem } from "./motion";
 import landing from "./LandingPage.module.css";
 import styles from "./TimPage.module.css";
 
@@ -219,7 +223,7 @@ export function TimPage() {
       <main className={styles.main}>
         <section className={styles.hero}>
           <div className={`${styles.container} ${styles.heroInner}`}>
-            <div>
+            <FadeInView direction="left" distance={30} duration={0.6}>
               <h1 className={styles.heroTitle}>
                 Tim di Balik <em>Atlas Food</em>
               </h1>
@@ -228,105 +232,130 @@ export function TimPage() {
                 multimedia, dan pengembangan perangkat lunak untuk mewujudkan referensi nutrisi
                 digital terlengkap di Indonesia.
               </p>
-            </div>
+            </FadeInView>
 
-            <LandingImage
-              src={LANDING_ASSETS.teamHero}
-              alt="Ilustrasi tim di balik Atlas Food"
-              sizes="(max-width: 960px) 100vw, 552px"
-              ratio="552 / 412"
-              className={styles.heroImage}
-              priority
-            />
+            <FadeInView direction="right" distance={30} duration={0.6}>
+              <FloatingMockup amplitude={6} duration={5}>
+                <LandingImage
+                  src={LANDING_ASSETS.teamHero}
+                  alt="Ilustrasi tim di balik Atlas Food"
+                  sizes="(max-width: 960px) 100vw, 552px"
+                  ratio="552 / 412"
+                  className={styles.heroImage}
+                  priority
+                />
+              </FloatingMockup>
+            </FadeInView>
           </div>
         </section>
 
         <section className={styles.band}>
-          <h2>Kolaborasi Multidisiplin</h2>
-          <p>
-            Mengintegrasikan standar ilmiah gizi kesehatan, keahlian tata boga, estetika
-            multimedia, dan arsitektur sistem digital modern untuk satu tujuan: literasi nutrisi
-            bangsa.
-          </p>
+          <FadeInView direction="up" distance={20} duration={0.5}>
+            <h2>Kolaborasi Multidisiplin</h2>
+            <p>
+              Mengintegrasikan standar ilmiah gizi kesehatan, keahlian tata boga, estetika
+              multimedia, dan arsitektur sistem digital modern untuk satu tujuan: literasi nutrisi
+              bangsa.
+            </p>
+          </FadeInView>
         </section>
 
         <section className={styles.section}>
           <div className={styles.container}>
-            <div className={styles.researchHead}>
+            <FadeInView direction="up" distance={20} className={styles.researchHead}>
               <h2 className={styles.title}>Tim Peneliti</h2>
               <p className={styles.lead}>Daftar ahli yang mewujudkan integritas data Atlas Food.</p>
-            </div>
+            </FadeInView>
 
-            <article className={styles.featured}>
-              <div className={styles.featuredPhoto}>
-                <Avatar name={FEATURED.name} photo={FEATURED.photo} size="" />
-                <span className={styles.featuredMark}>
-                  <Quote size={24} fill="currentColor" aria-hidden />
-                </span>
-              </div>
+            <FadeInView direction="up" distance={25} duration={0.6}>
+              <motion.article
+                className={styles.featured}
+                whileHover={{ y: -4, transition: { duration: 0.22, ease: "easeOut" } }}
+              >
+                <div className={styles.featuredPhoto}>
+                  <Avatar name={FEATURED.name} photo={FEATURED.photo} size="" />
+                  <span className={styles.featuredMark}>
+                    <Quote size={24} fill="currentColor" aria-hidden />
+                  </span>
+                </div>
 
-              <div>
-                <p className={styles.featuredRole}>{FEATURED.role}</p>
-                <h3 className={styles.featuredName}>{FEATURED.name}</h3>
-                <p className={styles.featuredOrg}>{FEATURED.organization}</p>
-                <blockquote className={styles.featuredQuote}>
-                  &quot;{FEATURED.quote}&quot;
-                </blockquote>
-                <ul className={styles.tags}>
-                  {FEATURED.tags.map((tag) => (
-                    <li key={tag}>{tag}</li>
-                  ))}
-                </ul>
-              </div>
-            </article>
+                <div>
+                  <p className={styles.featuredRole}>{FEATURED.role}</p>
+                  <h3 className={styles.featuredName}>{FEATURED.name}</h3>
+                  <p className={styles.featuredOrg}>{FEATURED.organization}</p>
+                  <blockquote className={styles.featuredQuote}>
+                    &quot;{FEATURED.quote}&quot;
+                  </blockquote>
+                  <ul className={styles.tags}>
+                    {FEATURED.tags.map((tag) => (
+                      <li key={tag}>{tag}</li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.article>
+            </FadeInView>
 
             <TimCarousel title="BRIN Researchers">
               {BRIN_RESEARCHERS.map((researcher) => (
-                <li key={researcher.name} className={styles.researcherCard}>
+                <motion.li
+                  key={researcher.name}
+                  className={styles.researcherCard}
+                  whileHover={{ y: -5, scale: 1.02, transition: { duration: 0.2 } }}
+                >
                   <div className={styles.researcherTop}>
                     <Avatar name={researcher.name} photo={researcher.photo} size={styles.avatarSm} />
                     <span className={styles.rank}>{researcher.rank}</span>
                   </div>
                   <h4 title={researcher.name}>{researcher.name}</h4>
                   <p>{researcher.field}</p>
-                </li>
+                </motion.li>
               ))}
             </TimCarousel>
 
             <div className={styles.partners}>
               <div>
                 <h3 className={styles.subheading}>Universitas Pendidikan Indonesia</h3>
-                <div className={styles.lecturers}>
+                <StaggerContainer className={styles.lecturers} staggerDelay={0.1}>
                   {UPI_LECTURERS.map((lecturer) => (
-                    <article key={lecturer.name} className={styles.lecturer}>
-                      <Avatar name={lecturer.name} photo={lecturer.photo} size={styles.avatarXl} />
-                      <div>
-                        <h4>{lecturer.name}</h4>
-                        <p className={styles.role}>{lecturer.role}</p>
-                        <p>{lecturer.description}</p>
-                      </div>
-                    </article>
+                    <StaggerItem key={lecturer.name} yOffset={20}>
+                      <motion.article
+                        className={styles.lecturer}
+                        whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                      >
+                        <Avatar name={lecturer.name} photo={lecturer.photo} size={styles.avatarXl} />
+                        <div>
+                          <h4>{lecturer.name}</h4>
+                          <p className={styles.role}>{lecturer.role}</p>
+                          <p>{lecturer.description}</p>
+                        </div>
+                      </motion.article>
+                    </StaggerItem>
                   ))}
-                </div>
+                </StaggerContainer>
               </div>
 
               <div>
                 <h3 className={styles.subheading}>Universitas Muhammadiyah Bogor Raya</h3>
-                <article className={styles.partnerCard}>
-                  <GraduationCap size={96} strokeWidth={1.5} aria-hidden />
-                  <Avatar
-                    name="Primasti Nuryandari Putri, MKM"
-                    photo="primasti-nuryandari-putri"
-                    size={styles.avatarLg}
-                  />
-                  <h4>Primasti Nuryandari Putri, MKM</h4>
-                  <p className={styles.role}>Dosen Program Studi Gizi</p>
-                  <p>
-                    Kontribusi krusial dalam validasi metodologi penelitian gizi dan koordinasi data
-                    antar institusi akademis.
-                  </p>
-                  <strong>UMBR</strong>
-                </article>
+                <FadeInView direction="up" distance={20}>
+                  <motion.article
+                    className={styles.partnerCard}
+                    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  >
+                    <GraduationCap size={96} strokeWidth={1.5} aria-hidden />
+                    <Avatar
+                      name="Primasti Nuryandari Putri, MKM"
+                      photo="primasti-nuryandari-putri"
+                      size={styles.avatarLg}
+                    />
+                    <h4>Primasti Nuryandari Putri, MKM</h4>
+                    <p className={styles.role}>Dosen Program Studi Gizi</p>
+                    <p>
+                      Kontribusi krusial dalam validasi metodologi penelitian gizi dan koordinasi data
+                      antar institusi akademis.
+                    </p>
+                    <strong>UMBR</strong>
+                  </motion.article>
+                </FadeInView>
               </div>
             </div>
           </div>
@@ -334,73 +363,85 @@ export function TimPage() {
 
         <section className={`${styles.section} ${styles.sectionTint}`}>
           <div className={styles.container}>
-            <div className={styles.intro}>
+            <FadeInView direction="up" distance={20} className={styles.intro}>
               <h2 className={styles.title}>Tim Pengembangan Digital</h2>
               <p className={styles.lead}>Membangun arsitektur teknologi di balik Atlas Food.</p>
-            </div>
+            </FadeInView>
 
-            <article className={styles.mentor}>
-              <div className={styles.mentorProfile}>
-                <Avatar
-                  name="Raditya Muhammad, S.T., M.T."
-                  photo="raditya-muhammad"
-                  size={styles.avatarLg}
-                />
-                <span className={styles.mentorBadge}>Pembimbing Pengembangan Digital</span>
-                <h3>Raditya Muhammad, S.T., M.T.</h3>
-                <p>Dosen Program Studi Rekayasa Perangkat Lunak</p>
-              </div>
-
-              <blockquote className={styles.mentorQuote}>
-                <Quote size={32} fill="currentColor" aria-hidden />
-                <p>
-                  &quot;Membimbing proses pengembangan Atlas Food versi digital serta memastikan
-                  implementasi sistem sesuai dengan kebutuhan penelitian.&quot;
-                </p>
-                <div className={styles.mentorSkills}>
-                  <span>
-                    <SquareTerminal size={22} aria-hidden />
-                  </span>
-                  <span>
-                    <Network size={22} aria-hidden />
-                  </span>
+            <FadeInView direction="up" distance={25} duration={0.6}>
+              <motion.article
+                className={styles.mentor}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              >
+                <div className={styles.mentorProfile}>
+                  <Avatar
+                    name="Raditya Muhammad, S.T., M.T."
+                    photo="raditya-muhammad"
+                    size={styles.avatarLg}
+                  />
+                  <span className={styles.mentorBadge}>Pembimbing Pengembangan Digital</span>
+                  <h3>Raditya Muhammad, S.T., M.T.</h3>
+                  <p>Dosen Program Studi Rekayasa Perangkat Lunak</p>
                 </div>
-              </blockquote>
-            </article>
 
-            <div className={styles.devGrid}>
+                <blockquote className={styles.mentorQuote}>
+                  <Quote size={32} fill="currentColor" aria-hidden />
+                  <p>
+                    &quot;Membimbing proses pengembangan Atlas Food versi digital serta memastikan
+                    implementasi sistem sesuai dengan kebutuhan penelitian.&quot;
+                  </p>
+                  <div className={styles.mentorSkills}>
+                    <span>
+                      <SquareTerminal size={22} aria-hidden />
+                    </span>
+                    <span>
+                      <Network size={22} aria-hidden />
+                    </span>
+                  </div>
+                </blockquote>
+              </motion.article>
+            </FadeInView>
+
+            <StaggerContainer className={styles.devGrid} staggerDelay={0.1}>
               {DEVELOPERS.map((developer) => (
-                <article key={developer.name} className={styles.devCard}>
-                  <Avatar name={developer.name} photo={developer.photo} size={styles.avatarMd} />
-                  <h3>{developer.name}</h3>
-                  <p className={styles.role}>Software Developer</p>
-                  <span className={styles.devTag}>{developer.focus}</span>
-                  <p>{developer.description}</p>
-                  <small>Rekayasa Perangkat Lunak - UPI</small>
-                </article>
+                <StaggerItem key={developer.name} yOffset={25}>
+                  <motion.article
+                    className={styles.devCard}
+                    whileHover={{ y: -6, transition: { duration: 0.22, ease: "easeOut" } }}
+                  >
+                    <Avatar name={developer.name} photo={developer.photo} size={styles.avatarMd} />
+                    <h3>{developer.name}</h3>
+                    <p className={styles.role}>Software Developer</p>
+                    <span className={styles.devTag}>{developer.focus}</span>
+                    <p>{developer.description}</p>
+                    <small>Rekayasa Perangkat Lunak - UPI</small>
+                  </motion.article>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
 
             <div className={styles.progress}>
               <div>
                 <h3 className={styles.barHeading}>Milestone Pengembangan</h3>
-                <ol className={styles.milestones}>
+                <StaggerContainer className={styles.milestones} staggerDelay={0.08}>
                   {MILESTONES.map((milestone) => {
                     const { className, icon: Icon } = MILESTONE_VIEW[milestone.status];
 
                     return (
-                      <li key={milestone.title} className={className}>
-                        <span className={styles.milestoneMark}>
-                          <Icon size={12} strokeWidth={3} aria-hidden />
-                        </span>
-                        <div>
-                          <strong>{milestone.title}</strong>
-                          <span>{milestone.detail}</span>
-                        </div>
-                      </li>
+                      <StaggerItem key={milestone.title} yOffset={15}>
+                        <li className={className}>
+                          <span className={styles.milestoneMark}>
+                            <Icon size={12} strokeWidth={3} aria-hidden />
+                          </span>
+                          <div>
+                            <strong>{milestone.title}</strong>
+                            <span>{milestone.detail}</span>
+                          </div>
+                        </li>
+                      </StaggerItem>
                     );
                   })}
-                </ol>
+                </StaggerContainer>
               </div>
 
               <div>
@@ -411,19 +452,24 @@ export function TimPage() {
                   gizi digital.
                 </p>
 
-                <div className={styles.contributions}>
+                <StaggerContainer className={styles.contributions} staggerDelay={0.1}>
                   {CONTRIBUTIONS.map(({ title, description, icon: Icon }) => (
-                    <article key={title} className={styles.contribution}>
-                      <span className={styles.iconTile}>
-                        <Icon size={22} aria-hidden />
-                      </span>
-                      <div>
-                        <h4>{title}</h4>
-                        <p>{description}</p>
-                      </div>
-                    </article>
+                    <StaggerItem key={title} yOffset={15}>
+                      <motion.article
+                        className={styles.contribution}
+                        whileHover={{ x: 4, transition: { duration: 0.15 } }}
+                      >
+                        <span className={styles.iconTile}>
+                          <Icon size={22} aria-hidden />
+                        </span>
+                        <div>
+                          <h4>{title}</h4>
+                          <p>{description}</p>
+                        </div>
+                      </motion.article>
+                    </StaggerItem>
                   ))}
-                </div>
+                </StaggerContainer>
               </div>
             </div>
           </div>
@@ -431,98 +477,116 @@ export function TimPage() {
 
         <section className={styles.section}>
           <div className={styles.container}>
-            <div className={styles.intro}>
+            <FadeInView direction="up" distance={20} className={styles.intro}>
               <h2 className={styles.title}>Nilai-Nilai Tim</h2>
               <p className={styles.lead}>
                 Prinsip dasar yang menyatukan kolaborasi multidisiplin kami.
               </p>
-            </div>
+            </FadeInView>
 
-            <div className={styles.valueGrid}>
+            <StaggerContainer className={styles.valueGrid} staggerDelay={0.1}>
               {VALUES.map(({ title, description, icon: Icon }) => (
-                <article key={title} className={styles.valueCard}>
-                  <span className={styles.iconTile}>
-                    <Icon size={22} aria-hidden />
-                  </span>
-                  <h3>{title}</h3>
-                  <p>{description}</p>
-                </article>
+                <StaggerItem key={title} yOffset={20}>
+                  <motion.article
+                    className={styles.valueCard}
+                    whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                  >
+                    <span className={styles.iconTile}>
+                      <Icon size={22} aria-hidden />
+                    </span>
+                    <h3>{title}</h3>
+                    <p>{description}</p>
+                  </motion.article>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           </div>
         </section>
 
         <section className={`${styles.section} ${styles.sectionWhite}`}>
           <div className={styles.container}>
             <div className={styles.prepHead}>
-              <div>
+              <FadeInView direction="left" distance={20}>
                 <h2 className={styles.title}>Tim Persiapan Hidangan</h2>
                 <p className={styles.lead}>
                   Menyusun dan menyajikan representasi makanan autentik Indonesia.
                 </p>
-              </div>
+              </FadeInView>
               <UtensilsCrossed size={40} aria-hidden />
             </div>
 
-            <div className={styles.prepGrid}>
+            <StaggerContainer className={styles.prepGrid} staggerDelay={0.08}>
               {FOOD_PREP_TEAM.map((member) => (
-                <article key={member.name}>
-                  <Avatar name={member.name} photo={member.photo} size={styles.avatarLg} />
-                  <h3>{member.name}</h3>
-                  <p className={styles.role}>Pendidikan Tata Boga - UPI</p>
-                </article>
+                <StaggerItem key={member.name} yOffset={20}>
+                  <motion.article
+                    whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                  >
+                    <Avatar name={member.name} photo={member.photo} size={styles.avatarLg} />
+                    <h3>{member.name}</h3>
+                    <p className={styles.role}>Pendidikan Tata Boga - UPI</p>
+                  </motion.article>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           </div>
         </section>
 
         <section className={`${styles.section} ${styles.sectionDark}`}>
           <Aperture className={styles.darkMark} strokeWidth={2.5} aria-hidden />
           <div className={styles.container}>
-            <h2 className={styles.title}>Tim Fotografi &amp; Desain</h2>
-            <p className={styles.lead}>Menangkap esensi nutrisi melalui lensa dan visual presisi.</p>
+            <FadeInView direction="up" distance={20}>
+              <h2 className={styles.title}>Tim Fotografi &amp; Desain</h2>
+              <p className={styles.lead}>Menangkap esensi nutrisi melalui lensa dan visual presisi.</p>
+            </FadeInView>
 
-            <div className={styles.creativeGrid}>
+            <StaggerContainer className={styles.creativeGrid} staggerDelay={0.1}>
               {CREATIVE_TEAM.map(({ name, photo, role, icon: Icon }) => (
-                <article key={name} className={styles.creativeCard}>
-                  <div className={styles.creativePhoto}>
-                    <LandingImage
-                      src={teamPhoto(photo)}
-                      alt={`Foto ${name}`}
-                      sizes="(max-width: 640px) 100vw, 240px"
-                      ratio="1 / 1"
-                      className={styles.creativeImage}
-                      fallback={
-                        <div className={styles.creativeFallback} aria-hidden>
-                          {initials(name)}
-                        </div>
-                      }
-                    />
-                    <span>
-                      <Icon size={20} aria-hidden />
-                    </span>
-                  </div>
-                  <h3>{name}</h3>
-                  <p>{role}</p>
-                </article>
+                <StaggerItem key={name} yOffset={25}>
+                  <motion.article
+                    className={styles.creativeCard}
+                    whileHover={{ y: -6, transition: { duration: 0.22, ease: "easeOut" } }}
+                  >
+                    <div className={styles.creativePhoto}>
+                      <LandingImage
+                        src={teamPhoto(photo)}
+                        alt={`Foto ${name}`}
+                        sizes="(max-width: 640px) 100vw, 240px"
+                        ratio="1 / 1"
+                        className={styles.creativeImage}
+                        fallback={
+                          <div className={styles.creativeFallback} aria-hidden>
+                            {initials(name)}
+                          </div>
+                        }
+                      />
+                      <span>
+                        <Icon size={20} aria-hidden />
+                      </span>
+                    </div>
+                    <h3>{name}</h3>
+                    <p>{role}</p>
+                  </motion.article>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           </div>
         </section>
 
         <section className={styles.closing}>
           <div className={`${styles.container} ${styles.closingInner}`}>
-            <div>
+            <FadeInView direction="left" distance={30} duration={0.6}>
               <h2 className={styles.closingTitle}>Bersama Membangun Atlas Food</h2>
               <p className={styles.closingText}>
                 Apresiasi setinggi-tingginya kepada seluruh pihak yang telah berkontribusi dalam
                 meriset, menyusun, dan mengembangkan Atlas Food. Karya ini dipersembahkan untuk
                 kemajuan sains pangan dan kesehatan masyarakat Indonesia.
               </p>
-              <Link href="/find-food" className={styles.closingButton}>
-                Mulai Menjelajahi Atlas
-                <Compass size={20} aria-hidden />
-              </Link>
+              <motion.div whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.96 }}>
+                <Link href="/find-food" className={styles.closingButton}>
+                  Mulai Menjelajahi Atlas
+                  <Compass size={20} aria-hidden />
+                </Link>
+              </motion.div>
 
               <div className={styles.thanks}>
                 <h3>Special Thanks to Our Partners</h3>
@@ -538,18 +602,26 @@ export function TimPage() {
                   lebih akurat dan mudah diakses.
                 </p>
               </div>
-            </div>
+            </FadeInView>
 
-            <div className={styles.collage}>
+            <FadeInView direction="right" distance={30} duration={0.6} className={styles.collage}>
               <div>
-                <CollageImage index={1} ratio="268 / 196" />
-                <CollageImage index={2} ratio="268 / 146" />
+                <motion.div whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}>
+                  <CollageImage index={1} ratio="268 / 196" />
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}>
+                  <CollageImage index={2} ratio="268 / 146" />
+                </motion.div>
               </div>
               <div>
-                <CollageImage index={3} ratio="268 / 146" />
-                <CollageImage index={4} ratio="268 / 196" />
+                <motion.div whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}>
+                  <CollageImage index={3} ratio="268 / 146" />
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}>
+                  <CollageImage index={4} ratio="268 / 196" />
+                </motion.div>
               </div>
-            </div>
+            </FadeInView>
           </div>
         </section>
       </main>

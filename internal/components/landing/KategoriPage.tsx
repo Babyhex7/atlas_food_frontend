@@ -1,12 +1,16 @@
+"use client";
+
 // Halaman Kategori Hidangan. Navbar dan footer dipakai bersama dengan Landing.
 
 import Link from "next/link";
 import { ChartColumn } from "lucide-react";
+import { motion } from "framer-motion";
 import { KategoriBrowser } from "./KategoriBrowser";
 import { LANDING_ASSETS } from "./landingData";
 import { LandingFooter } from "./LandingFooter";
 import { LandingImage } from "./LandingImage";
 import { LandingNavbar } from "./LandingNavbar";
+import { FadeInView, FloatingMockup } from "./motion";
 import landing from "./LandingPage.module.css";
 import styles from "./KategoriPage.module.css";
 
@@ -18,16 +22,16 @@ export function KategoriPage() {
       <main className={styles.main}>
         <section className={styles.hero}>
           <div className={`${styles.container} ${styles.heroInner}`}>
-            <div>
+            <FadeInView direction="left" distance={28} duration={0.6}>
               <h1 className={styles.heroTitle}>Kategori Hidangan</h1>
               <p className={styles.heroDescription}>
                 Jelajahi berbagai kategori hidangan dalam Atlas Food. Basis data referensi
                 visual porsi makan terlengkap untuk kebutuhan riset nutrisi dan kesehatan di
                 Indonesia.
               </p>
-            </div>
+            </FadeInView>
 
-            <div className={styles.heroVisual}>
+            <FadeInView direction="right" distance={28} duration={0.6} className={styles.heroVisual}>
               <LandingImage
                 src={LANDING_ASSETS.categoriesHero}
                 alt="Tampilan kategori hidangan pada database Atlas Food"
@@ -36,7 +40,7 @@ export function KategoriPage() {
                 className={styles.heroImage}
                 priority
               />
-              <div className={styles.heroBadge}>
+              <FloatingMockup amplitude={8} duration={4.5} className={styles.heroBadge}>
                 <span className={styles.heroBadgeIcon}>
                   <ChartColumn size={22} aria-hidden />
                 </span>
@@ -44,15 +48,15 @@ export function KategoriPage() {
                   <strong>Terstandarisasi</strong>
                   <small>Metode BRIN &amp; UPI</small>
                 </div>
-              </div>
-            </div>
+              </FloatingMockup>
+            </FadeInView>
           </div>
         </section>
 
         <KategoriBrowser />
 
         <section className={styles.cta}>
-          <div className={`${styles.container} ${styles.ctaInner}`}>
+          <FadeInView direction="up" distance={30} duration={0.6} className={`${styles.container} ${styles.ctaInner}`}>
             <LandingImage
               src={LANDING_ASSETS.categoriesCta}
               alt=""
@@ -68,20 +72,24 @@ export function KategoriPage() {
             </p>
 
             <div className={styles.ctaActions}>
-              <Link
-                href="/find-food"
-                className={`${landing.button} ${landing.buttonPrimary} ${styles.ctaButton}`}
-              >
-                Jelajahi Semua Hidangan
-              </Link>
-              <Link
-                href="/"
-                className={`${landing.button} ${landing.buttonSecondary} ${styles.ctaButton}`}
-              >
-                Kembali ke Beranda
-              </Link>
+              <motion.div whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.96 }}>
+                <Link
+                  href="/find-food"
+                  className={`${landing.button} ${landing.buttonPrimary} ${styles.ctaButton}`}
+                >
+                  Jelajahi Semua Hidangan
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.96 }}>
+                <Link
+                  href="/"
+                  className={`${landing.button} ${landing.buttonSecondary} ${styles.ctaButton}`}
+                >
+                  Kembali ke Beranda
+                </Link>
+              </motion.div>
             </div>
-          </div>
+          </FadeInView>
         </section>
       </main>
 

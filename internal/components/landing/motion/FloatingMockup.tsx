@@ -6,9 +6,16 @@ import { type ReactNode, useRef } from "react";
 interface FloatingMockupProps {
   children: ReactNode;
   className?: string;
+  amplitude?: number;
+  duration?: number;
 }
 
-export function FloatingMockup({ children, className = "" }: FloatingMockupProps) {
+export function FloatingMockup({
+  children,
+  className = "",
+  amplitude = 6,
+  duration = 5,
+}: FloatingMockupProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const x = useMotionValue(0);
@@ -55,10 +62,10 @@ export function FloatingMockup({ children, className = "" }: FloatingMockupProps
     >
       <motion.div
         animate={{
-          y: [-5, 6, -5],
+          y: [-amplitude, amplitude, -amplitude],
         }}
         transition={{
-          duration: 5,
+          duration,
           repeat: Infinity,
           ease: "easeInOut",
         }}

@@ -2,6 +2,7 @@
 
 import { Layers } from "lucide-react";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { LANDING_ASSETS } from "./landingData";
 import { LandingImage } from "./LandingImage";
 import styles from "./MetodologiPage.module.css";
@@ -125,7 +126,7 @@ export function MetodologiGuide() {
     <div className={styles.guide}>
       <div className={styles.tabs} role="tablist" aria-label="Jenis referensi foto">
         {GUIDES.map((item) => (
-          <button
+          <motion.button
             key={item.id}
             type="button"
             role="tab"
@@ -134,59 +135,67 @@ export function MetodologiGuide() {
             aria-controls="panduan-panel"
             className={`${styles.tab} ${item.id === guide.id ? styles.tabActive : ""}`}
             onClick={() => setActiveId(item.id)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             {item.tab}
-          </button>
+          </motion.button>
         ))}
       </div>
 
-      <div
-        id="panduan-panel"
-        role="tabpanel"
-        aria-labelledby={`panduan-tab-${guide.id}`}
-        className={styles.guidePanel}
-      >
-        <div>
-          <p className={styles.guideHeading}>
-            <Layers size={22} aria-hidden />
-            {guide.heading}
-          </p>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={guide.id}
+          id="panduan-panel"
+          role="tabpanel"
+          aria-labelledby={`panduan-tab-${guide.id}`}
+          className={styles.guidePanel}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+        >
+          <div>
+            <p className={styles.guideHeading}>
+              <Layers size={22} aria-hidden />
+              {guide.heading}
+            </p>
 
-          <ol className={styles.steps}>
-            {guide.steps.map((step) => (
-              <li key={step.title}>
-                <div>
-                  <strong>{step.title}</strong>
-                  <span>{step.detail}</span>
-                </div>
-              </li>
-            ))}
-          </ol>
+            <ol className={styles.steps}>
+              {guide.steps.map((step) => (
+                <li key={step.title}>
+                  <div>
+                    <strong>{step.title}</strong>
+                    <span>{step.detail}</span>
+                  </div>
+                </li>
+              ))}
+            </ol>
 
-          <p className={`${styles.callout} ${styles.calloutExample}`}>
-            <strong>Contoh:</strong>
-            {guide.example}
-          </p>
-          <p className={styles.callout}>
-            <strong>Tips:</strong>
-            {guide.tip}
-          </p>
-        </div>
+            <p className={`${styles.callout} ${styles.calloutExample}`}>
+              <strong>Contoh:</strong>
+              {guide.example}
+            </p>
+            <p className={styles.callout}>
+              <strong>Tips:</strong>
+              {guide.tip}
+            </p>
+          </div>
 
-        <div>
-          {/* key memaksa slot gambar dibuat ulang saat tab berganti. */}
-          <LandingImage
-            key={guide.id}
-            src={guide.image}
-            alt={guide.caption}
-            sizes="(max-width: 960px) 100vw, 500px"
-            ratio="500 / 520"
-            fit="contain"
-            className={styles.guideImage}
-          />
-          <p className={styles.guideCaption}>{guide.caption}</p>
-        </div>
-      </div>
+          <div>
+            <LandingImage
+              key={guide.id}
+              src={guide.image}
+              alt={guide.caption}
+              sizes="(max-width: 960px) 100vw, 500px"
+              ratio="500 / 520"
+              fit="contain"
+              className={styles.guideImage}
+            />
+            <p className={styles.guideCaption}>{guide.caption}</p>
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
