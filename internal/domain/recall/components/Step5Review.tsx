@@ -5,11 +5,15 @@ import {
   AlertCircle,
   ClipboardList,
   CupSoda,
+  Droplets,
+  Drumstick,
+  Flame,
   Loader2,
   Pencil,
   Plus,
   Send,
   UtensilsCrossed,
+  Wheat,
 } from "lucide-react";
 import { submitSurvey } from "@/internal/domain/submission/services/submissionService";
 import type { CreateSubmissionRequest } from "@/internal/domain/submission/types/submission";
@@ -18,6 +22,7 @@ import { calcNutrientsForPortion } from "../utils/nutrients";
 import { getApiErrorMessage } from "@/internal/pkg/utils/apiError";
 import { useCollab } from "@/internal/domain/collab";
 import { Button, Card, StepHeader, StepNav, StepShell } from "./ui/Primitives";
+import { cn } from "@/internal/lib/cn";
 
 interface Props {
   session: RecallSession;
@@ -293,18 +298,41 @@ export function Step5Review({
         {/* ── Ringkasan & aksi ───────────────────────────────────────── */}
         <div className="flex flex-col gap-4">
           <Card>
-            <span className="mb-3 block text-xs font-semibold uppercase tracking-[0.07em] text-text-muted">
-              Perkiraan total harian
-            </span>
+            <div className="flex items-center gap-2 mb-3">
+              <Flame className="h-4 w-4 text-primary" />
+              <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                Perkiraan Total Gizi Harian
+              </span>
+            </div>
             <dl className="grid grid-cols-2 gap-3">
-              <NutrientStat label="Energi" value={Math.round(totals.energy)} unit="kkal" />
-              <NutrientStat label="Protein" value={Math.round(totals.protein * 10) / 10} unit="g" />
+              <NutrientStat
+                label="Energi"
+                value={Math.round(totals.energy)}
+                unit="kkal"
+                icon={Flame}
+                tone="text-amber-500"
+              />
+              <NutrientStat
+                label="Protein"
+                value={Math.round(totals.protein * 10) / 10}
+                unit="g"
+                icon={Drumstick}
+                tone="text-rose-500"
+              />
               <NutrientStat
                 label="Karbohidrat"
                 value={Math.round(totals.carbs * 10) / 10}
                 unit="g"
+                icon={Wheat}
+                tone="text-emerald-500"
               />
-              <NutrientStat label="Lemak" value={Math.round(totals.fat * 10) / 10} unit="g" />
+              <NutrientStat
+                label="Lemak"
+                value={Math.round(totals.fat * 10) / 10}
+                unit="g"
+                icon={Droplets}
+                tone="text-blue-500"
+              />
             </dl>
           </Card>
 
@@ -365,16 +393,32 @@ export function Step5Review({
   );
 }
 
-function NutrientStat({ label, value, unit }: { label: string; value: number; unit: string }) {
+function NutrientStat({
+  label,
+  value,
+  unit,
+  icon: Icon,
+  tone,
+}: {
+  label: string;
+  value: number;
+  unit: string;
+  icon: typeof Flame;
+  tone: string;
+}) {
   return (
-    <div className="rounded-lg bg-surface-alt p-3">
-      <dt className="text-[10px] font-semibold uppercase tracking-[0.07em] text-text-muted">
-        {label}
-      </dt>
-      <dd className="mt-1 font-mono text-base font-bold text-text-primary">
+    <div className="rounded-xl border border-border/80 bg-surface-alt/70 p-3 shadow-2xs">
+      <div className="flex items-center justify-between gap-1 mb-1">
+        <dt className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+          {label}
+        </dt>
+        <Icon className={cn("h-3.5 w-3.5", tone)} />
+      </div>
+      <dd className="font-mono text-base font-bold text-text-primary">
         {value}
-        <span className="ml-1 text-xs font-medium text-text-muted">{unit}</span>
+        <span className="ml-1 text-xs font-semibold text-text-muted">{unit}</span>
       </dd>
     </div>
   );
 }
+

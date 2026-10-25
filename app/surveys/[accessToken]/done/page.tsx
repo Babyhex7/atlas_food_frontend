@@ -69,95 +69,151 @@ export default function SurveyDonePage() {
   const foodCount = session?.meals.flatMap((m) => m.foods).length ?? 0;
   const filledMeals = session?.meals.filter((m) => m.foods.length > 0) ?? [];
 
+  // Standar AKG Dewasa Rata-Rata Indonesia (Permenkes RI):
+  // Energi ~2150 kkal, Protein ~60g, Karbo ~320g, Lemak ~65g
   const nutrientTiles = [
-    { label: "Energi", value: totals.energy, unit: "kkal", icon: Flame, tone: "text-warning" },
-    { label: "Protein", value: totals.protein, unit: "g", icon: Drumstick, tone: "text-danger" },
-    { label: "Karbohidrat", value: totals.carbs, unit: "g", icon: Wheat, tone: "text-primary" },
-    { label: "Lemak", value: totals.fat, unit: "g", icon: Droplets, tone: "text-info" },
+    {
+      label: "Energi",
+      value: totals.energy,
+      unit: "kkal",
+      target: 2150,
+      icon: Flame,
+      tone: "text-amber-500",
+      bgTone: "bg-amber-500/10 border-amber-500/20",
+    },
+    {
+      label: "Protein",
+      value: totals.protein,
+      unit: "g",
+      target: 60,
+      icon: Drumstick,
+      tone: "text-rose-500",
+      bgTone: "bg-rose-500/10 border-rose-500/20",
+    },
+    {
+      label: "Karbohidrat",
+      value: totals.carbs,
+      unit: "g",
+      target: 320,
+      icon: Wheat,
+      tone: "text-emerald-500",
+      bgTone: "bg-emerald-500/10 border-emerald-500/20",
+    },
+    {
+      label: "Lemak",
+      value: totals.fat,
+      unit: "g",
+      target: 65,
+      icon: Droplets,
+      tone: "text-blue-500",
+      bgTone: "bg-blue-500/10 border-blue-500/20",
+    },
   ];
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
       <AppHeader />
 
-      <div className={cn(CONTAINER_CLASS, "flex-1 py-8 sm:py-10")}>
-        <div className="mx-auto flex w-full max-w-[45rem] flex-col gap-6">
-          {/* ── Sukses ─────────────────────────────────────────────────── */}
-          <section className="flex flex-col items-center gap-4 rounded-xl border border-success-border bg-success-light px-5 py-8 text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-surface">
-              <CheckCircle2 aria-hidden className="h-7 w-7 text-success" />
+      <div className={cn(CONTAINER_CLASS, "flex-1 py-8 sm:py-12")}>
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+          {/* ── Sukses Hero ────────────────────────────────────────────── */}
+          <section className="flex flex-col items-center text-center rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 via-surface to-surface p-6 sm:p-8 shadow-xs">
+            <span className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-emerald-400 text-white shadow-lg shadow-emerald-500/25 mb-4">
+              <CheckCircle2 aria-hidden className="h-9 w-9 stroke-[2.2]" />
             </span>
-            <StepHeader
-              centered
-              title="Survey berhasil dikumpulkan"
-              subtitle={`Terima kasih${
-                session?.respondent_name ? `, ${session.respondent_name}` : ""
-              }! Data recall makanan Anda sudah tersimpan.`}
-            />
-            <dl className="flex flex-wrap justify-center gap-6">
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
+              Survei Berhasil Dikumpulkan
+            </h1>
+
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-text-muted">
+              Terima kasih{session?.respondent_name ? `, ${session.respondent_name}` : ""}! Data
+              recall konsumsi makanan Anda telah tersimpan secara resmi di sistem penelitian Atlas Food.
+            </p>
+
+            <dl className="mt-6 flex flex-wrap justify-center gap-4 sm:gap-8 w-full max-w-lg rounded-xl border border-border/80 bg-surface/90 py-3.5 px-6 shadow-2xs">
               {[
-                { label: "Waktu makan", value: mealCount },
-                { label: "Item makanan", value: foodCount },
-                ...(hasNutr ? [{ label: "Energi (kkal)", value: totals.energy }] : []),
+                { label: "Waktu Makan", value: `${mealCount} sesi` },
+                { label: "Item Makanan", value: `${foodCount} item` },
+                ...(hasNutr ? [{ label: "Total Energi", value: `${totals.energy} kkal` }] : []),
               ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <dt className="text-[10px] font-semibold uppercase tracking-[0.07em] text-success">
+                <div key={stat.label} className="text-center flex-1 min-w-24">
+                  <dt className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
                     {stat.label}
                   </dt>
-                  <dd className="mt-1 font-mono text-xl font-bold text-success">{stat.value}</dd>
+                  <dd className="mt-1 font-mono text-lg font-bold text-text-primary">{stat.value}</dd>
                 </div>
               ))}
             </dl>
           </section>
 
-          {/* ── Ringkasan gizi ─────────────────────────────────────────── */}
+          {/* ── Ringkasan Gizi Makro ─────────────────────────────────────── */}
           {hasNutr ? (
             <Card>
-              <CardLabel>Ringkasan gizi hari ini</CardLabel>
+              <CardLabel icon={Flame}>Ringkasan Kecukupan Gizi Hari Ini (Perkiraan)</CardLabel>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {nutrientTiles.map(({ label, value, unit, icon: Icon, tone }) => (
-                  <div
-                    key={label}
-                    className="rounded-lg border border-border bg-surface-alt p-3 text-center"
-                  >
-                    <Icon aria-hidden className={cn("mx-auto mb-2 h-4 w-4", tone)} />
-                    <div className="font-mono text-base font-bold text-text-primary">
-                      {value}
-                      <span className="ml-1 text-xs font-medium text-text-muted">{unit}</span>
+                {nutrientTiles.map(({ label, value, unit, target, icon: Icon, tone, bgTone }) => {
+                  const pct = Math.min(100, Math.round((value / target) * 100));
+                  return (
+                    <div
+                      key={label}
+                      className={cn("rounded-xl border p-4 text-center transition-all", bgTone)}
+                    >
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface shadow-2xs mx-auto mb-2.5">
+                        <Icon aria-hidden className={cn("h-4 w-4", tone)} />
+                      </span>
+                      <div className="font-mono text-lg font-bold text-text-primary">
+                        {value}
+                        <span className="ml-1 text-xs font-semibold text-text-muted">{unit}</span>
+                      </div>
+                      <div className="mt-1 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                        {label}
+                      </div>
+                      <div className="mt-2.5 flex items-center justify-between text-[10px] text-text-muted">
+                        <span>AKG: {target}{unit}</span>
+                        <span className="font-semibold text-text-primary">{pct}%</span>
+                      </div>
+                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-border">
+                        <div
+                          className="h-full rounded-full bg-primary transition-all duration-500"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.07em] text-text-muted">
-                      {label}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
           ) : null}
 
-          {/* ── Detail waktu makan ─────────────────────────────────────── */}
+          {/* ── Detail Waktu Makan ─────────────────────────────────────── */}
           {filledMeals.length > 0 ? (
             <Card>
-              <CardLabel icon={UtensilsCrossed}>Detail waktu makan</CardLabel>
+              <CardLabel icon={UtensilsCrossed}>Detail Makanan Tercatat</CardLabel>
               <ul className="flex flex-col gap-3">
                 {filledMeals.map((meal) => (
                   <li
                     key={`${meal.name}-${meal.time}`}
-                    className="rounded-lg border border-border bg-surface-alt p-4"
+                    className="rounded-xl border border-border bg-surface-alt/60 p-4 shadow-2xs"
                   >
-                    <div className="mb-2 flex items-baseline justify-between gap-3">
-                      <span className="text-sm font-semibold text-text-primary">{meal.name}</span>
-                      <span className="text-xs text-text-muted">
-                        {meal.time} · {meal.foods.length} item
+                    <div className="mb-2.5 flex items-baseline justify-between gap-3 border-b border-border/60 pb-2">
+                      <span className="text-sm font-bold text-text-primary">{meal.name}</span>
+                      <span className="text-xs text-text-muted font-medium">
+                        Jam {meal.time} · {meal.foods.length} item
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {meal.foods.map((rf) => (
                         <span
                           key={`${meal.name}-${rf.food.id}`}
-                          className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-secondary"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary shadow-2xs"
                         >
-                          {rf.food.name}
-                          {rf.portion ? ` (${rf.portion.portion_gram}g)` : ""}
+                          <span className="font-semibold text-text-primary">{rf.food.name}</span>
+                          {rf.portion ? (
+                            <span className="font-mono text-primary font-bold">
+                              ({rf.portion.portion_gram}g)
+                            </span>
+                          ) : null}
                         </span>
                       ))}
                     </div>
@@ -171,29 +227,30 @@ export default function SurveyDonePage() {
           <AiRecommendationPanel submissionId={session?.submission_id} />
 
           {/* ── Aksi ───────────────────────────────────────────────────── */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
               href="/find-food"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-5 text-sm font-semibold text-text-secondary no-underline transition-all hover:border-primary hover:bg-primary-light hover:text-primary"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm font-semibold text-text-secondary no-underline transition-all hover:border-primary hover:bg-primary-light hover:text-primary shadow-2xs"
             >
               <Search aria-hidden className="h-4 w-4" />
-              Cari makanan
+              Eksplorasi Katalog Makanan
             </Link>
             <Link
               href="/profile"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-5 text-sm font-semibold text-text-secondary no-underline transition-all hover:border-primary hover:bg-primary-light hover:text-primary"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm font-semibold text-text-secondary no-underline transition-all hover:border-primary hover:bg-primary-light hover:text-primary shadow-2xs"
             >
               <User aria-hidden className="h-4 w-4" />
-              Profil
+              Profil Pengguna
             </Link>
             <Button
+              size="lg"
               icon={RefreshCw}
               onClick={() => {
                 clearRecallSession();
                 router.push("/surveys");
               }}
             >
-              Isi survey lagi
+              Isi Survei Baru
             </Button>
           </div>
         </div>
@@ -201,3 +258,4 @@ export default function SurveyDonePage() {
     </div>
   );
 }
+
