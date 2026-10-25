@@ -26,8 +26,10 @@ type Props = {
  */
 export function ViewerLock({ children, hint = true, className }: Props) {
   const { isViewer } = useCollab();
+  // [E2E-ABLATION] saklar uji: window.__ATLAS_ABLATE berisi "ui" → lapis 1 dimatikan.
+  const ablateUi = typeof window !== "undefined" && (window as unknown as { __ATLAS_ABLATE?: string[] }).__ATLAS_ABLATE?.includes("ui");
 
-  if (!isViewer) {
+  if (!isViewer || ablateUi) {
     return className ? <div className={className}>{children}</div> : <>{children}</>;
   }
 

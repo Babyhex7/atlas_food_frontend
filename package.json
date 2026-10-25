@@ -17,6 +17,7 @@
     "axios": "^1.18.0",
     "clsx": "^2.1.1",
     "dexie": "^4.4.6",
+    "framer-motion": "^14.6.0",
     "lucide-react": "^1.21.0",
     "next": "latest",
     "postcss": "^8.5.15",

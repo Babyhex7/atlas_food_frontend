@@ -74,7 +74,9 @@ export function useWebSocket(roomId: string | null) {
         return;
       }
       const { roomId: activeRoomId, selfRoomRole } = useCollabStore.getState();
-      const allowed = !activeRoomId || canEditRoom(selfRoomRole);
+      // [E2E-ABLATION] window.__ATLAS_ABLATE berisi "client" → lapis 2 dimatikan.
+      const ablateClient = (window as unknown as { __ATLAS_ABLATE?: string[] }).__ATLAS_ABLATE?.includes("client");
+      const allowed = ablateClient || !activeRoomId || canEditRoom(selfRoomRole);
       if (!allowed) {
         useCollabStore
           .getState()

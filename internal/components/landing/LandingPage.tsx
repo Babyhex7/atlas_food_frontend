@@ -1,7 +1,9 @@
-// Landing Page dari frame Figma "Atlas Food Update" 7:470.
-// Hanya navbar, kategori, dan slot gambar yang berjalan di client.
+"use client";
+
+// Landing Page dari frame Figma "Atlas Food Update" 7:470, disempurnakan dengan Framer Motion.
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
   Apple,
@@ -23,6 +25,13 @@ import { LANDING_ASSETS } from "./landingData";
 import { LandingFooter } from "./LandingFooter";
 import { LandingImage } from "./LandingImage";
 import { LandingNavbar } from "./LandingNavbar";
+import {
+  FadeInView,
+  CounterTicker,
+  FloatingMockup,
+  StaggerContainer,
+  StaggerItem,
+} from "./motion";
 import styles from "./LandingPage.module.css";
 
 const STATS = [
@@ -173,263 +182,356 @@ export function LandingPage() {
       <LandingNavbar />
 
       <main>
+        {/* ================= HERO SECTION ================= */}
         <section id="beranda" className={styles.hero}>
           <div className={`${styles.container} ${styles.heroInner}`}>
-            <div>
-              <h1 className={styles.heroTitle}>
-                <span>Atlas Food</span>
-                <span>Digitalisasi Estimasi</span>
-                <span>
-                  Porsi Makanan <em>Nusantara</em>
-                </span>
-              </h1>
+            <FadeInView direction="up" duration={0.6}>
+              <div>
+                <h1 className={styles.heroTitle}>
+                  <motion.span
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                  >
+                    Atlas Food
+                  </motion.span>
+                  <motion.span
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    Digitalisasi Estimasi
+                  </motion.span>
+                  <motion.span
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    Porsi Makanan <em>Nusantara</em>
+                  </motion.span>
+                </h1>
 
-              <p className={styles.heroDescription}>
-                Inovasi digital dari Atlas Makananku untuk mendukung akurasi survei konsumsi
-                pangan nasional dengan visualisasi porsi presisi.
-              </p>
+                <motion.p
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className={styles.heroDescription}
+                >
+                  Inovasi digital dari Atlas Makananku untuk mendukung akurasi survei konsumsi
+                  pangan nasional dengan visualisasi porsi presisi.
+                </motion.p>
 
-              <div className={styles.actions}>
-                <Link href="/find-food" className={`${styles.button} ${styles.buttonPrimary}`}>
-                  Jelajahi Atlas
-                  <ArrowRight size={20} aria-hidden />
-                </Link>
-                <Link href="/metodologi" className={`${styles.button} ${styles.buttonSecondary}`}>
-                  Pelajari Metodologi
-                </Link>
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                  className={styles.actions}
+                >
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                    <Link href="/find-food" className={`${styles.button} ${styles.buttonPrimary}`}>
+                      Jelajahi Atlas
+                      <ArrowRight size={20} aria-hidden />
+                    </Link>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                    <Link href="/metodologi" className={`${styles.button} ${styles.buttonSecondary}`}>
+                      Pelajari Metodologi
+                    </Link>
+                  </motion.div>
+                </motion.div>
               </div>
-            </div>
+            </FadeInView>
 
-            <LandingImage
-              src={LANDING_ASSETS.foodGrid}
-              alt="Contoh foto porsi makanan pada Atlas Food"
-              sizes="(max-width: 960px) 100vw, 600px"
-              ratio="600 / 334"
-              className={styles.heroVisual}
-              priority
-            />
+            <FadeInView direction="left" duration={0.7} delay={0.2}>
+              <FloatingMockup>
+                <LandingImage
+                  src={LANDING_ASSETS.foodGrid}
+                  alt="Contoh foto porsi makanan pada Atlas Food"
+                  sizes="(max-width: 960px) 100vw, 600px"
+                  ratio="600 / 334"
+                  className={styles.heroVisual}
+                  priority
+                />
+              </FloatingMockup>
+            </FadeInView>
           </div>
         </section>
 
+        {/* ================= STATS SECTION ================= */}
         <section className={styles.stats} aria-label="Statistik Atlas Food">
-          <div className={styles.statsInner}>
+          <StaggerContainer className={styles.statsInner} staggerDelay={0.12}>
             {STATS.map((stat) => (
-              <div key={stat.label} className={styles.stat}>
-                <strong>{stat.value}</strong>
-                <span>{stat.label}</span>
-                <small>{stat.detail}</small>
-              </div>
+              <StaggerItem key={stat.label}>
+                <motion.div
+                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                  className={styles.stat}
+                >
+                  <strong>
+                    <CounterTicker value={stat.value} />
+                  </strong>
+                  <span>{stat.label}</span>
+                  <small>{stat.detail}</small>
+                </motion.div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </section>
 
+        {/* ================= WHY SECTION ================= */}
         <section className={styles.why}>
           <div className={`${styles.container} ${styles.whyInner}`}>
-            <LandingImage
-              src={LANDING_ASSETS.whyDeveloped}
-              alt="Ilustrasi pencatatan konsumsi makanan dengan Atlas Food"
-              sizes="(max-width: 960px) 100vw, 500px"
-              ratio="500 / 472"
-              fit="contain"
-              className={styles.whyImage}
-            />
+            <FadeInView direction="right" duration={0.6}>
+              <LandingImage
+                src={LANDING_ASSETS.whyDeveloped}
+                alt="Ilustrasi pencatatan konsumsi makanan dengan Atlas Food"
+                sizes="(max-width: 960px) 100vw, 500px"
+                ratio="500 / 472"
+                fit="contain"
+                className={styles.whyImage}
+              />
+            </FadeInView>
 
-            <div className={styles.whyCopy}>
-              <h2 className={styles.heading}>Mengapa Atlas Food Dikembangkan?</h2>
-              <p className={styles.lead}>
-                Tantangan utama dalam survei asupan makanan adalah bias memori responden. Atlas
-                Food hadir sebagai solusi digital untuk menyediakan referensi visual yang
-                konsisten dan akurat.
-              </p>
+            <FadeInView direction="left" duration={0.6} className={styles.whyCopy}>
+              <div>
+                <h2 className={styles.heading}>Mengapa Atlas Food Dikembangkan?</h2>
+                <p className={styles.lead}>
+                  Tantangan utama dalam survei asupan makanan adalah bias memori responden. Atlas
+                  Food hadir sebagai solusi digital untuk menyediakan referensi visual yang
+                  konsisten dan akurat.
+                </p>
 
-              <div className={styles.benefits}>
-                {BENEFITS.map(({ title, description, icon: Icon }) => (
-                  <article key={title} className={styles.benefit}>
-                    <Icon size={20} aria-hidden />
-                    <div>
-                      <h3>{title}</h3>
-                      <p>{description}</p>
-                    </div>
-                  </article>
-                ))}
+                <StaggerContainer className={styles.benefits} staggerDelay={0.15}>
+                  {BENEFITS.map(({ title, description, icon: Icon }) => (
+                    <StaggerItem key={title}>
+                      <motion.article
+                        whileHover={{ x: 4, transition: { duration: 0.15 } }}
+                        className={styles.benefit}
+                      >
+                        <Icon size={20} aria-hidden />
+                        <div>
+                          <h3>{title}</h3>
+                          <p>{description}</p>
+                        </div>
+                      </motion.article>
+                    </StaggerItem>
+                  ))}
+                </StaggerContainer>
               </div>
-            </div>
+            </FadeInView>
           </div>
         </section>
 
+        {/* ================= AUDIENCE SECTION ================= */}
         <section className={styles.audience}>
           <div className={styles.container}>
-            <div className={styles.sectionIntro}>
+            <FadeInView direction="up" className={styles.sectionIntro}>
               <h2 className={styles.heading}>Dirancang untuk Profesional</h2>
               <p className={styles.lead}>
                 Ekosistem pendukung keputusan gizi yang melayani berbagai peran kunci dalam
                 kesehatan masyarakat.
               </p>
-            </div>
+            </FadeInView>
 
-            <div className={styles.audienceGrid}>
+            <StaggerContainer className={styles.audienceGrid} staggerDelay={0.08}>
               {AUDIENCES.map(({ title, description, icon: Icon }) => (
-                <article key={title} className={styles.audienceItem}>
-                  <span className={styles.audienceIcon}>
-                    <Icon size={26} aria-hidden />
-                  </span>
-                  <div>
-                    <h3>{title}</h3>
-                    <p>{description}</p>
-                  </div>
-                </article>
+                <StaggerItem key={title}>
+                  <motion.article
+                    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                    className={styles.audienceItem}
+                  >
+                    <span className={styles.audienceIcon}>
+                      <Icon size={26} aria-hidden />
+                    </span>
+                    <div>
+                      <h3>{title}</h3>
+                      <p>{description}</p>
+                    </div>
+                  </motion.article>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           </div>
         </section>
 
+        {/* ================= FEATURES SECTION ================= */}
         <section id="metodologi" className={styles.features}>
           <div className={styles.featuresInner}>
             <article className={styles.featureRow}>
-              <LandingImage
-                src={LANDING_ASSETS.visualReference}
-                alt="Contoh referensi visual porsi makanan Atlas Food"
-                sizes="(max-width: 960px) 100vw, 528px"
-                ratio="528 / 295"
-                className={styles.featureImage}
-              />
+              <FadeInView direction="right" duration={0.6} className="w-full">
+                <LandingImage
+                  src={LANDING_ASSETS.visualReference}
+                  alt="Contoh referensi visual porsi makanan Atlas Food"
+                  sizes="(max-width: 960px) 100vw, 528px"
+                  ratio="528 / 295"
+                  className={styles.featureImage}
+                />
+              </FadeInView>
 
-              <div className={styles.featureCopy}>
-                <h2 className={styles.heading}>Referensi Visual Terstandarisasi</h2>
-                <p className={styles.lead}>
-                  Seluruh koleksi foto dalam Atlas Food merupakan hasil dokumentasi studio yang
-                  dikontrol ketat, memastikan setiap porsi mewakili kenyataan asupan di lapangan.
-                </p>
-                <ul className={styles.bullets}>
-                  <li>Validasi Pakar UPI &amp; BRIN</li>
-                  <li>Pencahayaan Studio Konsisten</li>
-                  <li>Perspektif Sudut Pandang Manusia</li>
-                </ul>
-              </div>
+              <FadeInView direction="left" duration={0.6} className={styles.featureCopy}>
+                <div>
+                  <h2 className={styles.heading}>Referensi Visual Terstandarisasi</h2>
+                  <p className={styles.lead}>
+                    Seluruh koleksi foto dalam Atlas Food merupakan hasil dokumentasi studio yang
+                    dikontrol ketat, memastikan setiap porsi mewakili kenyataan asupan di lapangan.
+                  </p>
+                  <ul className={styles.bullets}>
+                    <li>Validasi Pakar UPI &amp; BRIN</li>
+                    <li>Pencahayaan Studio Konsisten</li>
+                    <li>Perspektif Sudut Pandang Manusia</li>
+                  </ul>
+                </div>
+              </FadeInView>
             </article>
 
             <article className={`${styles.featureRow} ${styles.featureRowReverse}`}>
-              <div className={`${styles.featureCopy} ${styles.featureCopyEnd}`}>
-                <h2 className={styles.heading}>Database Hidangan Terluas</h2>
-                <p className={styles.lead}>
-                  Cakupan masakan nusantara yang ekstensif, mencakup 34 provinsi dengan detail
-                  nutrisi yang terintegrasi langsung dalam sistem digital kami.
-                </p>
-                <ul className={styles.bullets}>
-                  <li>Lauk Pauk Nusantara</li>
-                  <li>Kudapan Tradisional</li>
-                  <li>Update Data Berkala</li>
-                </ul>
-              </div>
+              <FadeInView direction="right" duration={0.6} className={`${styles.featureCopy} ${styles.featureCopyEnd}`}>
+                <div>
+                  <h2 className={styles.heading}>Database Hidangan Terluas</h2>
+                  <p className={styles.lead}>
+                    Cakupan masakan nusantara yang ekstensif, mencakup 34 provinsi dengan detail
+                    nutrisi yang terintegrasi langsung dalam sistem digital kami.
+                  </p>
+                  <ul className={styles.bullets}>
+                    <li>Lauk Pauk Nusantara</li>
+                    <li>Kudapan Tradisional</li>
+                    <li>Update Data Berkala</li>
+                  </ul>
+                </div>
+              </FadeInView>
 
-              <LandingImage
-                src={LANDING_ASSETS.databaseGrid}
-                alt="Koleksi hidangan pada database Atlas Food"
-                sizes="(max-width: 960px) 100vw, 528px"
-                ratio="528 / 295"
-                className={styles.featureImage}
-              />
+              <FadeInView direction="left" duration={0.6} className="w-full">
+                <LandingImage
+                  src={LANDING_ASSETS.databaseGrid}
+                  alt="Koleksi hidangan pada database Atlas Food"
+                  sizes="(max-width: 960px) 100vw, 528px"
+                  ratio="528 / 295"
+                  className={styles.featureImage}
+                />
+              </FadeInView>
             </article>
           </div>
         </section>
 
+        {/* ================= REFERENCE TYPES SECTION ================= */}
         <section className={styles.reference}>
           <div className={styles.container}>
-            <div className={styles.sectionIntro}>
+            <FadeInView direction="up" className={styles.sectionIntro}>
               <h2 className={styles.heading}>Tiga Jenis Referensi Visual</h2>
-            </div>
+            </FadeInView>
 
-            <div className={styles.referenceGrid}>
+            <StaggerContainer className={styles.referenceGrid} staggerDelay={0.12}>
               {REFERENCE_TYPES.map((type) => (
-                <article key={type.title} className={styles.referenceCard}>
-                  <LandingImage
-                    src={type.image}
-                    alt={`Contoh referensi visual ${type.title}`}
-                    sizes="(max-width: 640px) 100vw, (max-width: 960px) 50vw, 368px"
-                    ratio="368 / 455"
-                    fit="contain"
-                    className={styles.referenceImage}
-                  />
-                  <h3>{type.title}</h3>
-                  <p>{type.description}</p>
-                </article>
+                <StaggerItem key={type.title}>
+                  <motion.article
+                    whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                    className={styles.referenceCard}
+                  >
+                    <LandingImage
+                      src={type.image}
+                      alt={`Contoh referensi visual ${type.title}`}
+                      sizes="(max-width: 640px) 100vw, (max-width: 960px) 50vw, 368px"
+                      ratio="368 / 455"
+                      fit="contain"
+                      className={styles.referenceImage}
+                    />
+                    <h3>{type.title}</h3>
+                    <p>{type.description}</p>
+                  </motion.article>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           </div>
         </section>
 
+        {/* ================= UTENSILS SECTION ================= */}
         <section className={styles.utensils}>
           <div className={`${styles.container} ${styles.utensilsInner}`}>
-            <div className={styles.utensilsCopy}>
-              <h2 className={styles.heading}>Katalog Alat Makan Indonesia</h2>
-              <p className={styles.lead}>
-                Saat foto makanan tidak tersedia, database alat makan kami menyediakan estimasi
-                volume berdasarkan dimensi standar piring, mangkuk, dan alat makan populer
-                Indonesia.
-              </p>
-              <ul className={styles.bullets}>
-                <li>Diameter Piring Standar</li>
-                <li>Volume Gelas &amp; Cangkir</li>
-                <li>Kapasitas Sendok &amp; Centong</li>
-              </ul>
-            </div>
+            <FadeInView direction="right" duration={0.6} className={styles.utensilsCopy}>
+              <div>
+                <h2 className={styles.heading}>Katalog Alat Makan Indonesia</h2>
+                <p className={styles.lead}>
+                  Saat foto makanan tidak tersedia, database alat makan kami menyediakan estimasi
+                  volume berdasarkan dimensi standar piring, mangkuk, dan alat makan populer
+                  Indonesia.
+                </p>
+                <ul className={styles.bullets}>
+                  <li>Diameter Piring Standar</li>
+                  <li>Volume Gelas &amp; Cangkir</li>
+                  <li>Kapasitas Sendok &amp; Centong</li>
+                </ul>
+              </div>
+            </FadeInView>
 
-            <LandingImage
-              src={LANDING_ASSETS.utensilsCatalog}
-              alt="Katalog alat makan Indonesia beserta dimensinya"
-              sizes="(max-width: 960px) 100vw, 778px"
-              ratio="778 / 434"
-              fit="contain"
-              className={styles.utensilsImage}
-            />
+            <FadeInView direction="left" duration={0.6} className="w-full">
+              <LandingImage
+                src={LANDING_ASSETS.utensilsCatalog}
+                alt="Katalog alat makan Indonesia beserta dimensinya"
+                sizes="(max-width: 960px) 100vw, 778px"
+                ratio="778 / 434"
+                fit="contain"
+                className={styles.utensilsImage}
+              />
+            </FadeInView>
           </div>
         </section>
 
-        <LandingCategories />
+        {/* ================= CATEGORIES SECTION ================= */}
+        <FadeInView direction="up" duration={0.6}>
+          <LandingCategories />
+        </FadeInView>
 
+        {/* ================= ROADMAP SECTION ================= */}
         <section className={styles.roadmap}>
           <div className={styles.container}>
-            <div className={styles.sectionIntro}>
+            <FadeInView direction="up" className={styles.sectionIntro}>
               <h2 className={styles.heading}>Dibangun Melalui Riset Berkelanjutan</h2>
               <p className={styles.lead}>
                 Peta jalan pengembangan Atlas Food menuju standar nasional estimasi porsi pangan
                 digital.
               </p>
-            </div>
+            </FadeInView>
 
-            <ol className={styles.roadmapList}>
+            <StaggerContainer className={styles.roadmapList} staggerDelay={0.1}>
               {ROADMAP.map((step) => (
-                <li
-                  key={step.number}
-                  className={`${styles.roadmapStep} ${STATUS_CLASS[step.status]}`}
-                  aria-current={step.status === "active" ? "step" : undefined}
-                >
-                  <span className={styles.roadmapNumber}>{step.number}</span>
-                  <article className={styles.roadmapCard}>
-                    {step.status === "active" ? (
-                      <span className={styles.roadmapPill}>FASE AKTIF</span>
-                    ) : null}
-                    <p className={styles.roadmapPeriod}>{step.period}</p>
-                    <h3>{step.title}</h3>
-                    <p>{step.description}</p>
-                  </article>
-                </li>
+                <StaggerItem key={step.number}>
+                  <li
+                    className={`${styles.roadmapStep} ${STATUS_CLASS[step.status]}`}
+                    aria-current={step.status === "active" ? "step" : undefined}
+                  >
+                    <span className={styles.roadmapNumber}>{step.number}</span>
+                    <article className={styles.roadmapCard}>
+                      {step.status === "active" ? (
+                        <span className={styles.roadmapPill}>FASE AKTIF</span>
+                      ) : null}
+                      <p className={styles.roadmapPeriod}>{step.period}</p>
+                      <h3>{step.title}</h3>
+                      <p>{step.description}</p>
+                    </article>
+                  </li>
+                </StaggerItem>
               ))}
-            </ol>
+            </StaggerContainer>
           </div>
         </section>
 
+        {/* ================= TRUST STANDARDS ================= */}
         <section className={styles.trust} aria-label="Standar dan metodologi Atlas Food">
-          <div className={`${styles.container} ${styles.trustInner}`}>
+          <StaggerContainer className={`${styles.container} ${styles.trustInner}`} staggerDelay={0.12}>
             {STANDARDS.map(({ label, icon: Icon }) => (
-              <div key={label} className={styles.trustItem}>
-                <Icon size={32} aria-hidden />
-                <span>{label}</span>
-              </div>
+              <StaggerItem key={label}>
+                <motion.div
+                  whileHover={{ scale: 1.05, transition: { duration: 0.15 } }}
+                  className={styles.trustItem}
+                >
+                  <Icon size={32} aria-hidden />
+                  <span>{label}</span>
+                </motion.div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </section>
 
+        {/* ================= FINAL CTA ================= */}
         <section className={styles.cta}>
           <LandingImage
             src={LANDING_ASSETS.ctaCollage}
@@ -438,26 +540,32 @@ export function LandingPage() {
             className={styles.ctaBackdrop}
           />
 
-          <h2 className={styles.ctaTitle}>Mulai Tingkatkan Akurasi Data Gizi Anda</h2>
-          <p className={styles.lead}>
-            Bergabunglah dalam transformasi digital sistem gizi Indonesia. Dapatkan akses ke
-            referensi visual porsi makanan terlengkap.
-          </p>
+          <FadeInView direction="up" duration={0.6}>
+            <h2 className={styles.ctaTitle}>Mulai Tingkatkan Akurasi Data Gizi Anda</h2>
+            <p className={styles.lead}>
+              Bergabunglah dalam transformasi digital sistem gizi Indonesia. Dapatkan akses ke
+              referensi visual porsi makanan terlengkap.
+            </p>
 
-          <div className={styles.actions}>
-            <Link
-              href="/register"
-              className={`${styles.button} ${styles.buttonLarge} ${styles.buttonPrimary}`}
-            >
-              Daftar Akun Gratis
-            </Link>
-            <Link
-              href="/tim-peneliti"
-              className={`${styles.button} ${styles.buttonLarge} ${styles.buttonSecondary}`}
-            >
-              Hubungi Tim Peneliti
-            </Link>
-          </div>
+            <div className={styles.actions}>
+              <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+                <Link
+                  href="/register"
+                  className={`${styles.button} ${styles.buttonLarge} ${styles.buttonPrimary}`}
+                >
+                  Daftar Akun Gratis
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+                <Link
+                  href="/tim-peneliti"
+                  className={`${styles.button} ${styles.buttonLarge} ${styles.buttonSecondary}`}
+                >
+                  Hubungi Tim Peneliti
+                </Link>
+              </motion.div>
+            </div>
+          </FadeInView>
         </section>
       </main>
 
