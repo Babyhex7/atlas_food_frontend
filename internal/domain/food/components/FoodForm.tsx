@@ -40,7 +40,7 @@ export function FoodForm() {
   const [localName, setLocalName] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [photoType, setPhotoType] = useState<"series" | "range">("series");
+  const [photoType, setPhotoType] = useState<"series" | "range" | "guide">("series");
   const [isActive, setIsActive] = useState(true);
   const [nutrientValues, setNutrientValues] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +56,13 @@ export function FoodForm() {
     setLocalName(existing.local_name ?? "");
     setDescription(existing.description ?? "");
     setCategoryId(existing.category_id ?? "");
-    setPhotoType(existing.photo_type === "range" ? "range" : "series");
+    setPhotoType(
+      existing.photo_type === "range"
+        ? "range"
+        : existing.photo_type === "guide"
+          ? "guide"
+          : "series"
+    );
     setIsActive(existing.is_active);
 
     const initialNutrients: Record<number, string> = {};
@@ -291,14 +297,17 @@ export function FoodForm() {
                     id="photo_type"
                     name="photo_type"
                     value={photoType}
-                    onChange={(e) => setPhotoType(e.target.value === "range" ? "range" : "series")}
+                    onChange={(e) =>
+                      setPhotoType(e.target.value as "series" | "range" | "guide")
+                    }
                     className="w-full rounded-md border-[1.5px] border-border bg-surface py-2.5 px-3 font-sans text-sm text-text-primary outline-none transition-base focus:border-primary focus:shadow-focus"
                   >
-                    <option value="series">Series — hingga 10 foto</option>
-                    <option value="range">Range — 1 foto saja</option>
+                    <option value="series">Series — Foto porsi terpisah bertahap (A–H)</option>
+                    <option value="range">Range — 1 foto rentang tingkatan ukuran (kecil ke besar)</option>
+                    <option value="guide">Guide — 1 foto panduan aneka ragam jenis/varian</option>
                   </select>
                   <span className="text-xs text-text-muted">
-                    Simpan tipe ini dulu sebelum mengelola foto di bawah
+                    Pilih tipe referensi foto porsi makanan ini
                   </span>
                 </div>
 

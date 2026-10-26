@@ -2,16 +2,17 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { PortionPhoto } from "@/internal/types/food.types";
-import { getImageUrl, isGuideType } from "@/internal/lib/image";
-import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid, Eye, EyeOff } from "lucide-react";
+import { getImageUrl, isGuideType, isRangeType, isSeriesType } from "@/internal/lib/image";
+import { Image as ImageIcon, ChevronLeft, ChevronRight, LayoutGrid, Eye, EyeOff, Layers, Scale } from "lucide-react";
 import { AnnotationHoverOverlay } from "@/internal/domain/annotation/components/AnnotationHoverOverlay";
 import { useCollab } from "@/internal/domain/collab";
 import { usePublishedAnnotationsByFood } from "@/internal/domain/annotation/hooks/useAnnotationQueries";
 import type { FoodImage } from "@/internal/domain/annotation/types/annotation";
+import { cn } from "@/internal/lib/cn";
 
 interface PortionPhotoViewerProps {
   photos: PortionPhoto[];
-  photoType: "series" | "range";
+  photoType?: "series" | "range" | "guide" | string;
   foodId?: string;
   activeIndex?: number;
   onSelect?: (index: number) => void;
@@ -50,15 +51,16 @@ function PhotoImg({
   );
 }
 
-
-// ─── Tampilan Guide (range) — 1 foto besar, semua label sebagai overlay pill ──
-function GuidePhotoView({
+// ─── Tampilan Range — 1 foto makanan sama, gradasi ukuran kecil ke besar ────
+function RangePhotoView({
   photos,
   foodId,
   visiblePolygons,
   setVisiblePolygons,
   selectedAreaId,
   setSelectedAreaId,
+  activeIndex,
+  onSelect,
 }: {
   photos: PortionPhoto[];
   foodId?: string;
@@ -66,6 +68,180 @@ function GuidePhotoView({
   setVisiblePolygons: (v: boolean) => void;
   selectedAreaId: string | null;
   setSelectedAreaId: (id: string | null) => void;
+  activeIndex: number;
+  onSelect: (i: number) => void;
+}) {
+  const rangePhoto = photos[0];
+  const [currentAreas, setCurrentAreas] = useState<FoodImage["areas"]>([]);
+  const maxWeight = Math.max(...photos.map((p) => p.weight_gram || 1), 1);
+
+  if (!rangePhoto) return null;
+
+  return (
+    <div className="space-y-5">
+      {/* Badge info */}
+      <div className="flex items-center justify-between text-sm flex-wrap gap-2">
+        <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-medium">
+          <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>
+            Foto <span className="font-bold text-emerald-700 dark:text-emerald-300">Range (Rentang Ukuran)</span> — 1 makanan dengan{" "}
+            <span className="font-bold">{photos.length}</span> tingkatan ukuran
+          </span>
+        </div>
+        <span className="text-xs text-muted-foreground flex items-center gap-1 font-medium">
+          <Scale size={13} className="text-emerald-600" /> Gradasi Ukuran
+        </span>
+      </div>
+
+      {/* Hero foto range */}
+      <div className="bg-white dark:bg-card rounded-2xl border border-emerald-100 dark:border-emerald-900/50 overflow-hidden shadow-sm relative">
+        <div className="aspect-[4/3] md:aspect-[16/9] bg-emerald-50/20 relative">
+          <PhotoImg
+            src={rangePhoto.image_url}
+            alt="Range foto — rentang ukuran makanan"
+            className="w-full h-full object-contain animate-fade-in"
+          />
+
+          {/* Interactive Polygons Overlay */}
+          <AnnotationHoverOverlay
+            foodImageId={rangePhoto.food_image_id}
+            foodId={foodId}
+            visiblePolygons={visiblePolygons}
+            selectedAreaId={selectedAreaId}
+            onAreaSelect={(area) => setSelectedAreaId(area.id)}
+            onLoadedAreas={setCurrentAreas}
+          />
+
+          {/* Toggle Polygon Visibility */}
+          {currentAreas.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setVisiblePolygons(!visiblePolygons)}
+              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-black/75 text-white border border-white/20 hover:bg-black/90 transition-fast shadow-md"
+              title={visiblePolygons ? "Sembunyikan batas area" : "Tampilkan batas area"}
+            >
+              {visiblePolygons ? <Eye size={12} className="text-emerald-400" /> : <EyeOff size={12} />}
+              <span>{visiblePolygons ? "Area: ON" : "Area: OFF"}</span>
+            </button>
+          )}
+
+          {/* Overlay urutan tingkatan ukuran porsi */}
+          <div className="absolute top-3 right-3 flex flex-wrap gap-1.5 justify-end max-w-[60%]">
+            {photos.map((p, idx) => {
+              const isSelected = activeIndex === idx;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => onSelect(idx)}
+                  className={cn(
+                    "inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full transition-all backdrop-blur-md cursor-pointer border",
+                    isSelected
+                      ? "bg-emerald-600 text-white border-emerald-400 shadow-md scale-105"
+                      : "bg-black/70 text-white/90 border-white/20 hover:bg-black/90"
+                  )}
+                >
+                  <span className={isSelected ? "text-white" : "text-emerald-300"}>{p.label}</span>
+                  <span className="opacity-50">·</span>
+                  <span>{p.weight_gram}g</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Badge tipe */}
+          <div className="absolute bottom-3 left-3">
+            <span className="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+              <Layers size={11} /> Range
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Gradasi Tingkatan Ukuran (Kecil → Besar) */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-semibold text-text-primary m-0">
+            Gradasi Tingkatan Ukuran:
+          </p>
+          <span className="text-xs text-muted-foreground">
+            Kecil → Sedang → Besar
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+          {photos.map((p, idx) => {
+            const isSelected = activeIndex === idx;
+            const percent = Math.round(((p.weight_gram || 0) / maxWeight) * 100);
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => onSelect(idx)}
+                className={cn(
+                  "flex flex-col gap-2 p-3 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden",
+                  isSelected
+                    ? "border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40 shadow-sm ring-2 ring-emerald-500/20"
+                    : "border-border bg-surface-alt hover:border-emerald-300 dark:hover:border-emerald-700"
+                )}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div
+                    className={cn(
+                      "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs",
+                      isSelected
+                        ? "bg-emerald-600 text-white shadow-sm"
+                        : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200"
+                    )}
+                  >
+                    {p.label}
+                  </div>
+                  <span className="text-xs font-bold text-text-primary">
+                    {p.weight_gram}g
+                  </span>
+                </div>
+
+                {/* Progress bar visual porsi */}
+                <div className="w-full bg-black/5 dark:bg-white/10 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                    style={{ width: `${Math.max(percent, 12)}%` }}
+                  />
+                </div>
+
+                {p.description && !p.description.startsWith("food_image:") && (
+                  <p className="text-[11px] text-text-muted m-0 truncate">
+                    {p.description}
+                  </p>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Tampilan Guide — 1 foto panduan komposit memuat berbagai ragam jenis ───
+function GuidePhotoView({
+  photos,
+  foodId,
+  visiblePolygons,
+  setVisiblePolygons,
+  selectedAreaId,
+  setSelectedAreaId,
+  activeIndex,
+  onSelect,
+}: {
+  photos: PortionPhoto[];
+  foodId?: string;
+  visiblePolygons: boolean;
+  setVisiblePolygons: (v: boolean) => void;
+  selectedAreaId: string | null;
+  setSelectedAreaId: (id: string | null) => void;
+  activeIndex?: number;
+  onSelect?: (i: number) => void;
 }) {
   const guidePhoto = photos[0];
   const { send } = useCollab();
@@ -76,20 +252,25 @@ function GuidePhotoView({
   return (
     <div className="space-y-5">
       {/* Badge info */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <LayoutGrid className="w-4 h-4 text-primary" />
-        <span>
-          Foto <span className="font-semibold text-primary">Guide</span> — satu gambar
-          memuat semua <span className="font-semibold">{photos.length}</span> ukuran porsi
+      <div className="flex items-center justify-between text-sm flex-wrap gap-2">
+        <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-medium">
+          <LayoutGrid className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+          <span>
+            Foto <span className="font-bold text-amber-700 dark:text-amber-300">Guide (Panduan Varian)</span> — memuat{" "}
+            <span className="font-bold">{photos.length}</span> ragam jenis/varian berbeda
+          </span>
+        </div>
+        <span className="text-xs text-muted-foreground">
+          Pilih varian pada foto
         </span>
       </div>
 
       {/* Hero foto guide */}
-      <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
-        <div className="aspect-[4/3] md:aspect-[16/9] bg-muted/10 relative">
+      <div className="bg-white dark:bg-card rounded-2xl border border-amber-100 dark:border-amber-900/50 overflow-hidden shadow-sm relative">
+        <div className="aspect-[4/3] md:aspect-[16/9] bg-amber-50/20 relative">
           <PhotoImg
             src={guidePhoto.image_url}
-            alt="Guide foto — semua porsi"
+            alt="Guide foto — aneka ragam varian makanan"
             className="w-full h-full object-contain animate-fade-in"
           />
 
@@ -111,61 +292,87 @@ function GuidePhotoView({
               className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-black/75 text-white border border-white/20 hover:bg-black/90 transition-fast shadow-md"
               title={visiblePolygons ? "Sembunyikan batas area" : "Tampilkan batas area"}
             >
-              {visiblePolygons ? <Eye size={12} className="text-primary" /> : <EyeOff size={12} />}
+              {visiblePolygons ? <Eye size={12} className="text-amber-400" /> : <EyeOff size={12} />}
               <span>{visiblePolygons ? "Area: ON" : "Area: OFF"}</span>
             </button>
           )}
 
           {/* Overlay semua label porsi */}
-          <div className="absolute top-3 right-3 flex flex-wrap gap-1 justify-end max-w-[60%]">
-            {photos.map((p) => (
-              <span
-                key={p.id}
-                className="inline-flex items-center gap-1 bg-black/70 text-white text-[10px] font-bold px-2 py-[3px] rounded-full leading-none"
-              >
-                <span className="text-primary">{p.label}</span>
-                <span className="text-white/70">·</span>
-                <span>{p.weight_gram}g</span>
-              </span>
-            ))}
+          <div className="absolute top-3 right-3 flex flex-wrap gap-1.5 justify-end max-w-[60%]">
+            {photos.map((p, idx) => {
+              const isSelected = activeIndex === idx;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => onSelect?.(idx)}
+                  className={cn(
+                    "inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full transition-all backdrop-blur-md cursor-pointer border",
+                    isSelected
+                      ? "bg-amber-600 text-white border-amber-400 shadow-md scale-105"
+                      : "bg-black/70 text-white/90 border-white/20 hover:bg-black/90"
+                  )}
+                >
+                  <span className={isSelected ? "text-white" : "text-amber-300"}>{p.label}</span>
+                  <span className="opacity-50">·</span>
+                  <span>{p.weight_gram}g</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Badge tipe */}
           <div className="absolute bottom-3 left-3">
-            <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-              Guide
+            <span className="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+              <LayoutGrid size={11} /> Guide
             </span>
           </div>
         </div>
       </div>
 
-
-      {/* Tabel porsi */}
+      {/* Tabel ragam varian makanan */}
       <div>
-        <p className="text-sm font-medium text-muted-foreground mb-3">
-          Semua ukuran porsi dalam foto ini:
+        <p className="text-sm font-semibold text-text-primary mb-3">
+          Ragam jenis/varian makanan dalam foto ini:
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-          {photos.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-center gap-3 p-3 rounded-xl border border-border bg-surface-alt"
-            >
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-                <span className="text-white text-xs font-bold">{p.label}</span>
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-text-primary m-0 leading-none mb-[3px]">
-                  {p.weight_gram}g
-                </p>
-                {p.description && !p.description.startsWith("food_image:") && (
-                  <p className="text-[11px] text-text-muted m-0 overflow-hidden text-ellipsis whitespace-nowrap">
-                    {p.description}
-                  </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+          {photos.map((p, idx) => {
+            const isSelected = activeIndex === idx;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => onSelect?.(idx)}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-xl border text-left transition-all cursor-pointer",
+                  isSelected
+                    ? "border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 shadow-sm ring-2 ring-amber-500/20"
+                    : "border-border bg-surface-alt hover:border-amber-300 dark:hover:border-amber-700"
                 )}
-              </div>
-            </div>
-          ))}
+              >
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs",
+                    isSelected
+                      ? "bg-amber-600 text-white shadow-sm"
+                      : "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
+                  )}
+                >
+                  {p.label}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-text-primary m-0 leading-none mb-[3px]">
+                    {p.weight_gram}g
+                  </p>
+                  {p.description && !p.description.startsWith("food_image:") && (
+                    <p className="text-[11px] text-text-muted m-0 truncate">
+                      {p.description}
+                    </p>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -440,7 +647,23 @@ export function PortionPhotoViewer({
     );
   }
 
-  // "range" = guide image (satu foto semua ukuran)
+  // "range" = 1 foto makanan sama dengan gradasi tingkatan ukuran (kecil -> sedang -> besar)
+  if (isRangeType(photoType)) {
+    return (
+      <RangePhotoView
+        photos={effectivePhotos}
+        foodId={foodId}
+        visiblePolygons={visiblePolygons}
+        setVisiblePolygons={setVisiblePolygons}
+        selectedAreaId={selectedAreaId}
+        setSelectedAreaId={setSelectedAreaId}
+        activeIndex={activeIndex}
+        onSelect={handleSelect}
+      />
+    );
+  }
+
+  // "guide" = 1 foto panduan komposit memuat berbagai macam ragam varian/jenis makanan
   if (isGuideType(photoType)) {
     return (
       <GuidePhotoView
@@ -450,11 +673,13 @@ export function PortionPhotoViewer({
         setVisiblePolygons={setVisiblePolygons}
         selectedAreaId={selectedAreaId}
         setSelectedAreaId={setSelectedAreaId}
+        activeIndex={activeIndex}
+        onSelect={handleSelect}
       />
     );
   }
 
-  // "series" = foto terpisah per ukuran
+  // "series" = foto terpisah per ukuran porsi
   return (
     <SeriesPhotoView
       photos={effectivePhotos}

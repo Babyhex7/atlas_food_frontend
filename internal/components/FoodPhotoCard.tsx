@@ -15,7 +15,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ChevronRight, UtensilsCrossed, Image as ImageIcon } from "lucide-react";
 import type { FoodSearchResult } from "@/internal/types/food.types";
-import { getImageUrl, isGuideType, buildPhotoUrl } from "@/internal/lib/image";
+import { getImageUrl, isGuideType, isRangeType, buildPhotoUrl } from "@/internal/lib/image";
 import { cn } from "@/internal/lib/cn";
 
 interface FoodPhotoCardProps {
@@ -46,7 +46,7 @@ function PreviewPhoto({
   // Kalau src tidak dikirim, coba derive dari naming convention
   const derivedUrl = src
     ? getImageUrl(src)
-    : isGuideType(photoType)
+    : isGuideType(photoType) || isRangeType(photoType)
       ? buildPhotoUrl(categoryCode, foodCode, "guide")
       : buildPhotoUrl(categoryCode, foodCode, "A");
 
@@ -81,18 +81,24 @@ function PreviewPhoto({
 }
 
 // ─── Badge tipe foto ──────────────────────────────────────────────────────────
-function PhotoTypeBadge({ photoType }: { photoType: string }) {
-  const isGuide = isGuideType(photoType);
+function PhotoTypeBadge({ photoType }: { photoType?: string }) {
+  if (photoType === "range") {
+    return (
+      <span className="text-[10px] font-bold px-2 py-[2px] rounded-full uppercase tracking-wider bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+        Range
+      </span>
+    );
+  }
+  if (photoType === "guide") {
+    return (
+      <span className="text-[10px] font-bold px-2 py-[2px] rounded-full uppercase tracking-wider bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+        Guide
+      </span>
+    );
+  }
   return (
-    <span
-      className={cn(
-        "text-[10px] font-bold px-2 py-[2px] rounded-full uppercase tracking-wider",
-        isGuide
-          ? "bg-amber-100 text-amber-700 border border-amber-200"
-          : "bg-blue-50 text-blue-600 border border-blue-100"
-      )}
-    >
-      {isGuide ? "Guide" : "Series"}
+    <span className="text-[10px] font-bold px-2 py-[2px] rounded-full uppercase tracking-wider bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+      Series
     </span>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, LayoutGrid, List } from "lucide-react";
+import { ArrowLeft, Loader2, LayoutGrid, List, ChevronRight } from "lucide-react";
 import { getFoodsByCategoryPublic, getCategoriesPublic } from "@/internal/services/food.service";
 import { FoodPhotoCard } from "@/internal/components/FoodPhotoCard";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
@@ -10,9 +10,8 @@ import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import type { FoodSearchResult } from "@/internal/types/food.types";
-import { isGuideType } from "@/internal/lib/image";
+import { isGuideType, isRangeType, isSeriesType } from "@/internal/lib/image";
 
 type ViewMode = "grid" | "list";
 
@@ -36,8 +35,9 @@ export default function CategoryFoodsPage() {
 
   const category = categories.find((c: { code: string }) => c.code === categoryCode);
 
-  // Hitung berapa series vs guide
-  const seriesCount = foods.filter((f) => !isGuideType(f.photo_type)).length;
+  // Hitung berapa series vs range vs guide
+  const seriesCount = foods.filter((f) => isSeriesType(f.photo_type)).length;
+  const rangeCount = foods.filter((f) => isRangeType(f.photo_type)).length;
   const guideCount = foods.filter((f) => isGuideType(f.photo_type)).length;
 
   return (
@@ -73,6 +73,11 @@ export default function CategoryFoodsPage() {
                     {seriesCount > 0 && (
                       <span className="text-[11px] font-semibold bg-white/15 border border-white/25 text-white px-2 py-[2px] rounded-full">
                         {seriesCount} Series
+                      </span>
+                    )}
+                    {rangeCount > 0 && (
+                      <span className="text-[11px] font-semibold bg-emerald-400/30 border border-emerald-300/40 text-white px-2 py-[2px] rounded-full">
+                        {rangeCount} Range
                       </span>
                     )}
                     {guideCount > 0 && (
@@ -185,12 +190,14 @@ export default function CategoryFoodsPage() {
                       <span
                         className={cn(
                           "text-[10px] font-bold px-2 py-[2px] rounded-full uppercase tracking-wider",
-                          isGuideType(food.photo_type)
-                            ? "bg-amber-100 text-amber-700 border border-amber-200"
-                            : "bg-blue-50 text-blue-600 border border-blue-100"
+                          isRangeType(food.photo_type)
+                            ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                            : isGuideType(food.photo_type)
+                              ? "bg-amber-100 text-amber-700 border border-amber-200"
+                              : "bg-blue-50 text-blue-600 border border-blue-100"
                         )}
                       >
-                        {isGuideType(food.photo_type) ? "Guide" : "Series"}
+                        {isRangeType(food.photo_type) ? "Range" : isGuideType(food.photo_type) ? "Guide" : "Series"}
                       </span>
                     </div>
                   </div>

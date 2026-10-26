@@ -3,14 +3,14 @@
 import { Suspense, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Loader2, Info, Scale, Bookmark, Camera, LayoutGrid } from "lucide-react";
+import { ArrowLeft, Loader2, Info, Scale, Bookmark, Camera, LayoutGrid, Layers } from "lucide-react";
 import { getFoodDetailPublic } from "@/internal/services/food.service";
 import { isFoodBookmarked, toggleBookmarkedFood } from "@/internal/lib/cookies";
 import { PortionPhotoViewer } from "@/internal/components/PortionPhotoViewer";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
-import { isGuideType } from "@/internal/lib/image";
+import { isGuideType, isRangeType } from "@/internal/lib/image";
 import { useCollab, VIEWER_LOCK_CLASS, VIEWER_LOCK_HINT } from "@/internal/domain/collab";
 
 function FoodDetailBody() {
@@ -130,19 +130,23 @@ function FoodDetailBody() {
                 <span className="inline-flex items-center py-[2px] px-[10px] rounded-full bg-white/15 border border-white/25 text-white text-xs font-medium">
                   {food.category?.name}
                 </span>
-                {/* Badge tipe foto: Guide (range) vs Series */}
+                {/* Badge tipe foto: Series vs Range vs Guide */}
                 <span
                   className={cn(
                     "inline-flex items-center gap-1 py-[2px] px-[10px] rounded-full border text-xs font-semibold",
-                    isGuideType(food.photo_type)
-                      ? "bg-amber-400/25 border-amber-300/40 text-amber-100"
-                      : "bg-blue-400/20 border-blue-300/30 text-blue-100"
+                    isRangeType(food.photo_type)
+                      ? "bg-emerald-400/25 border-emerald-300/40 text-emerald-100"
+                      : isGuideType(food.photo_type)
+                        ? "bg-amber-400/25 border-amber-300/40 text-amber-100"
+                        : "bg-blue-400/20 border-blue-300/30 text-blue-100"
                   )}
                 >
-                  {isGuideType(food.photo_type) ? (
-                    <><LayoutGrid size={11} /> Guide Image</>
+                  {isRangeType(food.photo_type) ? (
+                    <><Layers size={11} /> Rentang Ukuran (Range)</>
+                  ) : isGuideType(food.photo_type) ? (
+                    <><LayoutGrid size={11} /> Panduan Varian (Guide)</>
                   ) : (
-                    <><Camera size={11} /> Foto Series</>
+                    <><Camera size={11} /> Foto Seri (Series)</>
                   )}
                 </span>
               </div>
@@ -162,21 +166,23 @@ function FoodDetailBody() {
         <div className="card animate-slide-up p-6">
           <div className="flex items-center gap-3 mb-5">
             <Scale size={22} className="text-primary" />
-            <h2 className="text-xl font-semibold text-text-primary m-0">Foto</h2>
+            <h2 className="text-xl font-semibold text-text-primary m-0">Foto Porsi</h2>
             {food.portion_photos && food.portion_photos.length > 0 && (
               <div className="flex items-center gap-2 ml-auto">
                 <span className="badge badge-default">
-                  {food.portion_photos.length} foto
+                  {food.portion_photos.length} porsi
                 </span>
                 <span
                   className={cn(
                     "text-[10px] font-bold px-2 py-[2px] rounded-full uppercase tracking-wider",
-                    isGuideType(food.photo_type)
-                      ? "bg-amber-100 text-amber-700 border border-amber-200"
-                      : "bg-blue-50 text-blue-600 border border-blue-100"
+                    isRangeType(food.photo_type)
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : isGuideType(food.photo_type)
+                        ? "bg-amber-100 text-amber-700 border border-amber-200"
+                        : "bg-blue-50 text-blue-600 border border-blue-100"
                   )}
                 >
-                  {isGuideType(food.photo_type) ? "Range" : "Series"}
+                  {isRangeType(food.photo_type) ? "Range" : isGuideType(food.photo_type) ? "Guide" : "Series"}
                 </span>
               </div>
             )}

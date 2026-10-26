@@ -42,7 +42,7 @@ type PublicCategory = {
   icon?: string | null;
 };
 
-type PhotoFilter = "all" | "series" | "range";
+type PhotoFilter = "all" | "series" | "range" | "guide";
 type FoodTypeFilter = "" | "food" | "drink";
 
 function FindFoodBody() {
@@ -441,8 +441,9 @@ function FindFoodBody() {
                       disabled={controlsLocked}
                     >
                       <option value="all">Semua tipe</option>
-                      <option value="series">Series</option>
-                      <option value="range">Range / Guide</option>
+                      <option value="series">Series (Foto Seri)</option>
+                      <option value="range">Range (Rentang Ukuran)</option>
+                      <option value="guide">Guide (Panduan Varian)</option>
                     </select>
 
                     <ChevronDown size={15} aria-hidden />
@@ -563,12 +564,16 @@ function FindFoodBody() {
                                   className={`${styles.photoBadge} ${
                                     food.photo_type === "series"
                                       ? styles.seriesBadge
-                                      : styles.rangeBadge
+                                      : food.photo_type === "range"
+                                        ? styles.rangeBadge
+                                        : styles.guideBadge
                                   }`}
                                 >
                                   {food.photo_type === "series"
                                     ? "Series"
-                                    : "Range / Guide"}
+                                    : food.photo_type === "range"
+                                      ? "Range"
+                                      : "Guide"}
                                 </span>
                               </div>
 

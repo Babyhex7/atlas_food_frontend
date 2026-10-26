@@ -7,7 +7,7 @@ export type Food = {
   name: string;
   local_name?: string | null;
   description?: string | null;
-  photo_type?: "series" | "range";
+  photo_type?: "series" | "range" | "guide";
   category_id?: string | null;
   category?: Category;
   nutrients?: NutritionMap;
@@ -25,7 +25,7 @@ export type CreateFoodRequest = {
   name: string;
   local_name?: string;
   description?: string;
-  photo_type?: "series" | "range";
+  photo_type?: "series" | "range" | "guide";
   category_id?: string;
   nutrients?: FoodNutrientInput[];
 };
@@ -51,7 +51,7 @@ export type SearchFoodResult = {
   code: string;
   name: string;
   local_name?: string | null;
-  photo_type?: "series" | "range";
+  photo_type?: "series" | "range" | "guide";
   /** Diturunkan backend dari kategori: kategori 'drinks' → "drink", sisanya "food". */
   food_type?: "food" | "drink";
   category?: {

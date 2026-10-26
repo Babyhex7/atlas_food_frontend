@@ -64,14 +64,21 @@ export function buildPhotoUrl(catCode: string, foodCode: string, label: string):
 }
 
 /**
- * Cek apakah suatu food bertipe "guide" berdasarkan photo_type dari API.
- * Backend menyimpan tipe foto sebagai "series" atau "range".
- * Atlas Makananku FINAL.json pakai istilah "Guide" — keduanya bermakna sama:
- *   series = foto terpisah tiap ukuran (A, B, C, ...)
- *   range  = 1 foto memuat semua ukuran (guide image)
+ * Karakteristik 3 tipe foto porsi pangan:
+ * 1. "series": Foto porsi terpisah (piring/mangkuk berbeda untuk tiap porsi A, B, C, dst.)
+ * 2. "range" : 1 foto memuat 1 jenis pangan yang sama dengan tingkatan/gradasi ukuran (kecil -> sedang -> besar)
+ * 3. "guide" : 1 foto panduan komposit memuat berbagai ragam jenis/varian pangan berbeda (aneka biskuit A-E, aneka kerupuk, dll.)
  */
-export function isGuideType(photoType: string): boolean {
+export function isSeriesType(photoType?: string | null): boolean {
+  return photoType === "series";
+}
+
+export function isRangeType(photoType?: string | null): boolean {
   return photoType === "range";
+}
+
+export function isGuideType(photoType?: string | null): boolean {
+  return photoType === "guide";
 }
 
 /** Fallback placeholder saat foto tidak tersedia */

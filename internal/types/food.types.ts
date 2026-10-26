@@ -3,7 +3,7 @@ export interface FoodSearchResult {
   code: string;
   name: string;
   local_name: string;
-  photo_type: "series" | "range";
+  photo_type: "series" | "range" | "guide";
   /** Diturunkan backend dari kategori: kategori 'drinks' → "drink", sisanya "food". */
   food_type?: "food" | "drink";
   category: { id: string; code: string; name: string; icon: string } | null;
@@ -26,7 +26,7 @@ export interface FoodDetail {
   name: string;
   local_name: string;
   description: string;
-  photo_type: "series" | "range";
+  photo_type: "series" | "range" | "guide";
   category: { id: string; code: string; name: string; icon: string } | null;
   nutrients: {
     energy: { value: number; unit: string };

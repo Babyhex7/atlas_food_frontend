@@ -20,7 +20,7 @@ import type { FoodPhoto } from "../types/foodPhoto";
 
 type FoodPhotosSectionProps = {
   foodId: string;
-  photoType: "series" | "range";
+  photoType: "series" | "range" | "guide";
 };
 
 function assetUrl(path: string) {
@@ -64,8 +64,14 @@ export function FoodPhotosSection({ foodId, photoType }: FoodPhotosSectionProps)
   const [targetAction, setTargetAction] = useState<"upload" | "annotate">("upload");
 
   const items = data?.items ?? [];
-  const effectiveType = data?.photo_type === "range" || photoType === "range" ? "range" : "series";
-  const maxPhotos = data?.max_photos ?? (effectiveType === "range" ? 1 : 10);
+  const effectiveType =
+    data?.photo_type === "range" || photoType === "range"
+      ? "range"
+      : data?.photo_type === "guide" || photoType === "guide"
+        ? "guide"
+        : "series";
+  const isSinglePhoto = effectiveType === "range" || effectiveType === "guide";
+  const maxPhotos = data?.max_photos ?? (isSinglePhoto ? 1 : 10);
   const atLimit = items.length >= maxPhotos;
   const returnTo = encodeURIComponent(`/admin/foods/${foodId}`);
 
@@ -76,8 +82,8 @@ export function FoodPhotosSection({ foodId, photoType }: FoodPhotosSectionProps)
 
     if (atLimit) {
       setFormError(
-        effectiveType === "range"
-          ? "Tipe range hanya 1 foto."
+        isSinglePhoto
+          ? `Tipe ${effectiveType} hanya 1 foto.`
           : `Maksimal ${maxPhotos} foto.`
       );
       return;
