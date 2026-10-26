@@ -314,6 +314,15 @@ export function AiRecommendationPanel({ submissionId }: { submissionId?: string 
                 : "Dihasilkan otomatis oleh Groq Llama AI. "}
               Rekomendasi ini bersifat edukatif dan bukan merupakan diagnosis medis pengganti konsultasi dengan dokter atau ahli gizi teregistrasi.
             </p>
+            <button
+              type="button"
+              onClick={() => submissionId && mutate(submissionId)}
+              disabled={!hasSubmission || isPending}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary transition-all hover:border-primary hover:bg-primary-light hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              <RefreshCw aria-hidden className={cn("h-3.5 w-3.5", isPending && "animate-spin")} />
+              Analisis ulang
+            </button>
           </div>
         </div>
       ) : null}
