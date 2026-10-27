@@ -88,6 +88,12 @@ export function useLiveCursor(send: CollabSend, enabled = true) {
     window.addEventListener("mousemove", throttledMove);
     window.addEventListener("scroll", throttledViewport, { passive: true });
     window.addEventListener("resize", throttledViewport);
+
+    const mainEl = document.querySelector<HTMLElement>("main.overflow-y-auto, main[class*='overflow-y-auto']");
+    if (mainEl) {
+      mainEl.addEventListener("scroll", throttledViewport, { passive: true });
+    }
+
     // Snapshot awal + setiap ganti path/query (search, detail, kategori)
     onScrollOrResize();
 
@@ -95,6 +101,9 @@ export function useLiveCursor(send: CollabSend, enabled = true) {
       window.removeEventListener("mousemove", throttledMove);
       window.removeEventListener("scroll", throttledViewport);
       window.removeEventListener("resize", throttledViewport);
+      if (mainEl) {
+        mainEl.removeEventListener("scroll", throttledViewport);
+      }
     };
   }, [send, enabled, followingUserId, pathname, searchKey]);
 

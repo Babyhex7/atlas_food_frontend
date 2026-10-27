@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LocalCursorChat } from "../hooks/useCursorChat";
 import type { CursorChatBubble } from "../types/collab";
 
@@ -31,6 +31,24 @@ export function CursorChatOverlay({
   remoteBubbles,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [, setScrollTick] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollTick((t) => (t + 1) % 10000);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    const mainEl = document.querySelector<HTMLElement>("main.overflow-y-auto, main[class*='overflow-y-auto']");
+    if (mainEl) {
+      mainEl.addEventListener("scroll", handleScroll, { passive: true });
+    }
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (mainEl) mainEl.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   useEffect(() => {
     if (local?.phase === "editing") inputRef.current?.focus();
@@ -38,8 +56,15 @@ export function CursorChatOverlay({
 
   if (!local && remoteBubbles.length === 0) return null;
 
-  const localClientX = local ? local.x - (typeof window !== "undefined" ? window.scrollX : 0) : 0;
-  const localClientY = local ? local.y - (typeof window !== "undefined" ? window.scrollY : 0) : 0;
+  // Baca scroll offset aktif (baik window maupun scrollable main)
+  const mainEl = typeof document !== "undefined"
+    ? document.querySelector<HTMLElement>("main.overflow-y-auto, main[class*='overflow-y-auto']")
+    : null;
+  const currentScrollX = mainEl ? mainEl.scrollLeft : (typeof window !== "undefined" ? window.scrollX : 0);
+  const currentScrollY = mainEl ? mainEl.scrollTop : (typeof window !== "undefined" ? window.scrollY : 0);
+
+  const localClientX = local ? local.x - currentScrollX : 0;
+  const localClientY = local ? local.y - currentScrollY : 0;
 
   return (
     // Tidak aria-hidden di container: saat "editing" ada <input> fokusable di

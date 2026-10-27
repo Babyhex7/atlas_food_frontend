@@ -7,6 +7,8 @@ import { canEditRoom } from "../lib/messageRouter";
 import type { CollabSend } from "./useWebSocket";
 import type { CanvasPoint } from "../types/collab";
 
+import { getScrollContext } from "../lib/scrollContext";
+
 /**
  * Interval kirim batch titik coretan (ms).
  *
@@ -22,9 +24,10 @@ interface UseLiveCanvasOptions {
   containerRef: React.RefObject<HTMLElement | null>;
   send: CollabSend;
   targetImageId?: string;
+  isGlobal?: boolean;
 }
 
-export function useLiveCanvas({ containerRef, send, targetImageId }: UseLiveCanvasOptions) {
+export function useLiveCanvas({ containerRef, send, targetImageId, isGlobal = false }: UseLiveCanvasOptions) {
   const isDrawing = useRef(false);
   const currentStrokeId = useRef<string | null>(null);
   const pendingPoints = useRef<CanvasPoint[]>([]);
@@ -54,23 +57,29 @@ export function useLiveCanvas({ containerRef, send, targetImageId }: UseLiveCanv
   const { selfRoomRole, selfUserId } = useCollabStore();
   const canEdit = canEditRoom(selfRoomRole);
 
-  // Helper konversi pixel lokal kontainer -> koordinat relatif (0.0 - 1.0)
+  // Helper konversi pixel pointer layar -> koordinat relatif (0.0 - 1.0)
+  // Menghitung offset scroll dokumen/kontainer sehingga coretan terkunci mati pada konten di bawahnya
   const getNormalizedPoint = useCallback(
     (clientX: number, clientY: number): CanvasPoint | null => {
       const el = containerRef.current;
       if (!el) return null;
-      const rect = el.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return null;
 
-      const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-      const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+      const scrollCtx = getScrollContext(el, Boolean(isGlobal));
+      const { containerRect, scrollLeft, scrollTop, contentWidth, contentHeight } = scrollCtx;
+      if (contentWidth === 0 || contentHeight === 0) return null;
+
+      const docX = clientX - containerRect.left + scrollLeft;
+      const docY = clientY - containerRect.top + scrollTop;
+
+      const x = Math.max(0, Math.min(1, docX / contentWidth));
+      const y = Math.max(0, Math.min(1, docY / contentHeight));
 
       return {
         x: Number(x.toFixed(4)),
         y: Number(y.toFixed(4)),
       };
     },
-    [containerRef]
+    [containerRef, isGlobal]
   );
 
   // Flush titik-titik coretan tertahan ke WebSocket per CANVAS_BATCH_INTERVAL_MS

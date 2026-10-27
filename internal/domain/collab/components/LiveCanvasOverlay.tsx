@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLiveCanvas } from "../hooks/useLiveCanvas";
 import type { CollabSend } from "../hooks/useWebSocket";
 import type { CanvasStroke, LaserPoint } from "../types/collab";
+import { getScrollContext } from "../lib/scrollContext";
 
 interface LiveCanvasOverlayProps {
   send: CollabSend;
@@ -27,48 +28,38 @@ export function LiveCanvasOverlay({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
-  // Batas atas (di bawah header) dan batas bawah (di atas footer)
-  const [bounds, setBounds] = useState({ top: 56, bottom: 0 });
+  // Batas container aktif (top, left, width, height)
+  const [bounds, setBounds] = useState({ top: 56, left: 0, width: 0, height: 0 });
 
   useEffect(() => {
     if (!isGlobal) return;
 
     const measureBounds = () => {
-      // 1. Ukur batas bawah header (topbar)
-      const headerEl = document.querySelector("header");
-      let top = 56;
-      if (headerEl) {
-        const rect = headerEl.getBoundingClientRect();
-        top = Math.max(0, Math.round(rect.bottom));
-      }
-
-      // 2. Ukur batas atas footer (jika ada footer yang sedang terlihat di layar)
-      const footerEl = document.querySelector("footer");
-      let bottom = 0;
-      if (footerEl) {
-        const rect = footerEl.getBoundingClientRect();
-        if (rect.top < window.innerHeight) {
-          bottom = Math.max(0, Math.round(window.innerHeight - rect.top));
-        }
-      }
+      const scrollCtx = getScrollContext(containerRef.current, isGlobal);
+      const { top, left, width, height } = scrollCtx.containerRect;
 
       setBounds((prev) => {
-        if (prev.top === top && prev.bottom === bottom) return prev;
-        return { top, bottom };
+        if (
+          prev.top === top &&
+          prev.left === left &&
+          prev.width === width &&
+          prev.height === height
+        ) {
+          return prev;
+        }
+        return { top, left, width, height };
       });
     };
 
     measureBounds();
     window.addEventListener("resize", measureBounds, { passive: true });
-    window.addEventListener("scroll", measureBounds, { passive: true });
 
-    // Pantau perubahan DOM (misal: CollabStatusStrip muncul/hilang di header)
+    // Pantau perubahan DOM (misal: CollabStatusStrip muncul/hilang di header, atau ganti step wizard)
     const observer = new MutationObserver(measureBounds);
     observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 
     return () => {
       window.removeEventListener("resize", measureBounds);
-      window.removeEventListener("scroll", measureBounds);
       observer.disconnect();
     };
   }, [isGlobal]);
@@ -85,7 +76,7 @@ export function LiveCanvasOverlay({
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
-  } = useLiveCanvas({ containerRef, send, targetImageId });
+  } = useLiveCanvas({ containerRef, send, targetImageId, isGlobal });
 
   // Main Render Engine (Canvas 2D Context)
   useEffect(() => {
@@ -97,12 +88,6 @@ export function LiveCanvasOverlay({
     if (!ctx) return;
 
     // Adjust canvas resolution to match container pixel dimensions.
-    //
-    // Mengisi canvas.width/height SELALU menghapus seluruh isi canvas, meski
-    // nilainya sama. Jadi ukuran hanya disetel bila benar-benar berubah, dan
-    // setiap resize WAJIB diikuti render() — dulu callback ResizeObserver
-    // (termasuk callback awal yang selalu terpanggil saat observe()) menghapus
-    // coretan tepat setelah digambar sehingga canvas selalu tampak kosong.
     const updateCanvasSize = () => {
       const rect = container.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
@@ -123,11 +108,12 @@ export function LiveCanvasOverlay({
     resizeObserver.observe(container);
     updateCanvasSize();
 
-    // Render Function
+    // Render Function dengan Document Scroll Offsets (Option A: nempel di konten saat di-scroll)
     const render = () => {
-      const rect = container.getBoundingClientRect();
-      const width = rect.width;
-      const height = rect.height;
+      const scrollCtx = getScrollContext(container, isGlobal);
+      const { scrollLeft, scrollTop, contentWidth, contentHeight, containerRect } = scrollCtx;
+      const width = containerRect.width;
+      const height = containerRect.height;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -148,8 +134,8 @@ export function LiveCanvasOverlay({
         ctx.lineJoin = "round";
 
         const firstPt = stroke.points[0];
-        const startX = firstPt.x * width;
-        const startY = firstPt.y * height;
+        const startX = firstPt.x * contentWidth - scrollLeft;
+        const startY = firstPt.y * contentHeight - scrollTop;
 
         if (stroke.tool === "pencil" || stroke.tool === "eraser") {
           if (stroke.tool === "eraser") {
@@ -169,20 +155,24 @@ export function LiveCanvasOverlay({
             for (let i = 1; i < stroke.points.length - 1; i++) {
               const p1 = stroke.points[i];
               const p2 = stroke.points[i + 1];
-              const xc = ((p1.x + p2.x) / 2) * width;
-              const yc = ((p1.y + p2.y) / 2) * height;
-              ctx.quadraticCurveTo(p1.x * width, p1.y * height, xc, yc);
+              const x1 = p1.x * contentWidth - scrollLeft;
+              const y1 = p1.y * contentHeight - scrollTop;
+              const x2 = p2.x * contentWidth - scrollLeft;
+              const y2 = p2.y * contentHeight - scrollTop;
+              const xc = (x1 + x2) / 2;
+              const yc = (y1 + y2) / 2;
+              ctx.quadraticCurveTo(x1, y1, xc, yc);
             }
 
             // Connect last point
             const lastPt = stroke.points[stroke.points.length - 1];
-            ctx.lineTo(lastPt.x * width, lastPt.y * height);
+            ctx.lineTo(lastPt.x * contentWidth - scrollLeft, lastPt.y * contentHeight - scrollTop);
             ctx.stroke();
           }
         } else if (stroke.tool === "circle" && stroke.points.length > 1) {
           const lastPt = stroke.points[stroke.points.length - 1];
-          const endX = lastPt.x * width;
-          const endY = lastPt.y * height;
+          const endX = lastPt.x * contentWidth - scrollLeft;
+          const endY = lastPt.y * contentHeight - scrollTop;
           const radiusX = Math.abs(endX - startX) / 2;
           const radiusY = Math.abs(endY - startY) / 2;
           const centerX = Math.min(startX, endX) + radiusX;
@@ -193,8 +183,8 @@ export function LiveCanvasOverlay({
           ctx.stroke();
         } else if (stroke.tool === "rectangle" && stroke.points.length > 1) {
           const lastPt = stroke.points[stroke.points.length - 1];
-          const endX = lastPt.x * width;
-          const endY = lastPt.y * height;
+          const endX = lastPt.x * contentWidth - scrollLeft;
+          const endY = lastPt.y * contentHeight - scrollTop;
           const rectW = endX - startX;
           const rectH = endY - startY;
 
@@ -210,11 +200,11 @@ export function LiveCanvasOverlay({
       let hasActiveLaser = false;
       Object.values(laserPoints).forEach((laser: LaserPoint) => {
         const age = now - laser.timestamp;
-        if (age > 1500) return; // Fade out after 1.5 seconds
+        if (age > 1500) return; // Fade out after 1.5 detik
         hasActiveLaser = true;
 
-        const lx = laser.x * width;
-        const ly = laser.y * height;
+        const lx = laser.x * contentWidth - scrollLeft;
+        const ly = laser.y * contentHeight - scrollTop;
         const opacity = Math.max(0, 1 - age / 1500);
 
         ctx.save();
@@ -248,24 +238,47 @@ export function LiveCanvasOverlay({
 
     render();
 
+    // Listen to scroll events on window AND scrollable containers (e.g. RecallWizard <main>)
+    const onScroll = () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = requestAnimationFrame(render);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const mainEl = document.querySelector<HTMLElement>("main.overflow-y-auto, main[class*='overflow-y-auto']");
+    if (mainEl) {
+      mainEl.addEventListener("scroll", onScroll, { passive: true });
+    }
+
     return () => {
       resizeObserver.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      if (mainEl) {
+        mainEl.removeEventListener("scroll", onScroll);
+      }
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [strokes, laserPoints, isCanvasVisible, targetImageId]);
+  }, [strokes, laserPoints, isCanvasVisible, targetImageId, isGlobal]);
 
   return (
     <div
       ref={containerRef}
       className={`${
         isGlobal
-          ? "fixed left-0 right-0 z-40 overflow-hidden"
+          ? "fixed z-40 overflow-hidden"
           : `absolute inset-0 w-full h-full ${className}`
       } ${
         isDrawingMode && canEdit ? "pointer-events-auto" : "pointer-events-none"
       }`}
       style={{
-        ...(isGlobal ? { top: `${bounds.top}px`, bottom: `${bounds.bottom}px` } : {}),
+        ...(isGlobal && bounds.width > 0
+          ? {
+              top: `${bounds.top}px`,
+              left: `${bounds.left}px`,
+              width: `${bounds.width}px`,
+              height: `${bounds.height}px`,
+            }
+          : {}),
         touchAction: isDrawingMode && canEdit ? "none" : "auto",
       }}
     >
