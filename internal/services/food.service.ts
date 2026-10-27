@@ -9,9 +9,19 @@ import type { FoodSearchResult, FoodDetail } from "@/internal/types/food.types";
  * Hasil di-normalisasi ke array karena endpoint bisa mengembalikan null pada
  * response lama sebelum perbaikan handler.
  */
-export async function searchFoodsPublic(query: string, type?: "food" | "drink" | "", limit = 20): Promise<FoodSearchResult[]> {
+export async function searchFoodsPublic(
+  query: string,
+  type?: "food" | "drink" | "",
+  limit = 20,
+  scope?: "additional" | ""
+): Promise<FoodSearchResult[]> {
   const { data } = await apiClient.get("/public/foods/search", {
-    params: { q: query, limit, ...(type ? { type } : {}) },
+    params: {
+      q: query,
+      limit,
+      ...(type ? { type } : {}),
+      ...(scope ? { scope } : {}),
+    },
   });
   return Array.isArray(data?.data) ? data.data : [];
 }
