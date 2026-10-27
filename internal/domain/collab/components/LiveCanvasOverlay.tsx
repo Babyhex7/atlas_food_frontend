@@ -29,7 +29,12 @@ export function LiveCanvasOverlay({
   const animFrameRef = useRef<number | null>(null);
 
   // Batas container aktif (top, left, width, height)
-  const [bounds, setBounds] = useState({ top: 56, left: 0, width: 0, height: 0 });
+  const [bounds, setBounds] = useState(() => {
+    if (typeof window !== "undefined") {
+      return { top: 56, left: 0, width: window.innerWidth, height: Math.max(100, window.innerHeight - 56) };
+    }
+    return { top: 56, left: 0, width: 1280, height: 744 };
+  });
 
   useEffect(() => {
     if (!isGlobal) return;
@@ -53,6 +58,7 @@ export function LiveCanvasOverlay({
 
     measureBounds();
     window.addEventListener("resize", measureBounds, { passive: true });
+    window.addEventListener("scroll", measureBounds, { capture: true, passive: true });
 
     // Pantau perubahan DOM (misal: CollabStatusStrip muncul/hilang di header, atau ganti step wizard)
     const observer = new MutationObserver(measureBounds);
@@ -60,6 +66,7 @@ export function LiveCanvasOverlay({
 
     return () => {
       window.removeEventListener("resize", measureBounds);
+      window.removeEventListener("scroll", measureBounds, { capture: true } as any);
       observer.disconnect();
     };
   }, [isGlobal]);
@@ -238,24 +245,17 @@ export function LiveCanvasOverlay({
 
     render();
 
-    // Listen to scroll events on window AND scrollable containers (e.g. RecallWizard <main>)
+    // Listen to scroll events globally using capture: true so any container scroll triggers a redraw
     const onScroll = () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = requestAnimationFrame(render);
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    const mainEl = document.querySelector<HTMLElement>("main.overflow-y-auto, main[class*='overflow-y-auto']");
-    if (mainEl) {
-      mainEl.addEventListener("scroll", onScroll, { passive: true });
-    }
+    window.addEventListener("scroll", onScroll, { capture: true, passive: true });
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener("scroll", onScroll);
-      if (mainEl) {
-        mainEl.removeEventListener("scroll", onScroll);
-      }
+      window.removeEventListener("scroll", onScroll, { capture: true } as any);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
   }, [strokes, laserPoints, isCanvasVisible, targetImageId, isGlobal]);

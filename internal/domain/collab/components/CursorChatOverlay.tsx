@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { LocalCursorChat } from "../hooks/useCursorChat";
 import type { CursorChatBubble } from "../types/collab";
+import { getScrollContext } from "../lib/scrollContext";
 
 function inViewport(x: number, y: number) {
   if (typeof window === "undefined") return true;
@@ -38,15 +39,10 @@ export function CursorChatOverlay({
       setScrollTick((t) => (t + 1) % 10000);
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    const mainEl = document.querySelector<HTMLElement>("main.overflow-y-auto, main[class*='overflow-y-auto']");
-    if (mainEl) {
-      mainEl.addEventListener("scroll", handleScroll, { passive: true });
-    }
+    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      if (mainEl) mainEl.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScroll, { capture: true } as any);
     };
   }, []);
 
@@ -57,11 +53,9 @@ export function CursorChatOverlay({
   if (!local && remoteBubbles.length === 0) return null;
 
   // Baca scroll offset aktif (baik window maupun scrollable main)
-  const mainEl = typeof document !== "undefined"
-    ? document.querySelector<HTMLElement>("main.overflow-y-auto, main[class*='overflow-y-auto']")
-    : null;
-  const currentScrollX = mainEl ? mainEl.scrollLeft : (typeof window !== "undefined" ? window.scrollX : 0);
-  const currentScrollY = mainEl ? mainEl.scrollTop : (typeof window !== "undefined" ? window.scrollY : 0);
+  const scrollCtx = getScrollContext(null, true);
+  const currentScrollX = scrollCtx.scrollLeft;
+  const currentScrollY = scrollCtx.scrollTop;
 
   const localClientX = local ? local.x - currentScrollX : 0;
   const localClientY = local ? local.y - currentScrollY : 0;

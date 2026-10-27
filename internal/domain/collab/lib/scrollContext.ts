@@ -50,32 +50,46 @@ export function getScrollContext(container: HTMLElement | null, isGlobal: boolea
     };
   }
 
-  // 1. Cek apakah ada scrollable <main> container (seperti pada RecallWizard)
+  // 1. Cek scroll dokumen / window saat ini
+  const winScrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  const winScrollX = window.scrollX || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+
+  // 2. Cek apakah ada inner scroll container yang sedang bergulir aktif
+  // (misal <main className="overflow-y-auto"> jika dikunci di dalam h-screen)
   const mainEl = document.querySelector<HTMLElement>("main.overflow-y-auto, main[class*='overflow-y-auto']");
-  if (mainEl && mainEl.clientHeight > 0) {
+  const isMainActuallyScrolling = Boolean(
+    mainEl &&
+    mainEl.clientHeight > 0 &&
+    mainEl.scrollHeight > mainEl.clientHeight + 10 &&
+    (mainEl.scrollTop > 0 || (winScrollY === 0 && window.innerHeight >= document.documentElement.scrollHeight))
+  );
+
+  if (isMainActuallyScrolling && mainEl) {
     const rect = mainEl.getBoundingClientRect();
-    const w = Math.max(1, Math.round(rect.width));
-    const h = Math.max(1, Math.round(rect.height));
     return {
       containerRect: {
-        top: Math.round(rect.top),
-        left: Math.round(rect.left),
-        width: w,
-        height: h,
+        top: Math.max(0, Math.round(rect.top)),
+        left: Math.max(0, Math.round(rect.left)),
+        width: Math.max(1, Math.round(rect.width)),
+        height: Math.max(1, Math.round(rect.height)),
       },
       scrollLeft: mainEl.scrollLeft,
       scrollTop: mainEl.scrollTop,
-      contentWidth: Math.max(w, mainEl.scrollWidth),
-      contentHeight: Math.max(h, mainEl.scrollHeight),
+      contentWidth: Math.max(rect.width, mainEl.scrollWidth),
+      contentHeight: Math.max(rect.height, mainEl.scrollHeight),
       scrollEl: mainEl,
     };
   }
 
-  // 2. Fallback: Window / Document scrolling (seperti pada Find Food dan halaman standar)
+  // 3. Fallback standar (seluruh halaman web / window):
+  // Menentukan batas kanvas di bawah header aktif
   const headerEl = document.querySelector("header");
   let top = 56;
   if (headerEl) {
-    top = Math.max(0, Math.round(headerEl.getBoundingClientRect().bottom));
+    const hRect = headerEl.getBoundingClientRect();
+    if (hRect.top <= 0 && hRect.bottom > 0) {
+      top = Math.max(0, Math.round(hRect.bottom));
+    }
   }
 
   const footerEl = document.querySelector("footer");
@@ -99,8 +113,8 @@ export function getScrollContext(container: HTMLElement | null, isGlobal: boolea
       width: w,
       height: h,
     },
-    scrollLeft: window.scrollX || document.documentElement.scrollLeft || 0,
-    scrollTop: window.scrollY || document.documentElement.scrollTop || 0,
+    scrollLeft: winScrollX,
+    scrollTop: winScrollY,
     contentWidth: docScrollWidth,
     contentHeight: docScrollHeight,
     scrollEl: window,
