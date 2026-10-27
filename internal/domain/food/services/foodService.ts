@@ -1,6 +1,6 @@
 import { apiClient } from "@/internal/pkg/api";
 import { apiEndpoints } from "@/internal/pkg/api/endpoints";
-import type { CreateFoodRequest, Food, UpdateFoodRequest } from "../types/food";
+import type { CreateFoodRequest, Food, UpdateFoodRequest, AssociatedFood, SetAssociatedFoodsRequest } from "../types/food";
 import type { SearchFoodResult, FoodDetail } from "../types/food";
 
 // ============ PUBLIC (Respondent) ============
@@ -24,7 +24,25 @@ export function getFoodPublic(id: string) {
   return apiClient<FoodDetail>(apiEndpoints.public.foodDetail(id));
 }
 
+/**
+ * getPublicAssociatedFoods - Get pelengkap cepat yang dikaitkan ke makanan
+ */
+export function getPublicAssociatedFoods(foodId: string) {
+  return apiClient<AssociatedFood[]>(apiEndpoints.public.associatedFoods(foodId));
+}
+
 // ============ ADMIN ============
+
+export function getAdminAssociatedFoods(foodId: string) {
+  return apiClient<AssociatedFood[]>(apiEndpoints.admin.associatedFoods(foodId));
+}
+
+export function setAdminAssociatedFoods(foodId: string, payload: SetAssociatedFoodsRequest) {
+  return apiClient<AssociatedFood[]>(apiEndpoints.admin.associatedFoods(foodId), {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
 
 export function searchFoods(query: string) {
   return apiClient<Food[]>(`/foods/search?q=${encodeURIComponent(query)}`);

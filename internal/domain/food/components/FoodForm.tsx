@@ -12,6 +12,7 @@ import { useNutrientTypes, DEFAULT_NUTRIENT_TYPES } from "@/internal/domain/nutr
 import { useCreateFood, useDeleteFood, useFoodDetail, useUpdateFood } from "../hooks/useFoodQueries";
 import type { FoodNutrientInput } from "../types/food";
 import { foodValidation } from "../schemas/foodSchema";
+import { AssociatedFoodsSection } from "./AssociatedFoodsSection";
 import { FoodPhotosSection } from "./FoodPhotosSection";
 
 const SECTION = "bg-surface border border-border rounded-xl p-6 flex flex-col gap-5";
@@ -437,7 +438,8 @@ export function FoodForm() {
           </form>
 
           {isEdit && (
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col gap-8">
+              <AssociatedFoodsSection foodId={foodId} />
               <FoodPhotosSection foodId={foodId} photoType={photoType} />
             </div>
           )}

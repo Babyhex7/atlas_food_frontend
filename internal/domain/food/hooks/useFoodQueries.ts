@@ -4,18 +4,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createFood,
   deleteFood,
+  getAdminAssociatedFoods,
   getAdminFoodById,
   getAdminFoods,
   searchFoods,
+  setAdminAssociatedFoods,
   updateFood,
 } from "../services/foodService";
-import type { CreateFoodRequest, UpdateFoodRequest } from "../types/food";
+import type { CreateFoodRequest, SetAssociatedFoodsRequest, UpdateFoodRequest } from "../types/food";
 
 export const foodKeys = {
   all: ["foods"] as const,
   admin: (params: object) => ["foods", "admin", params] as const,
   detail: (id: string) => ["foods", "detail", id] as const,
   search: (query: string) => ["foods", "search", query] as const,
+  associated: (id: string) => ["foods", "associated", id] as const,
 };
 
 export function useFoodSearch(query: string) {
@@ -82,5 +85,25 @@ export function useDeleteFood() {
   return useMutation({
     mutationFn: (id: string) => deleteFood(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: foodKeys.all }),
+  });
+}
+
+export function useAdminAssociatedFoods(foodId: string | undefined) {
+  return useQuery({
+    queryKey: foodKeys.associated(foodId ?? ""),
+    queryFn: () => getAdminAssociatedFoods(foodId as string),
+    enabled: Boolean(foodId && foodId !== "new"),
+  });
+}
+
+export function useSetAdminAssociatedFoods(foodId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: SetAssociatedFoodsRequest) => setAdminAssociatedFoods(foodId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: foodKeys.associated(foodId) });
+      queryClient.invalidateQueries({ queryKey: foodKeys.all });
+    },
   });
 }

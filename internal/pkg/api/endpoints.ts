@@ -12,6 +12,7 @@ export const apiEndpoints = {
     surveys: "/admin/surveys",
     surveyDetail: (id: string) => `/admin/surveys/${id}`,
     cloneSurvey: (id: string) => `/admin/surveys/${id}/clone`,
+    associatedFoods: (id: string) => `/admin/foods/${id}/associated`,
   },
   publicSurvey: {
     /** Hub daftar survey aktif (login wajib) */
@@ -23,6 +24,7 @@ export const apiEndpoints = {
     // Food Search (FREE SEARCH — parameter: q, type, limit)
     foodSearch: "/public/foods/search",
     foodDetail: (id: string) => `/public/foods/${id}`,
+    associatedFoods: (id: string) => `/public/foods/${id}/associated`,
     categories: "/public/categories",
     // Survey submit memakai JWT respondent via POST /survey/submit
     surveySubmit: "/survey/submit",

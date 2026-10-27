@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { searchFoodsPublic } from "@/internal/services/food.service";
+import { getPublicAssociatedFoods } from "@/internal/domain/food/services/foodService";
 import type { FoodSearchResult } from "@/internal/types/food.types";
 import type { RecallFood, AdditionalItem } from "../types/recall";
 import {
@@ -29,32 +30,6 @@ import {
   StepShell,
 } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
-
-/** Pilihan satuan yang umum untuk takaran bumbu/pelengkap */
-const UNIT_OPTIONS = [
-  { value: "g", label: "gram (g)" },
-  { value: "sdm", label: "sendok makan (sdm ~15g)" },
-  { value: "sdt", label: "sendok teh (sdt ~5g)" },
-  { value: "ml", label: "mililiter (ml)" },
-  { value: "buah", label: "buah / potong" },
-  { value: "porsi", label: "porsi" },
-] as const;
-
-/** Rekomendasi pelengkap & bumbu umum yang sering dikonsumsi */
-const POPULAR_CONDIMENTS = [
-  { name: "Sambal Terasi", unit: "sdm", defaultVal: 1, category: "Sambal" },
-  { name: "Sambal Bawang", unit: "sdm", defaultVal: 1, category: "Sambal" },
-  { name: "Minyak Goreng", unit: "sdm", defaultVal: 1, category: "Minyak" },
-  { name: "Kecap Manis", unit: "sdm", defaultVal: 1, category: "Bumbu" },
-  { name: "Bawang Goreng", unit: "sdt", defaultVal: 1, category: "Pelengkap" },
-  { name: "Kerupuk", unit: "buah", defaultVal: 1, category: "Pelengkap" },
-  { name: "Jeruk Nipis", unit: "buah", defaultVal: 1, category: "Bumbu" },
-  { name: "Garam", unit: "sdt", defaultVal: 0.5, category: "Bumbu" },
-  { name: "Gula Pasir", unit: "sdt", defaultVal: 1, category: "Bumbu" },
-  { name: "Cabai Rawit", unit: "buah", defaultVal: 2, category: "Bumbu" },
-  { name: "Margarin / Mentega", unit: "sdm", defaultVal: 1, category: "Minyak" },
-  { name: "Santan", unit: "sdm", defaultVal: 2, category: "Bumbu" },
-];
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -83,34 +58,34 @@ function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
 
   useEffect(() => {
     if (debouncedQuery.length < 2) {
-      setResults([]);
-      setLoading(false);
       return;
     }
 
     let isCancelled = false;
-    setLoading(true);
-
-    searchFoodsPublic(debouncedQuery, "", 12, "additional")
-      .then((data) => {
-        if (!isCancelled) {
-          setResults(data);
-          setIsOpen(true);
-        }
-      })
-      .catch(() => {
-        if (!isCancelled) {
-          setResults([]);
-        }
-      })
-      .finally(() => {
-        if (!isCancelled) {
-          setLoading(false);
-        }
-      });
+    const timer = setTimeout(() => {
+      setLoading(true);
+      searchFoodsPublic(debouncedQuery, "", 12, "additional")
+        .then((data) => {
+          if (!isCancelled) {
+            setResults(data);
+            setIsOpen(true);
+          }
+        })
+        .catch(() => {
+          if (!isCancelled) {
+            setResults([]);
+          }
+        })
+        .finally(() => {
+          if (!isCancelled) {
+            setLoading(false);
+          }
+        });
+    }, 0);
 
     return () => {
       isCancelled = true;
+      clearTimeout(timer);
     };
   }, [debouncedQuery]);
 
@@ -170,7 +145,6 @@ function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
           }}
           placeholder={`Cari pelengkap atau bumbu untuk ${foodName} (misal: sambal, minyak, kecap, kerupuk)...`}
           aria-label={`Cari pelengkap untuk ${foodName}`}
-          aria-expanded={isOpen}
           aria-controls={dropdownId}
           className="h-10 w-full rounded-lg border border-border bg-surface pl-10 pr-9 text-xs sm:text-sm text-text-primary placeholder:text-text-placeholder transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
@@ -237,7 +211,7 @@ function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
             <div className="flex flex-col items-center justify-center gap-2 py-4 px-3 text-center">
               <SearchX className="h-6 w-6 text-text-muted" />
               <p className="text-xs text-text-muted">
-                Tidak ada makanan cocok dengan <span className="font-semibold text-text-primary">"{query}"</span> di database.
+                Tidak ada makanan cocok dengan <span className="font-semibold text-text-primary">&ldquo;{query}&rdquo;</span> di database.
               </p>
               <button
                 type="button"
@@ -245,7 +219,7 @@ function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
                 className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-primary-light px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
-                Tambahkan "{query}" sebagai pelengkap kustom
+                Tambahkan &ldquo;{query}&rdquo; sebagai pelengkap kustom
               </button>
             </div>
           ) : null}
@@ -266,6 +240,43 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
   const [foodAdditionals, setFoodAdditionals] = useState<Record<string, AdditionalItem[]>>(() =>
     Object.fromEntries(foods.map((f) => [f.food.id, f.additionals ?? []]))
   );
+
+  // Makanan terkait (associated foods) dinamis per makanan dari konfigurasi admin
+  const [dynamicAssociated, setDynamicAssociated] = useState<
+    Record<
+      string,
+      { food_id?: string; name: string; unit: string; defaultVal: number; isDefault?: boolean }[]
+    >
+  >({});
+
+  useEffect(() => {
+    let isMounted = true;
+    for (const rf of foods) {
+      const foodId = rf.food.id;
+      if (!dynamicAssociated[foodId]) {
+        getPublicAssociatedFoods(foodId)
+          .then((res) => {
+            if (!isMounted) return;
+            if (res && res.length > 0) {
+              const mapped = res.map((item) => ({
+                food_id: item.associated_food_id,
+                name: item.associated_food?.name || item.associated_food_id,
+                unit: "sdm",
+                defaultVal: 1,
+                isDefault: item.is_default,
+              }));
+              setDynamicAssociated((prev) => ({ ...prev, [foodId]: mapped }));
+            }
+          })
+          .catch(() => {
+            // Abaikan error / fallback ke default
+          });
+      }
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [foods, dynamicAssociated]);
 
   const addOrUpdateItem = useCallback(
     (foodId: string, item: { food_id?: string; name: string; unit: string; amount_value: number }) => {
@@ -420,42 +431,47 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
                 />
               </div>
 
-              {/* Rekomendasi Cepat (Quick Chips) */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                  <span>Pilihan Cepat Bumbu & Pelengkap Populer:</span>
+              {/* Rekomendasi Cepat (Quick Chips) - murni dari database yang dikonfigurasi admin */}
+              {dynamicAssociated[rf.food.id] && dynamicAssociated[rf.food.id].length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                    <span>Rekomendasi Cepat (Dikonfigurasi Admin / Ahli Gizi):</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {dynamicAssociated[rf.food.id].map((condiment) => {
+                      const isAdded = items.some(
+                        (fa) =>
+                          (condiment.food_id && fa.food_id === condiment.food_id) ||
+                          fa.name.toLowerCase() === condiment.name.toLowerCase()
+                      );
+                      return (
+                        <Chip
+                          key={condiment.food_id || condiment.name}
+                          active={isAdded}
+                          onClick={() =>
+                            isAdded
+                              ? removeItem(rf.food.id, condiment.name)
+                              : addOrUpdateItem(rf.food.id, {
+                                  food_id: condiment.food_id,
+                                  name: condiment.name,
+                                  unit: condiment.unit || "sdm",
+                                  amount_value: condiment.defaultVal || 1,
+                                })
+                          }
+                        >
+                          {isAdded ? (
+                            <Check aria-hidden className="h-3 w-3 text-white" />
+                          ) : (
+                            <Plus aria-hidden className="h-3 w-3" />
+                          )}
+                          <span>{condiment.name}</span>
+                        </Chip>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {POPULAR_CONDIMENTS.map((condiment) => {
-                    const isAdded = items.some(
-                      (fa) => fa.name.toLowerCase() === condiment.name.toLowerCase()
-                    );
-                    return (
-                      <Chip
-                        key={condiment.name}
-                        active={isAdded}
-                        onClick={() =>
-                          isAdded
-                            ? removeItem(rf.food.id, condiment.name)
-                            : addOrUpdateItem(rf.food.id, {
-                                name: condiment.name,
-                                unit: condiment.unit,
-                                amount_value: condiment.defaultVal,
-                              })
-                        }
-                      >
-                        {isAdded ? (
-                          <Check aria-hidden className="h-3 w-3 text-white" />
-                        ) : (
-                          <Plus aria-hidden className="h-3 w-3" />
-                        )}
-                        <span>{condiment.name}</span>
-                      </Chip>
-                    );
-                  })}
-                </div>
-              </div>
+              ) : null}
 
               {/* Daftar Pelengkap yang Sudah Ditambahkan */}
               {items.length > 0 ? (
@@ -487,39 +503,54 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
-                          {/* Takaran Angka */}
-                          <input
-                            type="number"
-                            min={0.1}
-                            step="any"
-                            inputMode="decimal"
-                            value={item.amount_value || ""}
-                            onChange={(e) => updateAmount(rf.food.id, item.name, e.target.value)}
-                            aria-label={`Jumlah ${item.name}`}
-                            className="h-8 w-16 sm:w-20 rounded-md border border-border bg-surface px-2 text-center font-mono text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                            placeholder="1"
-                          />
+                          {/* Stepper Jumlah Cepat [-] [ 1 ] [+] */}
+                          <div className="flex items-center rounded-lg border border-border bg-surface shadow-2xs">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = item.amount_value || 1;
+                                const nextVal = Math.max(0.5, current <= 1 ? current - 0.5 : current - 1);
+                                updateAmount(rf.food.id, item.name, String(nextVal));
+                              }}
+                              aria-label={`Kurangi ${item.name}`}
+                              className="flex h-8 w-7 items-center justify-center text-text-muted hover:bg-surface-alt hover:text-text-primary rounded-l-lg transition-colors font-bold text-sm"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              min={0.5}
+                              step={0.5}
+                              inputMode="decimal"
+                              value={item.amount_value || 1}
+                              onChange={(e) => updateAmount(rf.food.id, item.name, e.target.value)}
+                              aria-label={`Jumlah ${item.name}`}
+                              className="h-8 w-12 border-x border-border bg-transparent text-center font-mono text-xs font-semibold text-text-primary focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = item.amount_value || 1;
+                                const nextVal = current + (current < 1 ? 0.5 : 1);
+                                updateAmount(rf.food.id, item.name, String(nextVal));
+                              }}
+                              aria-label={`Tambah ${item.name}`}
+                              className="flex h-8 w-7 items-center justify-center text-text-muted hover:bg-surface-alt hover:text-text-primary rounded-r-lg transition-colors font-bold text-sm"
+                            >
+                              +
+                            </button>
+                          </div>
 
-                          {/* Pilihan Satuan */}
-                          <select
-                            value={item.unit}
-                            onChange={(e) => updateUnit(rf.food.id, item.name, e.target.value)}
-                            aria-label={`Satuan ${item.name}`}
-                            className="h-8 rounded-md border border-border bg-surface px-2 text-xs font-medium text-text-secondary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                          >
-                            {UNIT_OPTIONS.map((u) => (
-                              <option key={u.value} value={u.value}>
-                                {u.label}
-                              </option>
-                            ))}
-                          </select>
+                          <span className="text-xs font-semibold text-text-secondary min-w-[28px]">
+                            {item.unit || "sdm"}
+                          </span>
 
                           {/* Tombol Hapus */}
                           <button
                             type="button"
                             onClick={() => removeItem(rf.food.id, item.name)}
                             aria-label={`Hapus ${item.name}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-text-muted hover:bg-danger-light hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-danger-light hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

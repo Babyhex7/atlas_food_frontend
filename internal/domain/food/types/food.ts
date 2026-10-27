@@ -38,9 +38,17 @@ export type AssociatedFood = {
   id: number;
   food_id: string;
   associated_food_id: string;
+  associated_food?: SearchFoodResult;
   priority: number;
   is_default: boolean;
-  created_at: string;
+};
+
+export type SetAssociatedFoodsRequest = {
+  items: {
+    associated_food_id: string;
+    priority?: number;
+    is_default?: boolean;
+  }[];
 };
 
 // ============ Public API Types ============
