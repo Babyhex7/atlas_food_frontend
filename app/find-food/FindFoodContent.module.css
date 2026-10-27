@@ -561,7 +561,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  aspect-ratio: 1.45 / 1;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   border-bottom: 1px solid #efd9d7;
   background:

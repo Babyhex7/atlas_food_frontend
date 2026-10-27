@@ -95,7 +95,7 @@ function RangePhotoView({
 
       {/* Hero foto range */}
       <div className="bg-white dark:bg-card rounded-2xl border border-emerald-100 dark:border-emerald-900/50 overflow-hidden shadow-sm relative">
-        <div className="aspect-[4/3] md:aspect-[16/9] bg-emerald-50/20 relative">
+        <div className="aspect-[16/9] bg-emerald-50/20 relative">
           <PhotoImg
             src={rangePhoto.image_url}
             alt="Range foto — rentang ukuran makanan"
@@ -267,7 +267,7 @@ function GuidePhotoView({
 
       {/* Hero foto guide */}
       <div className="bg-white dark:bg-card rounded-2xl border border-amber-100 dark:border-amber-900/50 overflow-hidden shadow-sm relative">
-        <div className="aspect-[4/3] md:aspect-[16/9] bg-amber-50/20 relative">
+        <div className="aspect-[16/9] bg-amber-50/20 relative">
           <PhotoImg
             src={guidePhoto.image_url}
             alt="Guide foto — aneka ragam varian makanan"
@@ -446,7 +446,7 @@ function SeriesPhotoView({
     <div className="space-y-6">
       {/* Main foto aktif */}
       <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
-        <div className="aspect-[4/3] md:aspect-[16/9] bg-muted/10 relative">
+        <div className="aspect-[16/9] bg-muted/10 relative">
           <PhotoImg
             src={activePhoto?.image_url}
             alt={activePhoto?.label ?? "foto porsi"}

@@ -125,7 +125,7 @@ export function PortionAdjustModal({
 
             {/* Left Column: Photo Preview & Dominant Calculated Weight Card */}
             <div className="md:col-span-5 flex flex-col justify-between gap-3">
-              <div className="relative h-44 sm:h-52 w-full overflow-hidden rounded-2xl border border-border bg-surface-alt shadow-sm flex items-center justify-center shrink-0">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border bg-surface-alt shadow-sm flex items-center justify-center shrink-0">
                 {resolvedImgUrl && !imgErrored ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img

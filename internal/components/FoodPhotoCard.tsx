@@ -121,8 +121,8 @@ export function FoodPhotoCard({ food, href, roomParam, previewImageUrl }: FoodPh
       href={dest}
       className="group flex flex-col rounded-2xl border-[1.5px] border-border bg-surface no-underline overflow-hidden transition-base hover:border-primary-border hover:shadow-lg hover:-translate-y-0.5"
     >
-      {/* Foto preview */}
-      <div className="relative aspect-[4/3] bg-primary-light overflow-hidden">
+      {/* Foto preview 16:9 proporsional kamera asli */}
+      <div className="relative aspect-[16/9] bg-primary-light overflow-hidden">
         <PreviewPhoto
           src={previewImageUrl}
           foodCode={food.code}

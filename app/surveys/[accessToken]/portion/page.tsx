@@ -108,8 +108,8 @@ export default function PortionPage({ params }: { params: { accessToken: string 
                       : 'border-border bg-surface hover:border-primary-border hover:bg-primary-light'
                   )}
                 >
-                  {/* Image placeholder */}
-                  <div className="w-full aspect-square rounded-lg overflow-hidden bg-surface-alt flex items-center justify-center text-[2rem] relative">
+                  {/* Image container 16:9 */}
+                  <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-surface-alt flex items-center justify-center text-[2rem] relative">
                     🍽️
                     <span className="absolute bottom-1 right-1 text-[10px] font-bold text-white bg-black/55 rounded-sm py-px px-[5px]">
                       {opt.label}

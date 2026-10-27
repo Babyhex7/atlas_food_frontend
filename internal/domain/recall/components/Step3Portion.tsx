@@ -598,8 +598,8 @@ export function Step3Portion({
                         </div>
                       )}
 
-                      {/* Photo Thumbnail Container */}
-                      <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-surface-alt">
+                      {/* Photo Thumbnail Container 16:9 proporsional kamera asli */}
+                      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-surface-alt">
                         <PortionThumb src={photo.thumbnail_url || photo.image_url} alt={photo.label} />
                       </div>
 
