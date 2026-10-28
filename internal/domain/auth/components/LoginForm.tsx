@@ -5,9 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Eye, EyeOff, UtensilsCrossed } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/internal/pkg/components/Button";
-import { Input } from "@/internal/pkg/components/Input";
 import { cn } from "@/internal/lib/cn";
 import { loginSchema, type LoginFormValues } from "@/internal/lib/validations";
 import { login } from "../services/authService";
@@ -29,6 +28,10 @@ export function LoginForm() {
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
   const onSubmit = async (data: LoginFormValues) => {
@@ -36,7 +39,7 @@ export function LoginForm() {
     try {
       const response = await login(data);
       setSession(response);
-      toast.success("Login berhasil! 👋", `Selamat datang kembali, ${response.user.name || response.user.email}`);
+      toast.success("Login berhasil", `Selamat datang kembali, ${response.user.name || response.user.email}`);
       const redirect = searchParams.get("redirect");
       const target = getSafeRedirect(
         redirect,
@@ -54,74 +57,98 @@ export function LoginForm() {
     }
   };
 
-
   return (
-    <div className="w-full max-w-[440px] mx-auto p-8 bg-surface border border-border rounded-2xl shadow-xl">
+    <div className="w-full">
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="w-14 h-14 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-4">
-          <UtensilsCrossed size={26} className="text-primary" />
-        </div>
-        <h1 className="text-2xl font-bold text-text-primary mb-2 tracking-tight">Selamat Datang</h1>
-        <p className="text-sm text-text-muted m-0">Masuk untuk melanjutkan ke Atlas Food</p>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-display">
+          Masuk ke Akun
+        </h1>
+        <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+          Silakan masukkan email dan kata sandi Anda untuk melanjutkan ke portal survei dan katalog porsi.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-        <Input
-          id="email"
-          label="Email"
-          type="email"
-          placeholder="email@contoh.com"
-          error={errors.email?.message}
-          {...register("email")}
-        />
-
-        {/* Password with toggle */}
-        <div className="flex flex-col gap-2">
-          <label htmlFor="password" className="text-sm font-medium text-text-secondary">
-            Password
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Email Input */}
+        <div className="space-y-1.5">
+          <label htmlFor="email" className="block text-xs font-semibold text-slate-700">
+            Email
           </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="nama@instansi.id"
+            className={cn(
+              "w-full px-3.5 py-2.5 bg-white border rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors shadow-2xs font-sans",
+              errors.email
+                ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                : "border-slate-300 hover:border-slate-400 focus:border-[#C0001B] focus:ring-1 focus:ring-[#C0001B]"
+            )}
+            {...register("email")}
+          />
+          {errors.email?.message && (
+            <p className="text-xs text-red-600 mt-1 font-medium">{errors.email.message}</p>
+          )}
+        </div>
+
+        {/* Password Input */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="block text-xs font-semibold text-slate-700">
+              Kata Sandi
+            </label>
+          </div>
           <div className="relative">
             <input
               id="password"
               type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
               placeholder="••••••••"
               className={cn(
-                "w-full py-2.5 pr-10 pl-3 text-sm text-text-primary bg-surface border-[1.5px] rounded-md outline-none font-sans transition-base box-border",
+                "w-full px-3.5 pr-10 py-2.5 bg-white border rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors shadow-2xs font-sans",
                 errors.password
-                  ? "border-danger focus:border-danger focus:shadow-[0_0_0_3px_rgba(220,38,38,0.15)]"
-                  : "border-border focus:border-primary focus:shadow-focus"
+                  ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                  : "border-slate-300 hover:border-slate-400 focus:border-[#C0001B] focus:ring-1 focus:ring-[#C0001B]"
               )}
               {...register("password")}
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-none border-none text-text-muted cursor-pointer flex items-center p-0"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1.5 transition-colors"
               aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
           {errors.password?.message && (
-            <span className="text-xs text-danger">{errors.password.message}</span>
+            <p className="text-xs text-red-600 mt-1 font-medium">{errors.password.message}</p>
           )}
         </div>
 
-        <Button type="submit" size="lg" isLoading={isLoading} className="w-full">
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          size="lg"
+          isLoading={isLoading}
+          className="w-full h-10 rounded-lg bg-[#C0001B] hover:bg-[#A80017] text-white font-medium text-sm transition-colors shadow-2xs mt-3 cursor-pointer"
+        >
           Masuk
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-text-muted">
-        Belum punya akun?{" "}
+      {/* Footer Register Link */}
+      <p className="mt-8 text-center text-xs text-slate-500">
+        Belum memiliki akun survei?{" "}
         <Link
           href={
             searchParams.get("redirect")
               ? `/register?redirect=${encodeURIComponent(searchParams.get("redirect")!)}`
               : "/register"
           }
-          className="font-semibold text-primary no-underline hover:underline"
+          className="font-semibold text-[#C0001B] hover:underline"
         >
           Daftar Sekarang
         </Link>
