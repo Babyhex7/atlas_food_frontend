@@ -95,7 +95,7 @@ function RangePhotoView({
 
       {/* Hero foto range */}
       <div className="bg-white dark:bg-card rounded-2xl border border-emerald-100 dark:border-emerald-900/50 overflow-hidden shadow-sm relative">
-        <div className="aspect-[16/9] bg-emerald-50/20 relative">
+        <div className="aspect-[16/9] max-h-[380px] bg-emerald-50/20 relative flex items-center justify-center">
           <PhotoImg
             src={rangePhoto.image_url}
             alt="Range foto — rentang ukuran makanan"
@@ -117,10 +117,10 @@ function RangePhotoView({
             <button
               type="button"
               onClick={() => setVisiblePolygons(!visiblePolygons)}
-              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-black/75 text-white border border-white/20 hover:bg-black/90 transition-fast shadow-md"
+              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md bg-white/95 text-text-primary border border-border hover:bg-white transition-fast shadow-xs cursor-pointer"
               title={visiblePolygons ? "Sembunyikan batas area" : "Tampilkan batas area"}
             >
-              {visiblePolygons ? <Eye size={12} className="text-emerald-400" /> : <EyeOff size={12} />}
+              {visiblePolygons ? <Eye size={13} className="text-emerald-600" /> : <EyeOff size={13} className="text-text-muted" />}
               <span>{visiblePolygons ? "Area: ON" : "Area: OFF"}</span>
             </button>
           )}
@@ -267,7 +267,7 @@ function GuidePhotoView({
 
       {/* Hero foto guide */}
       <div className="bg-white dark:bg-card rounded-2xl border border-amber-100 dark:border-amber-900/50 overflow-hidden shadow-sm relative">
-        <div className="aspect-[16/9] bg-amber-50/20 relative">
+        <div className="aspect-[16/9] max-h-[380px] bg-amber-50/20 relative flex items-center justify-center">
           <PhotoImg
             src={guidePhoto.image_url}
             alt="Guide foto — aneka ragam varian makanan"
@@ -289,10 +289,10 @@ function GuidePhotoView({
             <button
               type="button"
               onClick={() => setVisiblePolygons(!visiblePolygons)}
-              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-black/75 text-white border border-white/20 hover:bg-black/90 transition-fast shadow-md"
+              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md bg-white/95 text-text-primary border border-border hover:bg-white transition-fast shadow-xs cursor-pointer"
               title={visiblePolygons ? "Sembunyikan batas area" : "Tampilkan batas area"}
             >
-              {visiblePolygons ? <Eye size={12} className="text-amber-400" /> : <EyeOff size={12} />}
+              {visiblePolygons ? <Eye size={13} className="text-amber-600" /> : <EyeOff size={13} className="text-text-muted" />}
               <span>{visiblePolygons ? "Area: ON" : "Area: OFF"}</span>
             </button>
           )}
@@ -445,11 +445,11 @@ function SeriesPhotoView({
   return (
     <div className="space-y-6">
       {/* Main foto aktif */}
-      <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
-        <div className="aspect-[16/9] bg-muted/10 relative">
+      <div className="bg-white rounded-xl border border-border overflow-hidden shadow-xs">
+        <div className="aspect-[16/9] min-h-[320px] max-h-[480px] md:max-h-[520px] w-full bg-slate-50/40 relative flex items-center justify-center">
           <PhotoImg
             src={activePhoto?.image_url}
-            alt={activePhoto?.label ?? "foto porsi"}
+            alt=""
             className="w-full h-full object-contain animate-fade-in"
           />
 
@@ -468,10 +468,10 @@ function SeriesPhotoView({
             <button
               type="button"
               onClick={() => setVisiblePolygons(!visiblePolygons)}
-              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-black/75 text-white border border-white/20 hover:bg-black/90 transition-fast shadow-md"
+              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md bg-white/95 text-text-primary border border-border hover:bg-white transition-fast shadow-xs cursor-pointer"
               title={visiblePolygons ? "Sembunyikan batas area" : "Tampilkan batas area"}
             >
-              {visiblePolygons ? <Eye size={12} className="text-primary" /> : <EyeOff size={12} />}
+              {visiblePolygons ? <Eye size={13} className="text-primary" /> : <EyeOff size={13} className="text-text-muted" />}
               <span>{visiblePolygons ? "Area: ON" : "Area: OFF"}</span>
             </button>
           )}
@@ -481,118 +481,121 @@ function SeriesPhotoView({
             <button
               type="button"
               onClick={() => onSelect(activeIndex - 1)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 text-white border border-white/20 hover:bg-black/70 transition-colors"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 text-text-primary border border-border hover:bg-white transition-fast shadow-xs cursor-pointer"
               aria-label="Foto sebelumnya"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
           )}
           {activeIndex < photos.length - 1 && (
             <button
               type="button"
               onClick={() => onSelect(activeIndex + 1)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 text-white border border-white/20 hover:bg-black/70 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 text-text-primary border border-border hover:bg-white transition-fast shadow-xs cursor-pointer"
               aria-label="Foto berikutnya"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          )}
-
-          {/* Overlay info porsi aktif */}
-          {activePhoto && (
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 md:p-6 pointer-events-none">
-              <div className="flex items-end justify-between">
-                <div>
-                  <h3 className="text-white font-sans font-bold text-2xl md:text-3xl mb-1">
-                    {activePhoto.label} &middot; {activePhoto.weight_gram} gram
-                  </h3>
-                  <p className="text-white/80 text-sm md:text-base">
-                    {activePhoto.description && !activePhoto.description.startsWith("food_image:")
-                      ? activePhoto.description
-                      : `Porsi ${activePhoto.label}`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-white/60 text-xs">
-                    {activeIndex + 1}/{photos.length}
-                  </span>
-                  <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                    Series
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-
-      {/* Thumbnail strip porsi */}
-      <div>
-        <p className="text-sm font-medium text-muted-foreground mb-3">
-          Pilih ukuran porsi:
-        </p>
-        <div className="relative">
-          {needsScroll && showLeft && (
-            <button
-              type="button"
-              onClick={() => scrollBy("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow-md border border-border hover:bg-white transition-colors"
-              aria-label="Scroll kiri"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          )}
-          {needsScroll && showRight && (
-            <button
-              type="button"
-              onClick={() => scrollBy("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow-md border border-border hover:bg-white transition-colors"
-              aria-label="Scroll kanan"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           )}
+        </div>
 
-          <div
-            ref={scrollRef}
-            className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth hide-scrollbar"
-          >
-            {photos.map((photo, index) => {
-              const isActive = index === activeIndex;
-              return (
-                <button
-                  key={photo.id}
-                  type="button"
-                  onClick={() => onSelect(index)}
-                  className={`relative shrink-0 snap-center rounded-xl overflow-hidden border-2 transition-all duration-300 outline-none w-24 h-24 md:w-32 md:h-32 ${
-                    isActive
-                      ? "border-primary ring-4 ring-primary/20 scale-105 z-10 shadow-md"
-                      : "border-transparent hover:border-primary/50 opacity-70 hover:opacity-100"
-                  }`}
-                  aria-label={`Porsi ${photo.label} — ${photo.weight_gram}g`}
-                  aria-pressed={isActive}
-                >
-                  <PhotoImg
-                    src={photo.thumbnail_url || photo.image_url}
-                    alt={photo.label}
-                    className="w-full h-full object-cover"
-                  />
+        {/* Clean Info Strip di bawah foto (tidak menutupi makanan) */}
+        {activePhoto && (
+          <div className="px-4 py-2.5 bg-surface border-t border-border flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm text-text-primary">
+                Porsi {activePhoto.label}
+              </span>
+              <span className="text-text-muted">·</span>
+              <span className="font-bold text-primary font-mono text-sm">
+                {activePhoto.weight_gram} gram
+              </span>
+              {activePhoto.description && !activePhoto.description.startsWith("food_image:") && (
+                <>
+                  <span className="text-text-muted">·</span>
+                  <span className="text-text-muted truncate max-w-[200px]">
+                    {activePhoto.description}
+                  </span>
+                </>
+              )}
+            </div>
 
-                  {isActive && <div className="absolute inset-0 bg-primary/10" />}
-
-                  <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1 py-[3px] flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-primary leading-none">
-                      {photo.label}
-                    </span>
-                    <span className="text-[10px] font-semibold text-white leading-none">
-                      {photo.weight_gram}g
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+            <span className="text-[11px] text-text-muted font-medium">
+              {activeIndex + 1} dari {photos.length} porsi
+            </span>
           </div>
+        )}
+      </div>
+
+
+      {/* Thumbnail strip porsi */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-medium text-text-secondary">Pilih ukuran porsi:</span>
+          <div className="flex items-center gap-1.5">
+            {needsScroll && (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => scrollBy("left")}
+                  disabled={!showLeft}
+                  className="w-6 h-6 flex items-center justify-center rounded-md border border-border bg-surface hover:bg-surface-alt transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  aria-label="Scroll kiri"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5 text-text-primary" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollBy("right")}
+                  disabled={!showRight}
+                  className="w-6 h-6 flex items-center justify-center rounded-md border border-border bg-surface hover:bg-surface-alt transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  aria-label="Scroll kanan"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-text-primary" />
+                </button>
+              </div>
+            )}
+            <span className="text-text-muted text-[11px] font-mono">{photos.length} porsi</span>
+          </div>
+        </div>
+
+        <div
+          ref={scrollRef}
+          className="flex gap-3 overflow-x-auto py-1 px-0.5 snap-x snap-mandatory scroll-smooth hide-scrollbar"
+        >
+          {photos.map((photo, index) => {
+            const isActive = index === activeIndex;
+            return (
+              <button
+                key={photo.id}
+                type="button"
+                onClick={() => onSelect(index)}
+                className={cn(
+                  "relative shrink-0 snap-center rounded-lg overflow-hidden border transition-fast outline-none w-32 md:w-40 aspect-[16/9] bg-surface-alt cursor-pointer",
+                  isActive
+                    ? "border-primary ring-2 ring-primary/20 shadow-xs"
+                    : "border-border hover:border-text-muted/40 opacity-75 hover:opacity-100"
+                )}
+                aria-label={`Porsi ${photo.label} — ${photo.weight_gram}g`}
+                aria-pressed={isActive}
+              >
+                <PhotoImg
+                  src={photo.thumbnail_url || photo.image_url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+
+                <div className="absolute bottom-0 inset-x-0 bg-black/75 backdrop-blur-[2px] py-1 px-2 flex items-center justify-between text-[11px] text-white">
+                  <span className="font-bold text-white leading-none">
+                    Porsi {photo.label}
+                  </span>
+                  <span className="font-mono text-white/95 font-semibold leading-none">
+                    {photo.weight_gram}g
+                  </span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

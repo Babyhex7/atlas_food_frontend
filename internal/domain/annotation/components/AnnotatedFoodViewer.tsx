@@ -163,29 +163,6 @@ export function AnnotatedFoodViewer({
               );
             })}
         </svg>
-
-        {(() => {
-          if (!overlay || !highlighted) return null;
-          // Hilangkan nama jika generik seperti "Area 1", "Area 2", dsb.
-          const isGenericAreaName = /^area(\s*\d+)?$/i.test(highlighted.name.trim());
-          const hasWeight = highlighted.weight_gram != null && highlighted.weight_gram > 0;
-          const displayName = isGenericAreaName ? null : highlighted.name;
-
-          if (!displayName && !hasWeight) return null;
-
-          return (
-            <div className="absolute left-3 bottom-3 z-10 pointer-events-none animate-fade-in">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/85 text-white text-sm font-semibold shadow-md backdrop-blur-sm border border-white/20">
-                {displayName && <span>{displayName}</span>}
-                {hasWeight && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-white font-medium">
-                    {highlighted.weight_gram} g
-                  </span>
-                )}
-              </span>
-            </div>
-          );
-        })()}
       </div>
 
       {!overlay && (

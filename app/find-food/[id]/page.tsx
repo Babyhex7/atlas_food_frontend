@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, Info, Scale, Bookmark, Camera, LayoutGrid, Layers }
 import { getFoodDetailPublic } from "@/internal/services/food.service";
 import { isFoodBookmarked, toggleBookmarkedFood } from "@/internal/lib/cookies";
 import { PortionPhotoViewer } from "@/internal/components/PortionPhotoViewer";
+import { NutritionFactsCard } from "@/internal/domain/food/components/NutritionFactsCard";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
@@ -117,140 +118,107 @@ function FoodDetailBody() {
             </button>
           </div>
 
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-xl bg-white/15 border-[1.5px] border-white/25 flex items-center justify-center text-[2rem] shrink-0">
-              {food.category?.icon || "🍽️"}
+          <div>
+            <div className="flex gap-2 flex-wrap mb-3">
+              <span className="inline-flex items-center py-[2px] px-[10px] rounded-full bg-white/15 border border-white/25 text-white text-xs font-semibold font-mono">
+                {food.code}
+              </span>
+              <span className="inline-flex items-center py-[2px] px-[10px] rounded-full bg-white/15 border border-white/25 text-white text-xs font-medium">
+                {food.category?.name}
+              </span>
+              {/* Badge tipe foto: Series vs Range vs Guide */}
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 py-[2px] px-[10px] rounded-full border text-xs font-semibold",
+                  isRangeType(food.photo_type)
+                    ? "bg-emerald-400/25 border-emerald-300/40 text-emerald-100"
+                    : isGuideType(food.photo_type)
+                      ? "bg-amber-400/25 border-amber-300/40 text-amber-100"
+                      : "bg-blue-400/20 border-blue-300/30 text-blue-100"
+                )}
+              >
+                {isRangeType(food.photo_type) ? (
+                  <><Layers size={11} /> Rentang Ukuran (Range)</>
+                ) : isGuideType(food.photo_type) ? (
+                  <><LayoutGrid size={11} /> Panduan Varian (Guide)</>
+                ) : (
+                  <><Camera size={11} /> Foto Seri (Series)</>
+                )}
+              </span>
             </div>
 
-            <div className="flex-1">
-              <div className="flex gap-2 flex-wrap mb-3">
-                <span className="inline-flex items-center py-[2px] px-[10px] rounded-full bg-white/15 border border-white/25 text-white text-xs font-semibold font-mono">
-                  {food.code}
-                </span>
-                <span className="inline-flex items-center py-[2px] px-[10px] rounded-full bg-white/15 border border-white/25 text-white text-xs font-medium">
-                  {food.category?.name}
-                </span>
-                {/* Badge tipe foto: Series vs Range vs Guide */}
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1 py-[2px] px-[10px] rounded-full border text-xs font-semibold",
-                    isRangeType(food.photo_type)
-                      ? "bg-emerald-400/25 border-emerald-300/40 text-emerald-100"
-                      : isGuideType(food.photo_type)
-                        ? "bg-amber-400/25 border-amber-300/40 text-amber-100"
-                        : "bg-blue-400/20 border-blue-300/30 text-blue-100"
-                  )}
-                >
-                  {isRangeType(food.photo_type) ? (
-                    <><Layers size={11} /> Rentang Ukuran (Range)</>
-                  ) : isGuideType(food.photo_type) ? (
-                    <><LayoutGrid size={11} /> Panduan Varian (Guide)</>
-                  ) : (
-                    <><Camera size={11} /> Foto Seri (Series)</>
-                  )}
-                </span>
-              </div>
-
-              <h1 className="text-[clamp(1.5rem,4vw,2.5rem)] font-bold text-white font-sans mb-1 mt-0 tracking-[-0.02em] leading-tight">
-                {food.name}
-              </h1>
-              {food.local_name && (
-                <p className="text-sm text-white/75 m-0 italic">{food.local_name}</p>
-              )}
-            </div>
+            <h1 className="text-[clamp(1.5rem,4vw,2.5rem)] font-bold text-white font-sans mb-1 mt-0 tracking-[-0.02em] leading-tight">
+              {food.name}
+            </h1>
+            {food.local_name && (
+              <p className="text-sm text-white/75 m-0 italic">{food.local_name}</p>
+            )}
           </div>
         </div>
       </div>
 
-      <div className={cn(CONTAINER_CLASS, "-mt-8 relative z-10 flex-1 flex flex-col gap-5 pb-10")}>
-        <div className="card animate-slide-up p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <Scale size={22} className="text-primary" />
-            <h2 className="text-xl font-semibold text-text-primary m-0">Foto Porsi</h2>
-            {food.portion_photos && food.portion_photos.length > 0 && (
-              <div className="flex items-center gap-2 ml-auto">
-                <span className="badge badge-default">
-                  {food.portion_photos.length} porsi
-                </span>
-                <span
-                  className={cn(
-                    "text-[10px] font-bold px-2 py-[2px] rounded-full uppercase tracking-wider",
-                    isRangeType(food.photo_type)
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : isGuideType(food.photo_type)
-                        ? "bg-amber-100 text-amber-700 border border-amber-200"
-                        : "bg-blue-50 text-blue-600 border border-blue-100"
-                  )}
-                >
-                  {isRangeType(food.photo_type) ? "Range" : isGuideType(food.photo_type) ? "Guide" : "Series"}
-                </span>
+      <div className={cn(CONTAINER_CLASS, "-mt-8 relative z-10 flex-1 pb-12")}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Kolom Kiri: Foto Porsi & Deskripsi */}
+          <div className="lg:col-span-7 flex flex-col gap-5">
+            <div className="card animate-slide-up p-5 md:p-6 shadow-xs border border-border bg-surface">
+              <div className="flex items-center gap-3 mb-4">
+                <Scale size={20} className="text-primary" />
+                <h2 className="text-lg font-semibold text-text-primary m-0">Foto Porsi</h2>
+                {food.portion_photos && food.portion_photos.length > 0 && (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <span className="badge badge-default">
+                      {food.portion_photos.length} porsi
+                    </span>
+                    <span
+                      className={cn(
+                        "text-[10px] font-bold px-2 py-[2px] rounded-full uppercase tracking-wider",
+                        isRangeType(food.photo_type)
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : isGuideType(food.photo_type)
+                            ? "bg-amber-100 text-amber-700 border border-amber-200"
+                            : "bg-blue-50 text-blue-600 border border-blue-100"
+                      )}
+                    >
+                      {isRangeType(food.photo_type) ? "Range" : isGuideType(food.photo_type) ? "Guide" : "Series"}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {isViewer && (
+                <p className="mb-4 mt-0 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-xs text-warning">
+                  {VIEWER_LOCK_HINT}
+                </p>
+              )}
+
+              <div className={cn(isViewer && VIEWER_LOCK_CLASS)}>
+                <PortionPhotoViewer
+                  photos={food.portion_photos || []}
+                  photoType={food.photo_type}
+                  foodId={foodId}
+                  activeIndex={activePhotoIndex}
+                  onSelect={handleSelectPhoto}
+                />
+              </div>
+            </div>
+
+            {food.description && (
+              <div className="card p-5 border border-border bg-surface text-sm leading-relaxed">
+                <h3 className="text-sm font-bold text-text-primary mb-1.5">Deskripsi Makanan</h3>
+                <p className="m-0 text-text-secondary">{food.description}</p>
               </div>
             )}
           </div>
 
-          {isViewer && (
-            <p className="mb-4 mt-0 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-xs text-warning">
-              {VIEWER_LOCK_HINT}
-            </p>
-          )}
-
-          <div className={cn(isViewer && VIEWER_LOCK_CLASS)}>
-            <PortionPhotoViewer
-              photos={food.portion_photos || []}
-              photoType={food.photo_type}
-              foodId={foodId}
-              activeIndex={activePhotoIndex}
-              onSelect={handleSelectPhoto}
+          {/* Kolom Kanan: Kandungan Gizi (Sticky di Desktop) */}
+          <div className="lg:col-span-5 flex flex-col gap-5 lg:sticky lg:top-6">
+            <NutritionFactsCard
+              nutrients={food.nutrients || {}}
+              activePortionLabel={food.portion_photos?.[activePhotoIndex]?.label}
+              activeWeightGram={food.portion_photos?.[activePhotoIndex]?.weight_gram}
             />
           </div>
-        </div>
-
-        <div className="card animate-slide-up p-6 [animation-delay:80ms]">
-          <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <Info size={18} className="text-primary" />
-              <h2 className="text-lg font-semibold text-text-primary m-0">Kandungan Gizi</h2>
-            </div>
-            <span className="text-xs text-text-muted">per 100 gram</span>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {Object.entries(food.nutrients || {}).map(([key, nutrient]: [string, any]) => {
-              const isEnergy = key === "energy";
-              return (
-                <div
-                  key={key}
-                  className={cn(
-                    "p-4 rounded-xl text-center border",
-                    isEnergy
-                      ? "border-primary-border bg-primary-light"
-                      : "border-border bg-surface-alt"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "text-2xl font-bold font-mono leading-none mb-1",
-                      isEnergy ? "text-primary" : "text-text-primary"
-                    )}
-                  >
-                    {nutrient.value}
-                    <span className="text-sm font-sans text-text-muted ml-[3px]">
-                      {nutrient.unit}
-                    </span>
-                  </div>
-                  <div className="text-xs font-medium text-text-muted capitalize">
-                    {key === "energy" ? "Kalori" : key}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {food.description && (
-            <div className="mt-5 p-4 bg-surface-alt rounded-lg text-sm text-text-secondary leading-relaxed border border-border">
-              {food.description}
-            </div>
-          )}
         </div>
       </div>
     </>

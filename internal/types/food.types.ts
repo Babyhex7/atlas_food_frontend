@@ -6,6 +6,8 @@ export interface FoodSearchResult {
   photo_type: "series" | "range" | "guide";
   /** Diturunkan backend dari kategori: kategori 'drinks' → "drink", sisanya "food". */
   food_type?: "food" | "drink";
+  image_url?: string;
+  thumbnail_url?: string;
   category: { id: string; code: string; name: string; icon: string } | null;
   icon: string;
 }

@@ -20,6 +20,7 @@ import {
   searchFoodsPublic,
   getCategoriesPublic,
 } from "@/internal/services/food.service";
+import { getImageUrl } from "@/internal/lib/image";
 import { useDebounce } from "@/internal/hooks/use-debounce";
 import type { FoodSearchResult } from "@/internal/types/food.types";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
@@ -550,8 +551,19 @@ function FindFoodBody() {
                             }`}
                           >
                             <div className={styles.foodVisual} aria-hidden>
-                              <UtensilsCrossed size={27} />
-                              <span>{food.code}</span>
+                              {food.thumbnail_url || food.image_url ? (
+                                <img
+                                  src={getImageUrl(food.thumbnail_url || food.image_url)}
+                                  alt={food.name}
+                                  className={styles.foodRealImg}
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <>
+                                  <UtensilsCrossed size={27} />
+                                  <span>{food.code}</span>
+                                </>
+                              )}
                             </div>
 
                             <div className={styles.foodInfo}>
