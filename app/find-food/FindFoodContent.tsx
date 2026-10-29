@@ -1,19 +1,31 @@
 "use client";
 
-// [DIUBAH] Slicing ulang Find Food dan hasil pencarian.
-// Data tetap berasal dari endpoint publik backend yang sudah digunakan proyek.
+// [DIUBAH] Revamp modern, clean & fresh Find Food tanpa AI slop.
+// Menggunakan Plus Jakarta Sans, visual kategorisasi pangan representatif,
+// quick-suggestion chips, serta interactive filter pills.
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
+  Apple,
   ArrowRight,
+  Cake,
+  Candy,
   ChevronDown,
+  Cookie,
+  Croissant,
+  Fish,
+  Flame,
   Loader2,
+  Package,
+  Salad,
   Search,
-  SlidersHorizontal,
+  Soup,
+  Utensils,
   UtensilsCrossed,
+  Wheat,
   X,
 } from "lucide-react";
 import {
@@ -36,11 +48,100 @@ import styles from "./FindFoodContent.module.css";
 
 const MIN_SEARCH_LENGTH = 2;
 
+const SUGGESTED_SEARCHES = [
+  "Nasi Putih",
+  "Ayam Goreng",
+  "Tempe Goreng",
+  "Telur Dadar",
+  "Sayur Sop",
+  "Pisang",
+];
+
 type PublicCategory = {
   id: string;
   code: string;
   name: string;
   icon?: string | null;
+};
+
+type CategoryVisualMeta = {
+  icon: React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }>;
+  accentClass: string;
+  examples: string;
+};
+
+const CATEGORY_META: Record<string, CategoryVisualMeta> = {
+  MP: {
+    icon: Wheat,
+    accentClass: styles.accentAmber,
+    examples: "Nasi, jagung, mie, umbi-umbian",
+  },
+  LH: {
+    icon: Fish,
+    accentClass: styles.accentCoral,
+    examples: "Ayam, daging sapi, ikan, telur",
+  },
+  LN: {
+    icon: Salad,
+    accentClass: styles.accentSage,
+    examples: "Tempe, tahu, olahan kedelai",
+  },
+  AB: {
+    icon: Apple,
+    accentClass: styles.accentOrange,
+    examples: "Pisang, pepaya, jeruk, mangga",
+  },
+  AS: {
+    icon: Salad,
+    accentClass: styles.accentEmerald,
+    examples: "Sayur bening, tumis, lalapan",
+  },
+  AMK: {
+    icon: Package,
+    accentClass: styles.accentSky,
+    examples: "Susu kemasan, biskuit, sereal",
+  },
+  AP: {
+    icon: Croissant,
+    accentClass: styles.accentSand,
+    examples: "Roti, kue tradisional, jajanan",
+  },
+  KK: {
+    icon: Cookie,
+    accentClass: styles.accentGold,
+    examples: "Kerupuk putih, emping, kripik",
+  },
+  ABK: {
+    icon: Flame,
+    accentClass: styles.accentRust,
+    examples: "Sambal, saus, kecap, bumbu",
+  },
+  AK: {
+    icon: Cake,
+    accentClass: styles.accentRose,
+    examples: "Kue basah, bolu, pastry manis",
+  },
+  MDL: {
+    icon: Soup,
+    accentClass: styles.accentTerracotta,
+    examples: "Soto, rendang, masakan daerah",
+  },
+  GK: {
+    icon: Candy,
+    accentClass: styles.accentViolet,
+    examples: "Gula pasir, permen, kembang gula",
+  },
+  AH: {
+    icon: Utensils,
+    accentClass: styles.accentSlate,
+    examples: "Piring, mangkok, sendok standar",
+  },
+};
+
+const DEFAULT_CATEGORY_META: CategoryVisualMeta = {
+  icon: UtensilsCrossed,
+  accentClass: styles.accentDefault,
+  examples: "Daftar referensi porsi pangan",
 };
 
 type PhotoFilter = "all" | "series" | "range" | "guide";
@@ -199,11 +300,10 @@ function FindFoodBody() {
 
   return (
     <main className={styles.catalogPage}>
+      {/* ── Hero Search Section ── */}
       <section className={styles.heroSection} aria-labelledby="find-food-title">
         <div className={styles.heroInner}>
-          <p className={styles.eyebrow}>Atlas Makananku</p>
-
-          <h1 id="find-food-title">
+          <h1 id="find-food-title" className={styles.heroTitle}>
             Temukan Referensi Porsi Makanan
           </h1>
 
@@ -214,7 +314,7 @@ function FindFoodBody() {
 
           <div className={styles.searchPanel}>
             <Search
-              size={22}
+              size={20}
               aria-hidden
               className={styles.searchIcon}
             />
@@ -228,7 +328,7 @@ function FindFoodBody() {
                   ? isFollowing
                     ? "Mengikuti pencarian rekan…"
                     : "Pencarian dikunci — mode Can view"
-                  : "Cari nama atau kode makanan, misal: nasi, MP-01"
+                  : "Cari nama atau kode makanan, misal: Nasi Goreng, MP-01..."
               }
               {...viewerLockProps(controlsLocked)}
               className={styles.searchInput}
@@ -237,7 +337,7 @@ function FindFoodBody() {
 
             {isSearching ? (
               <Loader2
-                size={20}
+                size={18}
                 className={styles.searchLoader}
                 aria-label="Memuat hasil"
               />
@@ -249,18 +349,36 @@ function FindFoodBody() {
                 disabled={controlsLocked}
                 aria-label="Hapus pencarian"
               >
-                <X size={18} aria-hidden />
+                <X size={16} aria-hidden />
               </button>
             ) : null}
           </div>
 
-          <p className={styles.searchHint}>
-            Ketik minimal {MIN_SEARCH_LENGTH} karakter untuk menampilkan hasil
-            pencarian.
-          </p>
+          {/* Quick suggestions chips */}
+          <div className={styles.suggestionsRow}>
+            <span className={styles.suggestionsLabel}>Contoh pencarian:</span>
+            <div className={styles.suggestionsList}>
+              {SUGGESTED_SEARCHES.map((keyword) => (
+                <button
+                  key={keyword}
+                  type="button"
+                  disabled={controlsLocked}
+                  onClick={() => {
+                    if (!controlsLocked) {
+                      setSearchTerm(keyword);
+                    }
+                  }}
+                  className={styles.suggestionChip}
+                >
+                  {keyword}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* ── Main Content Section ── */}
       <section className={styles.contentSection} aria-live="polite">
         <div className={styles.contentInner}>
           {isViewer ? (
@@ -269,7 +387,7 @@ function FindFoodBody() {
 
           {normalizedQuery.length > 0 && !canSearch ? (
             <section className={styles.noticeCard}>
-              <Search size={22} aria-hidden />
+              <Search size={20} aria-hidden />
               <div>
                 <h2>Masukkan kata kunci yang lebih lengkap</h2>
                 <p>
@@ -280,6 +398,7 @@ function FindFoodBody() {
             </section>
           ) : null}
 
+          {/* ── Katalog Kategori (Saat Tidak Ada Query) ── */}
           {normalizedQuery.length === 0 ? (
             <section
               className={styles.categoriesSection}
@@ -287,13 +406,13 @@ function FindFoodBody() {
             >
               <div className={styles.sectionHeading}>
                 <div>
-                  <p className={styles.sectionEyebrow}>Jelajahi katalog</p>
+                  <p className={styles.sectionEyebrow}>Jelajahi Katalog</p>
                   <h2 id="food-categories-title">Kategori Makanan</h2>
                 </div>
 
-                <p>
+                <p className={styles.sectionSubtext}>
                   Pilih kategori untuk melihat daftar makanan dan referensi
-                  porsinya.
+                  porsi terstandarisasi.
                 </p>
               </div>
 
@@ -302,7 +421,7 @@ function FindFoodBody() {
                   className={styles.categoryGrid}
                   aria-label="Memuat kategori"
                 >
-                  {Array.from({ length: 12 }, (_, index) => (
+                  {Array.from({ length: 8 }, (_, index) => (
                     <span key={index} className={styles.categorySkeleton} />
                   ))}
                 </div>
@@ -318,41 +437,64 @@ function FindFoodBody() {
                 </section>
               ) : (
                 <div className={styles.categoryGrid}>
-                  {categories.map((category) => (
-                    <Link
-                      key={category.id}
-                      href={withCollabParams(
-                        `/find-food/category/${category.code}`,
-                        {
-                          room: roomParam,
-                          invite: inviteParam,
-                        }
-                      )}
-                      {...viewerLockLinkProps(isViewer)}
-                      className={`${styles.categoryCard} ${
-                        isViewer ? styles.lockedLink : ""
-                      }`}
-                    >
-                      <span className={styles.categoryCode}>
-                        {category.code}
-                      </span>
+                  {categories.map((category) => {
+                    const meta =
+                      CATEGORY_META[category.code] ?? DEFAULT_CATEGORY_META;
+                    const IconComp = meta.icon;
 
-                      <span className={styles.categoryName}>
-                        {category.name}
-                      </span>
+                    return (
+                      <Link
+                        key={category.id}
+                        href={withCollabParams(
+                          `/find-food/category/${category.code}`,
+                          {
+                            room: roomParam,
+                            invite: inviteParam,
+                          }
+                        )}
+                        {...viewerLockLinkProps(isViewer)}
+                        className={`${styles.categoryCard} ${meta.accentClass} ${
+                          isViewer ? styles.lockedLink : ""
+                        }`}
+                      >
+                        <div className={styles.categoryCardHeader}>
+                          <div className={styles.categoryIconWrap}>
+                            <IconComp
+                              size={20}
+                              aria-hidden
+                              className={styles.categoryIcon}
+                            />
+                          </div>
+                        </div>
 
-                      <ArrowRight
-                        size={17}
-                        aria-hidden
-                        className={styles.categoryArrow}
-                      />
-                    </Link>
-                  ))}
+                        <div className={styles.categoryCardBody}>
+                          <h3 className={styles.categoryName}>
+                            {category.name}
+                          </h3>
+                          <p className={styles.categoryExamples}>
+                            {meta.examples}
+                          </p>
+                        </div>
+
+                        <div className={styles.categoryCardFooter}>
+                          <span className={styles.categoryActionText}>
+                            Lihat porsi
+                          </span>
+                          <ArrowRight
+                            size={15}
+                            aria-hidden
+                            className={styles.categoryArrow}
+                          />
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </section>
           ) : null}
 
+          {/* ── Hasil Pencarian ── */}
           {canSearch ? (
             <section
               className={styles.resultsSection}
@@ -361,7 +503,6 @@ function FindFoodBody() {
               <div className={styles.resultsTopbar}>
                 <div>
                   <p className={styles.sectionEyebrow}>Hasil pencarian</p>
-
                   <h2 id="search-results-title">
                     {isSearching
                       ? "Mencari makanan…"
@@ -376,80 +517,120 @@ function FindFoodBody() {
                 ) : null}
               </div>
 
-              <div className={styles.filterPanel}>
-                <div className={styles.filterTitle}>
-                  <SlidersHorizontal size={17} aria-hidden />
-                  <span>Filter hasil</span>
+              {/* ── Interactive Filter Bar ── */}
+              <div className={styles.filterBar}>
+                {/* Tipe Pangan Segment */}
+                <div className={styles.filterGroup}>
+                  <span className={styles.filterLabel}>Jenis:</span>
+                  <div className={styles.pillGroup}>
+                    <button
+                      type="button"
+                      disabled={controlsLocked}
+                      onClick={() => setSelectedFoodType("")}
+                      className={`${styles.filterPill} ${
+                        selectedFoodType === "" ? styles.filterPillActive : ""
+                      }`}
+                    >
+                      Semua
+                    </button>
+                    <button
+                      type="button"
+                      disabled={controlsLocked}
+                      onClick={() => setSelectedFoodType("food")}
+                      className={`${styles.filterPill} ${
+                        selectedFoodType === "food" ? styles.filterPillActive : ""
+                      }`}
+                    >
+                      Makanan
+                    </button>
+                    <button
+                      type="button"
+                      disabled={controlsLocked}
+                      onClick={() => setSelectedFoodType("drink")}
+                      className={`${styles.filterPill} ${
+                        selectedFoodType === "drink" ? styles.filterPillActive : ""
+                      }`}
+                    >
+                      Minuman
+                    </button>
+                  </div>
                 </div>
 
-                <label className={styles.selectField}>
-                  <span>Jenis data</span>
+                <div className={styles.filterDivider} />
 
-                  <span className={styles.selectWrap}>
-                    <select
-                      value={selectedFoodType}
-                      onChange={(event) =>
-                        setSelectedFoodType(
-                          event.target.value as FoodTypeFilter
-                        )
-                      }
+                {/* Referensi Visual Segment */}
+                <div className={styles.filterGroup}>
+                  <span className={styles.filterLabel}>Format Porsi:</span>
+                  <div className={styles.pillGroup}>
+                    <button
+                      type="button"
                       disabled={controlsLocked}
+                      onClick={() => setSelectedPhotoType("all")}
+                      className={`${styles.filterPill} ${
+                        selectedPhotoType === "all" ? styles.filterPillActive : ""
+                      }`}
                     >
-                      <option value="">Semua data</option>
-                      <option value="food">Makanan</option>
-                      <option value="drink">Minuman</option>
-                    </select>
-
-                    <ChevronDown size={15} aria-hidden />
-                  </span>
-                </label>
-
-                <label className={styles.selectField}>
-                  <span>Kategori</span>
-
-                  <span className={styles.selectWrap}>
-                    <select
-                      value={selectedCategory}
-                      onChange={(event) =>
-                        setSelectedCategory(event.target.value)
-                      }
+                      Semua
+                    </button>
+                    <button
+                      type="button"
                       disabled={controlsLocked}
+                      onClick={() => setSelectedPhotoType("series")}
+                      className={`${styles.filterPill} ${
+                        selectedPhotoType === "series" ? styles.filterPillActive : ""
+                      }`}
                     >
-                      <option value="all">Semua kategori</option>
-
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.code}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-
-                    <ChevronDown size={15} aria-hidden />
-                  </span>
-                </label>
-
-                <label className={styles.selectField}>
-                  <span>Referensi visual</span>
-
-                  <span className={styles.selectWrap}>
-                    <select
-                      value={selectedPhotoType}
-                      onChange={(event) =>
-                        setSelectedPhotoType(
-                          event.target.value as PhotoFilter
-                        )
-                      }
+                      Series (A-D)
+                    </button>
+                    <button
+                      type="button"
                       disabled={controlsLocked}
+                      onClick={() => setSelectedPhotoType("range")}
+                      className={`${styles.filterPill} ${
+                        selectedPhotoType === "range" ? styles.filterPillActive : ""
+                      }`}
                     >
-                      <option value="all">Semua tipe</option>
-                      <option value="series">Series (Foto Seri)</option>
-                      <option value="range">Range (Rentang Ukuran)</option>
-                      <option value="guide">Guide (Panduan Varian)</option>
-                    </select>
+                      Rentang
+                    </button>
+                    <button
+                      type="button"
+                      disabled={controlsLocked}
+                      onClick={() => setSelectedPhotoType("guide")}
+                      className={`${styles.filterPill} ${
+                        selectedPhotoType === "guide" ? styles.filterPillActive : ""
+                      }`}
+                    >
+                      Panduan
+                    </button>
+                  </div>
+                </div>
 
-                    <ChevronDown size={15} aria-hidden />
-                  </span>
-                </label>
+                <div className={styles.filterDivider} />
+
+                {/* Kategori Dropdown */}
+                <div className={styles.categorySelectWrap}>
+                  <select
+                    value={selectedCategory}
+                    onChange={(event) =>
+                      setSelectedCategory(event.target.value)
+                    }
+                    disabled={controlsLocked}
+                    className={styles.categorySelect}
+                    aria-label="Filter kategori"
+                  >
+                    <option value="all">Semua Kategori</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.code}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={14}
+                    aria-hidden
+                    className={styles.selectArrow}
+                  />
+                </div>
 
                 {hasActiveFilters ? (
                   <button
@@ -458,7 +639,7 @@ function FindFoodBody() {
                     onClick={resetFilters}
                     disabled={controlsLocked}
                   >
-                    Reset filter
+                    Reset Filter
                   </button>
                 ) : null}
               </div>
@@ -480,9 +661,9 @@ function FindFoodBody() {
               !isSearching &&
               filteredResults.length === 0 ? (
                 <section className={styles.emptyState}>
-                  <span className={styles.emptyIcon}>
-                    <Search size={28} aria-hidden />
-                  </span>
+                  <div className={styles.emptyIcon}>
+                    <Search size={24} aria-hidden />
+                  </div>
 
                   <h3>
                     {searchResults.length === 0
@@ -492,8 +673,8 @@ function FindFoodBody() {
 
                   <p>
                     {searchResults.length === 0
-                      ? "Coba gunakan nama lain, nama lokal, atau kode makanan."
-                      : "Ubah atau reset filter untuk melihat hasil lainnya."}
+                      ? "Coba gunakan kata kunci umum (misal: 'nasi', 'ayam'), nama lokal, atau kode kategori."
+                      : "Ubah atau reset filter untuk menampilkan kembali semua hasil pencarian."}
                   </p>
 
                   {hasActiveFilters ? (
@@ -503,7 +684,7 @@ function FindFoodBody() {
                       onClick={resetFilters}
                       disabled={controlsLocked}
                     >
-                      Tampilkan semua hasil
+                      Reset Filter
                     </button>
                   ) : null}
                 </section>
@@ -553,17 +734,35 @@ function FindFoodBody() {
                             <div className={styles.foodVisual} aria-hidden>
                               {food.thumbnail_url || food.image_url ? (
                                 <img
-                                  src={getImageUrl(food.thumbnail_url || food.image_url)}
+                                  src={getImageUrl(
+                                    food.thumbnail_url || food.image_url
+                                  )}
                                   alt={food.name}
                                   className={styles.foodRealImg}
                                   loading="lazy"
                                 />
                               ) : (
-                                <>
-                                  <UtensilsCrossed size={27} />
+                                <div className={styles.foodPlaceholder}>
+                                  <UtensilsCrossed size={28} />
                                   <span>{food.code}</span>
-                                </>
+                                </div>
                               )}
+
+                              <span
+                                className={`${styles.photoBadge} ${
+                                  food.photo_type === "series"
+                                    ? styles.seriesBadge
+                                    : food.photo_type === "range"
+                                      ? styles.rangeBadge
+                                      : styles.guideBadge
+                                }`}
+                              >
+                                {food.photo_type === "series"
+                                  ? "Series"
+                                  : food.photo_type === "range"
+                                    ? "Range"
+                                    : "Guide"}
+                              </span>
                             </div>
 
                             <div className={styles.foodInfo}>
@@ -572,33 +771,29 @@ function FindFoodBody() {
                                   {food.code}
                                 </span>
 
-                                <span
-                                  className={`${styles.photoBadge} ${
-                                    food.photo_type === "series"
-                                      ? styles.seriesBadge
-                                      : food.photo_type === "range"
-                                        ? styles.rangeBadge
-                                        : styles.guideBadge
-                                  }`}
-                                >
-                                  {food.photo_type === "series"
-                                    ? "Series"
-                                    : food.photo_type === "range"
-                                      ? "Range"
-                                      : "Guide"}
+                                <span className={styles.foodCategoryTag}>
+                                  {food.category?.name ?? "Umum"}
                                 </span>
                               </div>
 
-                              <h3>{food.name}</h3>
+                              <h3 className={styles.foodTitle}>{food.name}</h3>
 
                               {food.local_name ? (
-                                <p>{food.local_name}</p>
+                                <p className={styles.foodLocalName}>
+                                  {food.local_name}
+                                </p>
                               ) : null}
 
-                              <span className={styles.foodCategory}>
-                                {food.category?.name ?? "Tanpa kategori"}
-                                <ArrowRight size={15} aria-hidden />
-                              </span>
+                              <div className={styles.foodCardFooter}>
+                                <span className={styles.viewDetailText}>
+                                  Lihat porsi
+                                </span>
+                                <ArrowRight
+                                  size={14}
+                                  aria-hidden
+                                  className={styles.foodArrow}
+                                />
+                              </div>
                             </div>
                           </Link>
                         );
