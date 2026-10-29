@@ -23,6 +23,7 @@ import { getApiErrorMessage } from "@/internal/pkg/utils/apiError";
 import { useCollab } from "@/internal/domain/collab";
 import { Button, Card, StepHeader, StepNav, StepShell } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
+import { getImageUrl } from "@/internal/lib/image";
 
 interface Props {
   session: RecallSession;
@@ -219,12 +220,34 @@ export function Step5Review({
           <ul>
             {rows.map(({ meal, food }) => {
               const ItemIcon = food.food_type === "drink" ? CupSoda : UtensilsCrossed;
+              const photoUrl =
+                food.portion?.image_url ||
+                food.detail?.portion_photos?.find(
+                  (p) => p.id === food.portion?.image_id || p.label === food.portion?.image_label
+                )?.thumbnail_url ||
+                food.detail?.portion_photos?.find(
+                  (p) => p.id === food.portion?.image_id || p.label === food.portion?.image_label
+                )?.image_url ||
+                food.food.thumbnail_url ||
+                food.food.image_url;
+
               return (
                 <li
                   key={`${meal.name}-${food.food.id}`}
-                  className="flex items-start gap-3 border-b border-border px-5 py-4 last:border-b-0"
+                  className="flex items-center gap-3.5 border-b border-border px-5 py-3.5 last:border-b-0"
                 >
-                  <ItemIcon aria-hidden className="mt-px h-4 w-4 shrink-0 text-text-muted" />
+                  {photoUrl ? (
+                    <img
+                      src={getImageUrl(photoUrl)}
+                      alt=""
+                      className="h-12 w-12 rounded-lg object-cover border border-border shrink-0 bg-surface-alt shadow-2xs"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-alt text-text-muted">
+                      <ItemIcon aria-hidden className="h-5 w-5" />
+                    </div>
+                  )}
                   <div className="flex min-w-0 flex-1 flex-col">
                     <span className="text-sm font-medium text-text-primary">{food.food.name}</span>
                     <span className="text-xs text-text-muted">

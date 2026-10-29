@@ -32,6 +32,7 @@ import { AiRecommendationPanel } from "@/internal/domain/ai";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
+import { getImageUrl } from "@/internal/lib/image";
 
 type DailyTotals = { energy: number; protein: number; carbs: number; fat: number };
 
@@ -253,19 +254,29 @@ export default function SurveyDonePage() {
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {meal.foods.map((rf) => (
-                        <span
-                          key={`${meal.name}-${rf.food.id}`}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary shadow-2xs"
-                        >
-                          <span className="font-semibold text-text-primary">{rf.food.name}</span>
-                          {rf.portion ? (
-                            <span className="font-mono text-primary font-bold">
-                              ({rf.portion.portion_gram}g)
-                            </span>
-                          ) : null}
-                        </span>
-                      ))}
+                      {meal.foods.map((rf) => {
+                        const img = rf.portion?.image_url || rf.food.thumbnail_url || rf.food.image_url;
+                        return (
+                          <span
+                            key={`${meal.name}-${rf.food.id}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text-secondary shadow-2xs"
+                          >
+                            {img ? (
+                              <img
+                                src={getImageUrl(img)}
+                                alt=""
+                                className="h-4 w-4 rounded-full object-cover shrink-0"
+                              />
+                            ) : null}
+                            <span className="font-semibold text-text-primary">{rf.food.name}</span>
+                            {rf.portion ? (
+                              <span className="font-mono text-primary font-bold">
+                                ({rf.portion.portion_gram}g)
+                              </span>
+                            ) : null}
+                          </span>
+                        );
+                      })}
                     </div>
                   </li>
                 ))}

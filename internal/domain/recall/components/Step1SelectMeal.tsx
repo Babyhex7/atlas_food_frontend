@@ -36,6 +36,9 @@ interface Props {
   onMealTimeChange: (time: string) => void;
   onContinue: () => void;
   onBack?: () => void;
+  hasExistingMeals?: boolean;
+  existingMealsCount?: number;
+  onGoToReview?: () => void;
 }
 
 function parseTime(value: string): { hours: number; minutes: number } {
@@ -60,6 +63,9 @@ export function Step1SelectMeal({
   onMealTimeChange,
   onContinue,
   onBack,
+  hasExistingMeals = false,
+  existingMealsCount = 0,
+  onGoToReview,
 }: Props) {
   useEffect(() => {
     if (!mealType && mealOptions.length > 0) {
@@ -94,6 +100,24 @@ export function Step1SelectMeal({
         title="Pilih Waktu Makan"
         subtitle="Tentukan kategori waktu makan yang ingin Anda catat beserta jam perkiraan konsumsi."
       />
+
+      {hasExistingMeals && onGoToReview && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-primary-border bg-primary-light/70 px-4 py-3 text-xs sm:text-sm text-primary">
+          <div className="flex items-center gap-2">
+            <Info className="h-4 w-4 shrink-0" />
+            <span>
+              Ada <strong>{existingMealsCount} waktu makan</strong> sudah tersimpan dalam sesi ini.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onGoToReview}
+            className="font-semibold underline hover:text-primary-hover shrink-0"
+          >
+            Lihat Ringkasan & Tinjau →
+          </button>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         {/* ── Jenis Waktu Makan ─────────────────────────────────────────── */}
@@ -195,16 +219,23 @@ export function Step1SelectMeal({
 
       <StepNav>
         <Button variant="secondary" onClick={onBack ?? (() => window.history.back())}>
-          Kembali
+          Kembali ke Daftar Survei
         </Button>
-        <Button
-          icon={ArrowRight}
-          iconPosition="right"
-          onClick={onContinue}
-          disabled={!canContinue}
-        >
-          Lanjut ke Tambah Makanan
-        </Button>
+        <div className="flex items-center gap-2">
+          {hasExistingMeals && onGoToReview && (
+            <Button variant="secondary" onClick={onGoToReview}>
+              Ke Tinjauan
+            </Button>
+          )}
+          <Button
+            icon={ArrowRight}
+            iconPosition="right"
+            onClick={onContinue}
+            disabled={!canContinue}
+          >
+            Lanjut ke Tambah Makanan
+          </Button>
+        </div>
       </StepNav>
     </StepShell>
   );

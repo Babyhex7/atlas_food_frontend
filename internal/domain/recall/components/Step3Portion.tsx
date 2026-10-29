@@ -346,6 +346,7 @@ export function Step3Portion({
         method: "simple_grid",
         image_id: photo.id,
         image_label: photo.label,
+        image_url: photo.thumbnail_url || photo.image_url,
         base_weight: photo.weight_gram,
         quantity: 1,
         fraction: 0,
@@ -387,6 +388,7 @@ export function Step3Portion({
         method: total === 1 ? "simple_grid" : "as_served_quantity",
         image_id: photoToUse.id,
         image_label: photoToUse.label,
+        image_url: photoToUse.thumbnail_url || photoToUse.image_url,
         base_weight: photoToUse.weight_gram,
         quantity: qty,
         fraction: frac,
@@ -581,8 +583,18 @@ export function Step3Portion({
                   : "border-border text-text-muted hover:border-primary-border hover:text-primary"
             )}
           >
-            {rf.portion ? <Check aria-hidden className="h-3 w-3" /> : <span>{i + 1}.</span>}
-            {rf.food.name}
+            {rf.portion?.image_url || rf.food.thumbnail_url || rf.food.image_url ? (
+              <img
+                src={getImageUrl(rf.portion?.image_url || rf.food.thumbnail_url || rf.food.image_url)}
+                alt=""
+                className="h-4 w-4 rounded-full object-cover shrink-0"
+              />
+            ) : rf.portion ? (
+              <Check aria-hidden className="h-3 w-3" />
+            ) : (
+              <span>{i + 1}.</span>
+            )}
+            <span>{rf.food.name}</span>
           </button>
         ))}
       </nav>

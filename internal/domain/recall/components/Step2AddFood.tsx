@@ -20,6 +20,7 @@ import type { RecallFood, MissingFood } from "../types/recall";
 import { useCollab } from "@/internal/domain/collab";
 import { Banner, Button, StepHeader, StepNav, StepShell } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
+import { getImageUrl } from "@/internal/lib/image";
 
 /** Panjang minimum query — disamakan dengan validasi backend. */
 const MIN_QUERY_LENGTH = 3;
@@ -297,22 +298,35 @@ function FoodSearchBox({
                   onMouseEnter={() => setHighlight(i)}
                   onClick={() => handleSelect(food)}
                   className={cn(
-                    "flex w-full items-center gap-3 border-b border-border px-4 py-3 text-left text-sm transition-colors last:border-b-0",
+                    "flex w-full items-center gap-3 border-b border-border px-4 py-2.5 text-left text-sm transition-colors last:border-b-0",
                     already
                       ? "cursor-not-allowed text-text-disabled"
                       : "text-text-secondary hover:bg-primary-light hover:text-primary",
                     i === highlight && !already && "bg-primary-light text-primary"
                   )}
                 >
-                  <TypeIcon aria-hidden className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 font-medium">{food.name}</span>
-                  {food.local_name ? (
-                    <span className="text-xs text-text-muted">{food.local_name}</span>
-                  ) : null}
+                  {food.thumbnail_url || food.image_url ? (
+                    <img
+                      src={getImageUrl(food.thumbnail_url || food.image_url)}
+                      alt=""
+                      className="h-10 w-10 rounded-lg object-cover border border-border shrink-0 bg-surface-alt"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-alt text-text-muted">
+                      <TypeIcon aria-hidden className="h-4 w-4" />
+                    </div>
+                  )}
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate font-medium">{food.name}</span>
+                    {food.local_name ? (
+                      <span className="truncate text-xs text-text-muted">{food.local_name}</span>
+                    ) : null}
+                  </div>
                   {already ? (
-                    <span className="text-xs font-semibold">Sudah ditambahkan</span>
+                    <span className="text-xs font-semibold shrink-0">Sudah ditambahkan</span>
                   ) : food.category ? (
-                    <span className="rounded-full bg-surface-alt px-2 py-px text-xs text-text-muted">
+                    <span className="rounded-full bg-surface-alt px-2 py-px text-xs text-text-muted shrink-0">
                       {food.category.name}
                     </span>
                   ) : null}
@@ -413,9 +427,20 @@ export function Step2AddFood({
               return (
                 <li
                   key={rf.food.id}
-                  className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
+                  className="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0"
                 >
-                  <ItemIcon aria-hidden className="h-4 w-4 shrink-0 text-text-muted" />
+                  {rf.food.thumbnail_url || rf.food.image_url ? (
+                    <img
+                      src={getImageUrl(rf.food.thumbnail_url || rf.food.image_url)}
+                      alt=""
+                      className="h-10 w-10 rounded-lg object-cover border border-border shrink-0 bg-surface-alt"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-alt text-text-muted">
+                      <ItemIcon aria-hidden className="h-5 w-5" />
+                    </div>
+                  )}
                   <div className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-sm font-medium text-text-primary">
                       {rf.food.name}
@@ -428,7 +453,7 @@ export function Step2AddFood({
                     type="button"
                     onClick={() => onRemoveFood(rf.food.id)}
                     aria-label={`Hapus ${rf.food.name}`}
-                    className="rounded-md p-1 text-text-muted transition-colors hover:bg-danger-light hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="rounded-md p-1.5 text-text-muted transition-colors hover:bg-danger-light hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <Trash2 aria-hidden className="h-4 w-4" />
                   </button>

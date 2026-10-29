@@ -54,6 +54,7 @@ export type SelectedPortion = {
   method: PortionSelectionType;
   image_id?: string;
   image_label?: string;
+  image_url?: string;
   base_weight?: number;
   quantity: number;
   fraction: number;

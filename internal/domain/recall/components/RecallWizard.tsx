@@ -235,14 +235,12 @@ export function RecallWizard({ guest = false }: WizardProps) {
             className="inline-flex items-center gap-2 rounded-md text-sm font-semibold text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             onClick={() =>
               currentStep === "select_meal"
-                ? session.meals.length > 0
-                  ? goToStep("review")
-                  : router.back()
+                ? router.push("/surveys")
                 : prevStep()
             }
           >
             <ArrowLeft aria-hidden className="h-4 w-4" />
-            Kembali
+            {currentStep === "select_meal" ? "Kembali ke Daftar Survei" : "Kembali"}
           </button>
         )}
 
@@ -408,13 +406,10 @@ export function RecallWizard({ guest = false }: WizardProps) {
               onMealTypeChange={setMealType}
               onMealTimeChange={setMealTime}
               onContinue={nextStep}
-              onBack={() => {
-                if (session.meals.length > 0) {
-                  goToStep("review");
-                } else {
-                  router.back();
-                }
-              }}
+              onBack={() => router.push("/surveys")}
+              hasExistingMeals={session.meals.length > 0}
+              existingMealsCount={session.meals.length}
+              onGoToReview={() => goToStep("review")}
             />
           )}
 

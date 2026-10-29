@@ -18,6 +18,7 @@ import { searchFoodsPublic } from "@/internal/services/food.service";
 import { getPublicAssociatedFoods } from "@/internal/domain/food/services/foodService";
 import type { FoodSearchResult } from "@/internal/types/food.types";
 import type { RecallFood, AdditionalItem } from "../types/recall";
+import { getImageUrl } from "@/internal/lib/image";
 import {
   Banner,
   Button,
@@ -194,11 +195,25 @@ function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
                     onClick={() => handleChoose(food)}
                     className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-xs sm:text-sm transition-colors hover:bg-surface-alt active:bg-primary-light"
                   >
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-medium text-text-primary truncate">{food.name}</span>
-                      {food.local_name && food.local_name !== food.name ? (
-                        <span className="text-xs text-text-muted truncate">{food.local_name}</span>
-                      ) : null}
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {food.thumbnail_url || food.image_url ? (
+                        <img
+                          src={getImageUrl(food.thumbnail_url || food.image_url)}
+                          alt=""
+                          className="h-8 w-8 rounded-md object-cover border border-border shrink-0 bg-surface-alt"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-surface-alt text-text-muted">
+                          <UtensilsCrossed className="h-3.5 w-3.5" />
+                        </div>
+                      )}
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium text-text-primary truncate">{food.name}</span>
+                        {food.local_name && food.local_name !== food.name ? (
+                          <span className="text-xs text-text-muted truncate">{food.local_name}</span>
+                        ) : null}
+                      </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       {food.category?.name ? (
@@ -416,12 +431,26 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
             <Card key={rf.food.id} className="relative overflow-visible">
               {/* Header Makanan Utama */}
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3.5">
-                <div>
-                  <h2 className="text-base font-bold text-text-primary leading-snug">{rf.food.name}</h2>
-                  <p className="text-xs text-text-muted">
-                    {rf.food.category?.name ? `${rf.food.category.name} • ` : ""}
-                    Makanan Utama
-                  </p>
+                <div className="flex items-center gap-3">
+                  {rf.portion?.image_url || rf.food.thumbnail_url || rf.food.image_url ? (
+                    <img
+                      src={getImageUrl(rf.portion?.image_url || rf.food.thumbnail_url || rf.food.image_url)}
+                      alt=""
+                      className="h-11 w-11 rounded-lg object-cover border border-border shrink-0 bg-surface-alt"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-alt text-text-muted">
+                      <ItemIcon className="h-5 w-5" />
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="text-base font-bold text-text-primary leading-snug">{rf.food.name}</h2>
+                    <p className="text-xs text-text-muted">
+                      {rf.food.category?.name ? `${rf.food.category.name} • ` : ""}
+                      Makanan Utama
+                    </p>
+                  </div>
                 </div>
 
                 {rf.portion ? (
