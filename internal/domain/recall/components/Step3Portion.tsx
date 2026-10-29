@@ -5,6 +5,8 @@ import {
   AlertCircle,
   ArrowRight,
   Check,
+  Eye,
+  EyeOff,
   ImageOff,
   Scale,
   Minus,
@@ -17,7 +19,10 @@ import type { FoodDetail, PortionPhoto } from "@/internal/domain/food/types/food
 import type { RecallFood } from "../types/recall";
 import type { SelectedPortion } from "@/internal/domain/portion/types/portion";
 import { useCollab } from "@/internal/domain/collab";
-import { getImageUrl } from "@/internal/lib/image";
+import { getImageUrl, isGuideType, isRangeType } from "@/internal/lib/image";
+import { AnnotationHoverOverlay } from "@/internal/domain/annotation/components/AnnotationHoverOverlay";
+import { usePublishedAnnotationsByFood } from "@/internal/domain/annotation/hooks/useAnnotationQueries";
+import type { FoodImage } from "@/internal/domain/annotation/types/annotation";
 import {
   Banner,
   Button,
@@ -151,12 +156,18 @@ export function Step3Portion({
   const [fetched, setFetched] = useState<FetchedDetail | null>(null);
   const [selection, setSelection] = useState<PortionSelection | null>(null);
   const [activeModalPhoto, setActiveModalPhoto] = useState<PortionPhoto | null>(null);
+  const [visiblePolygons, setVisiblePolygons] = useState(true);
+  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
+  const [currentAreas, setCurrentAreas] = useState<FoodImage["areas"]>([]);
   const { send, isConnected } = useCollab();
 
   // Index dijepit ke daftar yang ada sekarang.
   const safeIndex = foods.length > 0 ? Math.min(Math.max(foodIndex, 0), foods.length - 1) : 0;
   const currentFood = foods[safeIndex];
   const currentFoodId = currentFood?.food.id;
+
+  const { data: publishedImages } = usePublishedAnnotationsByFood(currentFoodId);
+  const publishedImage = publishedImages && publishedImages.length > 0 ? publishedImages[0] : null;
 
   const cachedDetail = currentFood?.detail ?? null;
   const isFetchedForCurrent = Boolean(currentFoodId) && fetched?.foodId === currentFoodId;
@@ -166,6 +177,20 @@ export function Step3Portion({
 
   const photos = useMemo(() => detail?.portion_photos ?? [], [detail]);
   const savedPortion = currentFood?.portion;
+
+  const photoType = detail?.photo_type;
+  const isGuide = isGuideType(photoType);
+  const isRange = isRangeType(photoType);
+
+  // Foto yang digunakan sebagai scene anotasi:
+  const effectiveFoodImageId =
+    photos.find((p) => p.food_image_id)?.food_image_id ||
+    photos[0]?.food_image_id ||
+    publishedImage?.id;
+
+  const hasInteractiveAnnotation = isGuide || isRange || Boolean(effectiveFoodImageId);
+  const interactiveSceneUrl =
+    photos[0]?.image_url || publishedImage?.image_url;
 
   // Cari foto yang cocok bila makanan aktif sudah memiliki porsi di session
   const matchingSavedPhoto = useMemo(() => {
@@ -303,6 +328,20 @@ export function Step3Portion({
         fraction: 0,
         customGram: "",
       });
+
+      // Sinkronkan highlight anotasi jika foto ini memiliki area yang cocok
+      if (currentAreas && currentAreas.length > 0) {
+        const matchingArea = currentAreas.find(
+          (a) =>
+            a.name.toLowerCase() === photo.label.toLowerCase() ||
+            (photo.description && a.name.toLowerCase() === photo.description.toLowerCase()) ||
+            (a.weight_gram && Math.abs(a.weight_gram - photo.weight_gram) < 0.5)
+        );
+        setSelectedAreaId(matchingArea ? matchingArea.id : null);
+      } else {
+        setSelectedAreaId(null);
+      }
+
       const portion: SelectedPortion = {
         method: "simple_grid",
         image_id: photo.id,
@@ -326,7 +365,7 @@ export function Step3Portion({
         });
       }
     },
-    [currentFood, onPortionSelected, detail, isConnected, send]
+    [currentFood, currentAreas, onPortionSelected, detail, isConnected, send]
   );
 
   const handlePresetSelect = useCallback(
@@ -377,18 +416,16 @@ export function Step3Portion({
       let nextQty: number;
       if (delta > 0) {
         if (currentTotalQty < 1) {
-          nextQty = Math.round((currentTotalQty + 0.25) * 100) / 100;
+          nextQty = Math.min(10, currentTotalQty + 0.25);
         } else {
-          nextQty = Math.round((currentTotalQty + 0.5) * 10) / 10;
+          nextQty = Math.min(10, currentTotalQty + 0.5);
         }
-        nextQty = Math.min(nextQty, 10);
       } else {
         if (currentTotalQty <= 1) {
-          nextQty = Math.round((currentTotalQty - 0.25) * 100) / 100;
+          nextQty = Math.max(0.25, currentTotalQty - 0.25);
         } else {
-          nextQty = Math.round((currentTotalQty - 0.5) * 10) / 10;
+          nextQty = Math.max(0.25, currentTotalQty - 0.5);
         }
-        nextQty = Math.max(nextQty, 0.25);
       }
 
       const decomp = decomposeQuantity(nextQty);
@@ -438,6 +475,27 @@ export function Step3Portion({
       }
     },
     [currentFood, onPortionSelected, detail, isConnected, send]
+  );
+
+  const handleAreaSelect = useCallback(
+    (area: FoodImage["areas"][number]) => {
+      setSelectedAreaId(area.id);
+      // Cari apakah ada foto porsi dalam `photos` yang sesuai dengan nama/label area
+      const match = photos.find(
+        (p) =>
+          p.label.toLowerCase() === area.name.toLowerCase() ||
+          (p.description && p.description.toLowerCase().includes(area.name.toLowerCase())) ||
+          (area.name && area.name.toLowerCase().includes(p.label.toLowerCase())) ||
+          (area.weight_gram && Math.abs(p.weight_gram - area.weight_gram) < 0.5)
+      );
+
+      if (match) {
+        handleSelectPhoto(match);
+      } else if (area.weight_gram && area.weight_gram > 0) {
+        handleCustomGramChange(String(Math.round(area.weight_gram)));
+      }
+    },
+    [photos, handleSelectPhoto, handleCustomGramChange]
   );
 
   const handleNextStep3 = useCallback(() => {
@@ -538,6 +596,55 @@ export function Step3Portion({
               {detailError} Anda tetap bisa melanjutkan dengan mengisi berat secara manual.
             </Banner>
           ) : null}
+
+          {/* ── Interactive Annotated Scene for Guide / Range / CMS Annotation ── */}
+          {hasInteractiveAnnotation && interactiveSceneUrl && (
+            <div className="rounded-2xl border border-border bg-surface overflow-hidden shadow-xs mb-5">
+              <div className="relative aspect-[16/9] max-h-[340px] w-full bg-slate-50/80 flex items-center justify-center overflow-hidden">
+                <PortionThumb
+                  src={interactiveSceneUrl}
+                  alt={currentFood.food.name}
+                  className="h-full w-full object-contain p-2 transition-transform duration-200"
+                />
+
+                {/* Interactive Polygons Overlay */}
+                <AnnotationHoverOverlay
+                  foodImageId={effectiveFoodImageId}
+                  foodId={currentFoodId}
+                  visiblePolygons={visiblePolygons}
+                  selectedAreaId={selectedAreaId}
+                  onAreaSelect={handleAreaSelect}
+                  onLoadedAreas={setCurrentAreas}
+                />
+
+                {/* Toggle Visibility Area Button */}
+                {currentAreas.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setVisiblePolygons(!visiblePolygons)}
+                    className="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md bg-white/95 text-text-primary border border-border hover:bg-white transition-fast shadow-xs cursor-pointer"
+                    title={visiblePolygons ? "Sembunyikan batas area" : "Tampilkan batas area"}
+                  >
+                    {visiblePolygons ? <Eye size={13} className="text-primary" /> : <EyeOff size={13} className="text-text-muted" />}
+                    <span>{visiblePolygons ? "Area: ON" : "Area: OFF"}</span>
+                  </button>
+                )}
+
+                {/* Badge Tipe Panduan */}
+                <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md text-white text-[11px] font-bold shadow-xs">
+                    {isRange ? "Rentang Ukuran (Range)" : isGuide ? "Panduan Varian (Guide)" : "Panduan Porsi"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="px-4 py-2.5 bg-surface-alt/70 border-t border-border flex items-center justify-between text-xs text-text-muted">
+                <span>
+                  Sentuh atau klik langsung bagian makanan pada foto di atas, atau pilih dari daftar di bawah.
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* ── Foto porsi ───────────────────────────────────────────── */}
           {photos.length > 0 ? (
@@ -657,7 +764,7 @@ export function Step3Portion({
           {/* ── Input manual + total ─────────────────────────────────── */}
           <div className="grid gap-4 sm:grid-cols-2">
             <Card>
-              <CardLabel icon={Scale}>Atau isi berat manual</CardLabel>
+              <CardLabel>Atau isi berat manual</CardLabel>
               <div className="flex items-center gap-2">
                 <input
                   type="text"

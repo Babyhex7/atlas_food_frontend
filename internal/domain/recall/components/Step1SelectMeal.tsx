@@ -98,7 +98,7 @@ export function Step1SelectMeal({
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         {/* ── Jenis Waktu Makan ─────────────────────────────────────────── */}
         <Card>
-          <CardLabel icon={UtensilsCrossed}>Kategori Waktu Makan</CardLabel>
+          <CardLabel>Kategori Waktu Makan</CardLabel>
           <div
             role="radiogroup"
             aria-label="Kategori waktu makan"
@@ -136,7 +136,7 @@ export function Step1SelectMeal({
         {/* ── Waktu Konsumsi ────────────────────────────────────────────── */}
         <Card className="flex flex-col justify-between">
           <div>
-            <CardLabel icon={Clock}>Jam Konsumsi</CardLabel>
+            <CardLabel>Jam Konsumsi</CardLabel>
 
             <div className="flex items-center justify-center gap-3 py-2">
               <TimeSpinner

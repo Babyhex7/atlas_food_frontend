@@ -83,21 +83,14 @@ export function AiRecommendationPanel({ submissionId }: { submissionId?: string 
   return (
     <section className="w-full rounded-2xl border border-border bg-surface p-5 sm:p-7 text-left shadow-sm">
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border/80 pb-5">
-        <div className="flex items-center gap-3.5">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-emerald-600 text-white shadow-sm shadow-primary/20">
-            <Sparkles aria-hidden className="h-5 w-5" />
-          </span>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-bold tracking-tight text-text-primary">
-                Evaluasi Kecukupan Gizi (AKG)
-              </h3>
-            </div>
-            <p className="text-xs text-text-muted mt-0.5">
-              Analisis asupan nutrisi harian berdasarkan standar Angka Kecukupan Gizi (Permenkes RI).
-            </p>
-          </div>
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border/80 pb-4">
+        <div>
+          <h3 className="text-base sm:text-lg font-bold tracking-tight text-text-primary">
+            Evaluasi Kecukupan Gizi (AKG)
+          </h3>
+          <p className="text-xs text-text-muted mt-0.5">
+            Analisis asupan nutrisi harian berdasarkan standar Angka Kecukupan Gizi (Permenkes RI).
+          </p>
         </div>
 
         {isSuccess && (
@@ -116,9 +109,6 @@ export function AiRecommendationPanel({ submissionId }: { submissionId?: string 
       {/* ── Belum dianalisis ────────────────────────────────────────────── */}
       {!isSuccess && !isPending ? (
         <div className="mt-5 flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface-alt/50 p-6 sm:p-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-light mb-3 text-primary">
-            <Sparkles className="h-6 w-6" />
-          </div>
           <h4 className="text-sm font-bold text-text-primary mb-1">
             Evaluasi Asupan Kalori & Makronutrien
           </h4>

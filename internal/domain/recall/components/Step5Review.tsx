@@ -205,9 +205,8 @@ export function Step5Review({
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
         {/* ── Daftar item ────────────────────────────────────────────── */}
         <Card padded={false}>
-          <div className="flex items-center gap-3 border-b border-border px-5 py-4">
-            <ClipboardList aria-hidden className="h-4 w-4 shrink-0 text-primary" />
-            <h3 className="flex-1 text-base font-semibold text-text-primary">Item makanan</h3>
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <h3 className="text-base font-semibold text-text-primary">Item Makanan</h3>
             <button
               type="button"
               onClick={onEditPortions}
@@ -298,8 +297,7 @@ export function Step5Review({
         {/* ── Ringkasan & aksi ───────────────────────────────────────── */}
         <div className="flex flex-col gap-4">
           <Card>
-            <div className="flex items-center gap-2 mb-3">
-              <Flame className="h-4 w-4 text-primary" />
+            <div className="mb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
                 Perkiraan Total Gizi Harian
               </span>

@@ -416,17 +416,12 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
             <Card key={rf.food.id} className="relative overflow-visible">
               {/* Header Makanan Utama */}
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3.5">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-light text-primary">
-                    <ItemIcon aria-hidden className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h2 className="text-base font-bold text-text-primary leading-snug">{rf.food.name}</h2>
-                    <p className="text-xs text-text-muted">
-                      {rf.food.category?.name ? `${rf.food.category.name} • ` : ""}
-                      Makanan Utama
-                    </p>
-                  </div>
+                <div>
+                  <h2 className="text-base font-bold text-text-primary leading-snug">{rf.food.name}</h2>
+                  <p className="text-xs text-text-muted">
+                    {rf.food.category?.name ? `${rf.food.category.name} • ` : ""}
+                    Makanan Utama
+                  </p>
                 </div>
 
                 {rf.portion ? (
@@ -439,9 +434,8 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
 
               {/* Search Bar Makanan Tambahan Terpadu */}
               <div className="mb-4">
-                <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
-                  <Search className="h-3.5 w-3.5 text-primary" />
-                  <span>Cari Makanan Pelengkap / Bumbu:</span>
+                <label className="mb-1.5 block text-xs font-semibold text-text-secondary">
+                  Cari Makanan Pelengkap / Bumbu:
                 </label>
                 <AdditionalSearchBox
                   foodName={rf.food.name}
