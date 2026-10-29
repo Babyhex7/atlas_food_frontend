@@ -90,81 +90,90 @@ export function Step6Result({ respondentName, submissionId, session, onFinish, o
   ];
 
   return (
-    <StepShell maxWidth="normal">
-      {/* ── Hero Success Card ────────────────────────────────────────── */}
-      <div className="flex flex-col items-center text-center rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 via-surface to-surface p-6 sm:p-8 shadow-xs">
-        {/* Animated Checkmark with Ripple Effect */}
-        <div className="relative mb-4 flex items-center justify-center">
-          <span className="absolute -inset-2 rounded-full border-2 border-emerald-500/30 animate-ping opacity-30" />
-          <motion.div
-            initial={{ scale: 0, rotate: -25 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 18, delay: 0.1 }}
-            className="relative flex h-18 w-18 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-emerald-400 text-white shadow-xl shadow-emerald-500/25"
-          >
-            <motion.svg
-              className="h-9 w-9 text-white"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <motion.path
-                d="M20 6L9 17l-5-5"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.45, ease: "easeOut", delay: 0.25 }}
-              />
-            </motion.svg>
-          </motion.div>
-        </div>
-
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
-          Laporan Makan Berhasil Terkirim!
-        </h1>
-
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-text-muted">
-          Terima kasih{respondentName ? `, ${respondentName}` : ""}! Catatan recall makanan Anda telah
-          berhasil disimpan. Anda dapat melihat evaluasi kecukupan gizi personal berdasarkan standar AKG di bawah.
-        </p>
-
-        {/* 3 Real Data Summary Tiles */}
-        <div className="mt-6 grid w-full grid-cols-1 sm:grid-cols-3 gap-3">
-          {summaryStats.map(({ icon: Icon, label, value, desc }) => (
-            <div
-              key={label}
-              className="flex items-center sm:flex-col sm:justify-center gap-3 rounded-xl border border-border/80 bg-surface/90 px-4 py-3.5 text-left sm:text-center shadow-2xs"
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary">
-                <Icon aria-hidden className="h-4 w-4" />
-              </span>
-              <div>
-                <span className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider">{label}</span>
-                <span className="block text-sm font-bold text-text-primary">{value}</span>
-                <span className="block text-[11px] text-text-muted">{desc}</span>
-              </div>
+    <StepShell maxWidth="wide">
+      {/* ── 2-Column Split Layout: Kiri Hasil & Aksi, Kanan Evaluasi Gizi (AI) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Kolom Kiri: Hasil Submit & Ringkasan Data */}
+        <div className="lg:col-span-5 flex flex-col gap-4">
+          <div className="flex flex-col items-center text-center rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 via-surface to-surface p-6 shadow-xs">
+            {/* Animated Checkmark with Ripple Effect */}
+            <div className="relative mb-3.5 flex items-center justify-center">
+              <span className="absolute -inset-2 rounded-full border-2 border-emerald-500/30 animate-ping opacity-30" />
+              <motion.div
+                initial={{ scale: 0, rotate: -25 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 280, damping: 18, delay: 0.1 }}
+                className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-emerald-400 text-white shadow-xl shadow-emerald-500/25"
+              >
+                <motion.svg
+                  className="h-8 w-8 text-white"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <motion.path
+                    d="M20 6L9 17l-5-5"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.45, ease: "easeOut", delay: 0.25 }}
+                  />
+                </motion.svg>
+              </motion.div>
             </div>
-          ))}
+
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-text-primary">
+              Laporan Berhasil Terkirim!
+            </h1>
+
+            <p className="mt-2 text-xs leading-relaxed text-text-muted">
+              Terima kasih{respondentName ? `, ${respondentName}` : ""}! Catatan recall makanan Anda telah
+              berhasil disimpan di sistem.
+            </p>
+
+            {/* 3 Real Data Summary Tiles */}
+            <div className="mt-5 flex flex-col w-full gap-2.5">
+              {summaryStats.map(({ icon: Icon, label, value, desc }) => (
+                <div
+                  key={label}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-surface/90 px-3.5 py-2.5 text-left shadow-2xs"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary">
+                      <Icon aria-hidden className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                        {label}
+                      </span>
+                      <span className="block text-xs font-bold text-text-primary truncate">{value}</span>
+                    </div>
+                  </div>
+                  <span className="text-[11px] text-text-muted font-medium shrink-0">{desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons under Left Card */}
+          <div className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-4 shadow-2xs">
+            <Button icon={ArrowRight} iconPosition="right" fullWidth onClick={onFinish}>
+              Lihat Ringkasan Lengkap
+            </Button>
+            {onFillAgain && (
+              <Button variant="secondary" icon={Plus} fullWidth onClick={onFillAgain}>
+                Isi waktu makan lain
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* ── Rekomendasi / Evaluasi AKG ───────────────────────────────────── */}
-      <AiRecommendationPanel submissionId={submissionId} />
-
-      {/* ── Action Buttons ─────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
-        {onFillAgain ? (
-          <Button variant="secondary" icon={Plus} onClick={onFillAgain}>
-            Isi waktu makan lain
-          </Button>
-        ) : (
-          <div />
-        )}
-        <Button icon={ArrowRight} iconPosition="right" onClick={onFinish}>
-          Lihat Ringkasan Lengkap
-        </Button>
+        {/* Kolom Kanan: Evaluasi Kecukupan Gizi (AKG) */}
+        <div className="lg:col-span-7">
+          <AiRecommendationPanel submissionId={submissionId} />
+        </div>
       </div>
     </StepShell>
   );
