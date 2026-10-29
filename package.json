@@ -15,6 +15,7 @@
     "@tanstack/react-query": "latest",
     "autoprefixer": "^10.5.0",
     "axios": "^1.18.0",
+    "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "dexie": "^4.4.6",
     "framer-motion": "^14.6.0",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.1",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",

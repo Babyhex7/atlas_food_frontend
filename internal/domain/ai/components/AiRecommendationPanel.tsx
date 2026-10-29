@@ -15,7 +15,6 @@ import {
   Salad,
   Sparkles,
   Wheat,
-  Bot,
 } from "lucide-react";
 import { useNutritionAnalysis } from "../hooks/useNutritionAnalysis";
 import { normalizeStatus, type NutritionStatus } from "../types/ai";
@@ -92,15 +91,11 @@ export function AiRecommendationPanel({ submissionId }: { submissionId?: string 
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base sm:text-lg font-bold tracking-tight text-text-primary">
-                Rekomendasi Gizi Personal AI
+                Evaluasi Kecukupan Gizi (AKG)
               </h3>
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-primary-border bg-primary-light px-2.5 py-0.5 text-[10px] font-semibold text-primary">
-                <Bot className="h-3 w-3" />
-                Groq Llama 3.3
-              </span>
             </div>
             <p className="text-xs text-text-muted mt-0.5">
-              Analisis cerdas kecukupan asupan nutrisi harian berdasarkan Angka Kecukupan Gizi (AKG).
+              Analisis asupan nutrisi harian berdasarkan standar Angka Kecukupan Gizi (Permenkes RI).
             </p>
           </div>
         </div>
@@ -125,10 +120,10 @@ export function AiRecommendationPanel({ submissionId }: { submissionId?: string 
             <Sparkles className="h-6 w-6" />
           </div>
           <h4 className="text-sm font-bold text-text-primary mb-1">
-            Dapatkan Wawasan Gizi dari Laporan Anda
+            Evaluasi Asupan Kalori & Makronutrien
           </h4>
           <p className="max-w-md text-xs text-text-muted mb-4 leading-relaxed">
-            AI kami akan mengevaluasi asupan kalori, makronutrien (protein, karbohidrat, lemak), serta menyarankan pilihan makanan sehat yang tepat untuk Anda.
+            Hitung perkiraan pemenuhan kalori, protein, karbohidrat, dan lemak dari makanan yang Anda laporkan serta saran penyesuaian porsi.
           </p>
 
           {!hasSubmission ? (
@@ -164,7 +159,7 @@ export function AiRecommendationPanel({ submissionId }: { submissionId?: string 
             ) : (
               <Sparkles aria-hidden className="h-4 w-4" />
             )}
-            {error ? "Coba Lagi Sekarang" : "Jalankan Analisis AI Sekarang"}
+            {error ? "Coba Lagi" : "Hitung Evaluasi Gizi Sekarang"}
           </button>
         </div>
       ) : null}

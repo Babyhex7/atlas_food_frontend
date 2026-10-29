@@ -465,6 +465,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
             <Step6Result
               respondentName={session.respondent_name}
               submissionId={session.submission_id}
+              session={session}
               // Sesi TIDAK direset di sini: halaman /done membaca sesi yang sama
               // untuk menampilkan ringkasan gizi dan menjalankan analisis AI.
               // Mereset lebih dulu membuat halaman terakhir tampil kosong.
