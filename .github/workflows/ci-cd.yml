@@ -2,9 +2,9 @@ name: Frontend CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master, feat/landing-v2 ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master, feat/landing-v2 ]
+    branches: [ main ]
 
 jobs:
   # ====================================================
@@ -38,7 +38,7 @@ jobs:
   deploy:
     name: 🚀 Deploy to VPS Server
     needs: test-and-build
-    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/feat/landing-v2') && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
