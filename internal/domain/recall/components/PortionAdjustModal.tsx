@@ -288,12 +288,18 @@ export function PortionAdjustModal({
 
                     <div className="flex items-center gap-1.5">
                       <input
-                        type="number"
-                        min={1}
-                        max={10000}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={4}
                         placeholder={`mis. ${photo.weight_gram}`}
                         value={customGram}
-                        onChange={(e) => onCustomGram(e.target.value)}
+                        onChange={(e) => {
+                          const cleaned = e.target.value.replace(/[^\d]/g, "").slice(0, 4);
+                          const parsed = Number.parseInt(cleaned, 10);
+                          const clamped = Number.isFinite(parsed) && parsed > 3000 ? "3000" : cleaned;
+                          onCustomGram(clamped);
+                        }}
                         className={cn(
                           "h-8 flex-1 rounded-lg border bg-surface px-2.5 text-center font-sans text-xs font-bold text-text-primary outline-none transition-all min-w-0",
                           "focus:border-primary focus:ring-2 focus:ring-primary/20",

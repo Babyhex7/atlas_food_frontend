@@ -5,7 +5,10 @@ import {
   AlertCircle,
   ArrowRight,
   Check,
+  ChevronLeft,
+  ChevronRight,
   ImageOff,
+  Layers,
   Scale,
   Minus,
   Plus,
@@ -34,8 +37,9 @@ import {
 import { cn } from "@/internal/lib/cn";
 import { PortionAdjustModal } from "./PortionAdjustModal";
 
-/** Batas berat yang masuk akal untuk satu porsi (gram). */
-const MAX_PORTION_GRAM = 5000;
+/** Batas berat yang masuk akal untuk satu porsi (gram) — maksimal 3.000g (3 kg) */
+const MIN_PORTION_GRAM = 1;
+const MAX_PORTION_GRAM = 3000;
 
 /** Pilihan pecahan dan kelipatan cepat porsi standar gizi */
 const PORTION_PRESETS = [
@@ -400,29 +404,39 @@ export function Step3Portion({
   const handleCustomGramChange = useCallback(
     (val: string) => {
       if (!currentFood) return;
+
+      // Filter hanya digit dan batasi maksimal 4 karakter (misal hingga 3000)
+      const sanitized = val.replace(/[^\d]/g, "").slice(0, 4);
+      let parsed = Number.parseInt(sanitized, 10);
+      let clampedVal = sanitized;
+
+      if (Number.isFinite(parsed) && parsed > MAX_PORTION_GRAM) {
+        parsed = MAX_PORTION_GRAM;
+        clampedVal = String(MAX_PORTION_GRAM);
+      }
+
       setSelection({
         foodId: currentFood.food.id,
         photo: null,
         quantity: 1,
         fraction: 0,
-        customGram: val,
+        customGram: clampedVal,
       });
-      const parsed = Number.parseFloat(val);
-      if (Number.isFinite(parsed) && parsed > 0) {
-        const gram = Math.min(parsed, MAX_PORTION_GRAM);
+
+      if (Number.isFinite(parsed) && parsed >= MIN_PORTION_GRAM) {
         const portion: SelectedPortion = {
           method: "input",
           quantity: 1,
           fraction: 0,
           total_quantity: 1,
-          portion_gram: gram,
+          portion_gram: parsed,
         };
         onPortionSelected(currentFood.food.id, portion, detail ?? undefined);
         if (isConnected) {
           send("portion_set", {
             food_id: currentFood.food.id,
             food_name: currentFood.food.name,
-            portion_gram: gram,
+            portion_gram: parsed,
           });
         }
       }
@@ -455,6 +469,19 @@ export function Step3Portion({
       if (portionNextRef) portionNextRef.current = null;
     };
   }, [portionNextRef, handleNextStep3]);
+
+  const gridColsClass = useMemo(() => {
+    const count = photos.length;
+    if (count === 6) return "grid-cols-2 sm:grid-cols-3"; // 3 - 3
+    if (count === 8) return "grid-cols-2 sm:grid-cols-4"; // 4 - 4
+    if (count === 4) return "grid-cols-2 sm:grid-cols-4";
+    if (count === 3) return "grid-cols-3";
+    if (count === 2) return "grid-cols-2";
+    return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5";
+  }, [photos.length]);
+
+  const activePhoto = selectedPhoto ?? photos[0] ?? null;
+  const activePhotoIndex = activePhoto ? photos.findIndex((p) => p.id === activePhoto.id) : 0;
 
   if (!currentFood) {
     return (
@@ -521,17 +548,101 @@ export function Step3Portion({
 
           {/* ── Foto porsi ───────────────────────────────────────────── */}
           {photos.length > 0 ? (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  Pilih foto referensi terdekat:
+            <div className="space-y-5">
+              {/* ── Main Large Photo Preview ── */}
+              <div className="rounded-2xl border-2 border-border bg-surface overflow-hidden shadow-xs">
+                <div className="relative aspect-[16/9] max-h-[380px] w-full bg-slate-50 flex items-center justify-center overflow-hidden">
+                  <PortionThumb
+                    src={activePhoto?.image_url || activePhoto?.thumbnail_url}
+                    alt={activePhoto?.label ?? "Porsi Makanan"}
+                  />
+
+                  {/* Badge Label & Berat Standar di Kiri Atas */}
+                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-md text-white text-xs font-bold shadow-md">
+                      <Layers size={13} className="text-amber-400" />
+                      <span>Foto Porsi {activePhoto?.label}</span>
+                      <span className="text-white/40">|</span>
+                      <span className="text-amber-300 font-mono">{activePhoto?.weight_gram}g (standar)</span>
+                    </span>
+                  </div>
+
+                  {/* Tombol Navigasi Panah Kiri/Kanan pada Foto Utama */}
+                  {activePhotoIndex > 0 && (
+                    <button
+                      type="button"
+                      aria-label="Porsi sebelumnya"
+                      onClick={() => handleSelectPhoto(photos[activePhotoIndex - 1])}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-text-primary shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                  )}
+                  {activePhotoIndex < photos.length - 1 && (
+                    <button
+                      type="button"
+                      aria-label="Porsi berikutnya"
+                      onClick={() => handleSelectPhoto(photos[activePhotoIndex + 1])}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-text-primary shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  )}
+
+                  {/* Floating Action Button: Sesuaikan Porsi */}
+                  {activePhoto && (
+                    <div className="absolute bottom-3 right-3 z-10">
+                      <button
+                        type="button"
+                        onClick={() => setActiveModalPhoto(activePhoto)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary text-white text-xs font-bold shadow-lg hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
+                      >
+                        <SlidersHorizontal size={13} />
+                        <span>Sesuaikan Porsi ({formatPillValue(currentTotalQty)}x)</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info Bar Bawah Foto Utama */}
+                <div className="px-4 py-3 bg-surface-alt/80 border-t border-border flex items-center justify-between flex-wrap gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-text-primary">
+                      Pilihan aktif: <strong className="text-primary">Porsi {activePhoto?.label}</strong> ({activePhoto?.weight_gram}g standar)
+                    </span>
+                    {activePhoto?.description && !activePhoto.description.startsWith("food_image:") && (
+                      <>
+                        <span className="text-text-muted">·</span>
+                        <span className="text-text-muted">{activePhoto.description}</span>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 font-medium">
+                    <span className="text-text-muted">Total takaran porsi:</span>
+                    <span className="font-mono font-bold text-sm text-primary">
+                      {Math.round((activePhoto?.weight_gram ?? 0) * currentTotalQty * 10) / 10}g
+                    </span>
+                    <span className="text-text-muted">({formatFractionDisplay(currentTotalQty)})</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Subtitle Grid ── */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                  Pilih ukuran referensi ({photos.length} pilihan foto):
+                </span>
+                <span className="text-xs text-text-muted">
+                  Klik foto untuk memilih
                 </span>
               </div>
 
+              {/* ── Dynamic Proportional Grid ── */}
               <div
                 role="radiogroup"
                 aria-label="Pilihan porsi"
-                className="grid grid-cols-2 gap-4 pt-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                className={cn("grid gap-3.5", gridColsClass)}
               >
                 {photos.map((photo) => {
                   const active = selectedPhoto?.id === photo.id;
@@ -547,16 +658,16 @@ export function Step3Portion({
                       aria-checked={active}
                       onClick={() => handleSelectPhoto(photo)}
                       className={cn(
-                        "relative flex cursor-pointer flex-col items-center rounded-2xl border-2 p-3 text-center transition-all duration-150 select-none group",
+                        "relative flex cursor-pointer flex-col items-center rounded-2xl border-2 p-2.5 text-center transition-all duration-150 select-none group",
                         active
-                          ? "border-primary bg-primary/5 text-primary shadow-sm"
+                          ? "border-primary bg-primary/5 text-primary shadow-sm ring-2 ring-primary/20"
                           : "border-border bg-surface hover:border-primary/50 text-text-secondary hover:text-text-primary"
                       )}
                     >
-                      {/* Top-Right Floating Pill Stepper Badge (matching design screenshot) */}
+                      {/* Top-Right Floating Pill Stepper Badge */}
                       {active && (
                         <div
-                          className="absolute -top-3.5 -right-2 z-20 flex items-center justify-between gap-1 rounded-full bg-primary px-3 py-1 text-white shadow-md"
+                          className="absolute -top-3 -right-2 z-20 flex items-center justify-between gap-1 rounded-full bg-primary px-2.5 py-0.5 text-white shadow-md"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button
@@ -598,24 +709,19 @@ export function Step3Portion({
                         </div>
                       )}
 
-                      {/* Photo Thumbnail Container 16:9 proporsional kamera asli */}
+                      {/* Photo Thumbnail Container 16:9 */}
                       <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-surface-alt">
                         <PortionThumb src={photo.thumbnail_url || photo.image_url} alt={photo.label} />
                       </div>
 
-                      {/* Info porsi di bawah foto (sesuai desain screenshot) */}
-                      <div className="mt-3 flex flex-col items-center gap-0.5">
-                        <span className="text-sm font-bold text-primary">
-                          {fractionText}
+                      {/* Info porsi di bawah foto */}
+                      <div className="mt-2.5 flex flex-col items-center gap-0.5">
+                        <span className="text-xs font-bold text-primary">
+                          Porsi {photo.label}
                         </span>
                         <span className="text-xs font-semibold text-text-muted">
-                          {displayGram}g
+                          {displayGram}g ({fractionText})
                         </span>
-                        {photo.label && (
-                          <span className="mt-0.5 text-[10px] text-text-placeholder">
-                            ({photo.label})
-                          </span>
-                        )}
                       </div>
                     </div>
                   );
@@ -634,10 +740,10 @@ export function Step3Portion({
               <CardLabel icon={Scale}>Atau isi berat manual</CardLabel>
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  min={1}
-                  max={MAX_PORTION_GRAM}
+                  type="text"
                   inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={4}
                   aria-label="Berat porsi dalam gram"
                   className={cn(
                     "h-10 w-32 rounded-lg border bg-surface px-3 text-center font-mono text-sm text-text-primary outline-none transition-colors",
@@ -652,9 +758,15 @@ export function Step3Portion({
               </div>
               <p className="mt-2 text-xs text-text-muted">
                 {customGram.trim() !== ""
-                  ? "Menggunakan input berat manual (foto diabaikan)."
-                  : `Gunakan jika Anda menimbang sendiri dengan timbangan dapur (maks ${MAX_PORTION_GRAM}g).`}
+                  ? `Menggunakan berat manual: ${customGram}g (foto referensi diabaikan).`
+                  : `Batas porsi wajar: ${MIN_PORTION_GRAM} – ${MAX_PORTION_GRAM} gram (maks. 3 kg per porsi).`}
               </p>
+              {Number(customGram) >= MAX_PORTION_GRAM && (
+                <p className="mt-1.5 text-xs text-amber-600 font-semibold flex items-center gap-1">
+                  <AlertCircle size={13} />
+                  Maksimal {MAX_PORTION_GRAM}g tercapai (batas aman konsumsi 1 porsi makan).
+                </p>
+              )}
             </Card>
 
             <div className="flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-primary-border bg-surface p-4">
