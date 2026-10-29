@@ -10,6 +10,7 @@ import {
   Plus,
   Search,
   SearchX,
+  Sparkles,
   Trash2,
   UtensilsCrossed,
   X,
@@ -463,8 +464,9 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
 
               {/* Search Bar Makanan Tambahan Terpadu */}
               <div className="mb-4">
-                <label className="mb-1.5 block text-xs font-semibold text-text-secondary">
-                  Cari Makanan Pelengkap / Bumbu:
+                <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                  <Search className="h-3.5 w-3.5 text-primary" />
+                  <span>Cari Makanan Pelengkap / Bumbu:</span>
                 </label>
                 <AdditionalSearchBox
                   foodName={rf.food.name}
@@ -472,12 +474,13 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
                 />
               </div>
 
-              {/* Rekomendasi Pelengkap Cepat (Quick Chips) */}
+              {/* Rekomendasi Cepat (Quick Chips) */}
               {dynamicAssociated[rf.food.id] && dynamicAssociated[rf.food.id].length > 0 ? (
                 <div className="flex flex-col gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                    Rekomendasi Pelengkap:
-                  </span>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                    <span>Rekomendasi Cepat:</span>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {dynamicAssociated[rf.food.id].map((condiment) => {
                       const isAdded = items.some(
@@ -493,12 +496,12 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
                             isAdded
                               ? removeItem(rf.food.id, condiment.name)
                               : addOrUpdateItem(rf.food.id, {
-                                  food_id: condiment.food_id,
-                                  name: condiment.name,
-                                  unit: condiment.unit || "sdm",
-                                  amount_value: condiment.defaultVal || 1,
-                                  source: "recommendation",
-                                })
+                                food_id: condiment.food_id,
+                                name: condiment.name,
+                                unit: condiment.unit || "sdm",
+                                amount_value: condiment.defaultVal || 1,
+                                source: "recommendation",
+                              })
                           }
                         >
                           {isAdded ? (
