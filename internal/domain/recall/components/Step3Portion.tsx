@@ -692,8 +692,12 @@ export function Step3Portion({
                       {/* Top-Right Floating Pill Stepper Badge */}
                       {active && (
                         <div
-                          className="absolute -top-3 -right-2 z-20 flex items-center justify-between gap-1 rounded-full bg-primary px-2.5 py-0.5 text-white shadow-md"
-                          onClick={(e) => e.stopPropagation()}
+                          className="absolute -top-3 -right-2 z-20 flex items-center justify-between gap-1 rounded-full bg-primary px-2.5 py-0.5 text-white shadow-md cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveModalPhoto(photo);
+                          }}
+                          title="Klik untuk buka modal penyesuaian porsi"
                         >
                           <button
                             type="button"
@@ -701,6 +705,7 @@ export function Step3Portion({
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStep(-1, photo);
+                              setActiveModalPhoto(photo);
                             }}
                             disabled={currentTotalQty <= 0.25}
                             className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
@@ -723,6 +728,7 @@ export function Step3Portion({
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStep(1, photo);
+                              setActiveModalPhoto(photo);
                             }}
                             disabled={currentTotalQty >= 10}
                             className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
@@ -749,6 +755,11 @@ export function Step3Portion({
                         <span className="text-xs font-medium text-text-muted">
                           {displayGram}g <span className="text-text-placeholder">·</span> {fractionText}
                         </span>
+                        {active && (
+                          <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                            ✏️ Atur takaran
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
