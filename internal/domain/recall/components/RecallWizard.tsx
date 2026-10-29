@@ -98,6 +98,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
   const router = useRouter();
   const submitRef = useRef<(() => void) | null>(null);
   const portionNextRef = useRef<(() => void) | null>(null);
+  const mainRef = useRef<HTMLElement>(null);
 
   const accessToken = Array.isArray(params.accessToken)
     ? params.accessToken[0]
@@ -189,14 +190,22 @@ export function RecallWizard({ guest = false }: WizardProps) {
     // Saat mengikuti orang lain kita bukan sumber kebenaran — jangan pantulkan
     // balik langkah leader, karena itu memicu loop mirror antar dua peserta.
     if (!isConnected || isFollowing) return;
+    const scrollY = mainRef.current ? mainRef.current.scrollTop : window.scrollY;
+    const scrollX = mainRef.current ? mainRef.current.scrollLeft : window.scrollX;
     send("viewport_update", {
       page: window.location.pathname,
       path: window.location.pathname + window.location.search,
       step: currentStep,
-      scroll_x: window.scrollX,
-      scroll_y: window.scrollY,
+      scroll_x: scrollX,
+      scroll_y: scrollY,
     });
   }, [isConnected, isFollowing, currentStep, send]);
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [currentStep]);
 
   useEffect(() => {
     if (!isFollowing) return;
@@ -206,9 +215,9 @@ export function RecallWizard({ guest = false }: WizardProps) {
   }, [isFollowing, leaderStep, currentStep, goToStep]);
 
   return (
-    <div className="flex min-h-[100svh] flex-col bg-background">
+    <div className="flex h-[100dvh] flex-col bg-background overflow-hidden">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-sticky border-b border-border bg-surface">
+      <header className="shrink-0 border-b border-border bg-surface z-sticky">
         <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-6">
         {/* Setelah laporan terkirim tidak ada jalan mundur: kembali ke review
             hanya membuka peluang submit ganda untuk sesi yang sama. */}
@@ -255,7 +264,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
       </header>
 
       {guest ? (
-        <div className="flex items-start gap-2 border-b border-info-border bg-info-light px-4 py-2 text-xs text-info sm:px-6">
+        <div className="shrink-0 flex items-start gap-2 border-b border-info-border bg-info-light px-4 py-2 text-xs text-info sm:px-6">
           <Info aria-hidden className="mt-px h-4 w-4 shrink-0" />
           <span>
             Anda bergabung ke sesi rekan. Kehadiran, kursor, dan langkah aktif tersinkron, tetapi
@@ -267,7 +276,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
 
       {/* ── Progress ───────────────────────────────────────────────────────── */}
       {!isDone && (
-        <div className="border-b border-border bg-surface px-4 py-3 sm:px-6">
+        <div className="shrink-0 border-b border-border bg-surface px-4 py-3 sm:px-6">
           <div
             className="h-[6px] overflow-hidden rounded-full bg-primary-muted"
             role="progressbar"
@@ -291,7 +300,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
       {!isDone && (
         <nav
           aria-label="Langkah pengisian"
-          className="flex gap-3 overflow-x-auto border-b border-border bg-surface px-4 sm:px-6 py-3.5 lg:hidden scrollbar-none"
+          className="shrink-0 flex gap-3 overflow-x-auto border-b border-border bg-surface px-4 sm:px-6 py-3.5 lg:hidden scrollbar-none"
         >
           {SIDEBAR_STEPS.map((step) => {
             const num = STEP_NUMBERS[step];
@@ -325,10 +334,10 @@ export function RecallWizard({ guest = false }: WizardProps) {
         </nav>
       )}
 
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* ── Sidebar (desktop) ────────────────────────────────────────────── */}
         {!isDone && (
-          <aside className="hidden w-64 shrink-0 flex-col justify-between border-r border-border bg-surface p-6 lg:flex">
+          <aside className="hidden w-64 shrink-0 flex-col justify-between border-r border-border bg-surface p-6 lg:flex overflow-y-auto">
             <nav aria-label="Langkah pengisian" className="flex flex-col gap-3">
               {SIDEBAR_STEPS.map((step) => {
                 const num = STEP_NUMBERS[step];
@@ -384,7 +393,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
         )}
 
         {/* ── Main ─────────────────────────────────────────────────────────── */}
-        <main className="min-w-0 flex-1 overflow-y-auto">
+        <main ref={mainRef} className="min-w-0 flex-1 overflow-y-auto">
           {currentStep === "select_meal" && (
             <Step1SelectMeal
               mealType={session.current_meal.type}
