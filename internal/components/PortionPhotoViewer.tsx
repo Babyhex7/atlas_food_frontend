@@ -442,6 +442,19 @@ function SeriesPhotoView({
   const activePhoto = photos[activeIndex];
   const needsScroll = photos.length > 5;
 
+  useEffect(() => {
+    if (currentAreas.length > 0) {
+      const match = currentAreas.find(
+        (a) =>
+          (activePhoto && a.weight_gram && Math.abs(a.weight_gram - activePhoto.weight_gram) < 0.5) ||
+          (activePhoto && a.name.toLowerCase().includes(`porsi ${activePhoto.label.toLowerCase()}`))
+      );
+      setSelectedAreaId(match ? match.id : currentAreas[0].id);
+    } else {
+      setSelectedAreaId(null);
+    }
+  }, [currentAreas, activePhoto, setSelectedAreaId]);
+
   return (
     <div className="space-y-6">
       {/* Main foto aktif */}

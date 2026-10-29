@@ -182,16 +182,6 @@ export function Step3Portion({
   const isGuide = isGuideType(photoType);
   const isRange = isRangeType(photoType);
 
-  // Foto yang digunakan sebagai scene anotasi:
-  const effectiveFoodImageId =
-    photos.find((p) => p.food_image_id)?.food_image_id ||
-    photos[0]?.food_image_id ||
-    publishedImage?.id;
-
-  const hasInteractiveAnnotation = isGuide || isRange || Boolean(effectiveFoodImageId);
-  const interactiveSceneUrl =
-    photos[0]?.image_url || publishedImage?.image_url;
-
   // Cari foto yang cocok bila makanan aktif sudah memiliki porsi di session
   const matchingSavedPhoto = useMemo(() => {
     if (!savedPortion || savedPortion.method === "input") return null;
@@ -220,7 +210,34 @@ export function Step3Portion({
   // Pilihan lokal hanya berlaku untuk makanan yang aktif; bila belum diedit lokal,
   // ambil dari data tersimpan di session agar tidak hilang saat navigasi tab.
   const activeSelection = selection?.foodId === currentFoodId ? selection : null;
-  const selectedPhoto = activeSelection ? activeSelection.photo : matchingSavedPhoto;
+  const selectedPhoto = activeSelection ? activeSelection.photo : (matchingSavedPhoto ?? photos[0] ?? null);
+
+  // Foto yang digunakan sebagai scene anotasi:
+  // Untuk Series, selalu ikuti foto porsi aktif (A, B, C, dst.) agar anotasinya tepat sesuai ukuran makanan.
+  const effectiveFoodImageId =
+    (isGuide || isRange)
+      ? (photos.find((p) => p.food_image_id)?.food_image_id || photos[0]?.food_image_id || publishedImage?.id)
+      : (selectedPhoto?.food_image_id || photos[0]?.food_image_id || publishedImage?.id);
+
+  const hasInteractiveAnnotation = isGuide || isRange || Boolean(effectiveFoodImageId);
+  const interactiveSceneUrl =
+    (isGuide || isRange)
+      ? (photos[0]?.image_url || publishedImage?.image_url)
+      : (selectedPhoto?.image_url || photos[0]?.image_url || publishedImage?.image_url);
+
+  // Sinkronkan highlight anotasi saat area selesai dimuat atau saat foto aktif berganti
+  useEffect(() => {
+    if (currentAreas.length > 0) {
+      const match = currentAreas.find(
+        (a) =>
+          (selectedPhoto && a.weight_gram && Math.abs(a.weight_gram - selectedPhoto.weight_gram) < 0.5) ||
+          (selectedPhoto && a.name.toLowerCase().includes(`porsi ${selectedPhoto.label.toLowerCase()}`))
+      );
+      setSelectedAreaId(match ? match.id : currentAreas[0].id);
+    } else {
+      setSelectedAreaId(null);
+    }
+  }, [currentAreas, selectedPhoto]);
 
   const currentQuantity = activeSelection
     ? activeSelection.quantity
