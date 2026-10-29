@@ -2,9 +2,9 @@ name: Frontend CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, feat/landing-v2 ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, feat/landing-v2 ]
 
 jobs:
   # ====================================================
@@ -38,7 +38,7 @@ jobs:
   deploy:
     name: 🚀 Deploy to VPS Server
     needs: test-and-build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/feat/landing-v2') && github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
@@ -49,6 +49,4 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/atlas_food_frontend
-            git pull origin main
-            docker compose up -d --build
+            /root/apps/atlas_food/deploy.sh fe ${{ github.ref_name }}
