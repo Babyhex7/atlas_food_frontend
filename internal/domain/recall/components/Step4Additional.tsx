@@ -10,7 +10,6 @@ import {
   Plus,
   Search,
   SearchX,
-  Sparkles,
   Trash2,
   UtensilsCrossed,
   X,
@@ -450,13 +449,12 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
                 />
               </div>
 
-              {/* Rekomendasi Cepat (Quick Chips) */}
+              {/* Rekomendasi Pelengkap Cepat (Quick Chips) */}
               {dynamicAssociated[rf.food.id] && dynamicAssociated[rf.food.id].length > 0 ? (
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                    <span>Rekomendasi Cepat:</span>
-                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                    Rekomendasi Pelengkap:
+                  </span>
                   <div className="flex flex-wrap gap-2">
                     {dynamicAssociated[rf.food.id].map((condiment) => {
                       const isAdded = items.some(

@@ -5,15 +5,11 @@ import {
   AlertCircle,
   ArrowRight,
   Check,
-  ChevronLeft,
-  ChevronRight,
   ImageOff,
-  Layers,
   Scale,
   Minus,
   Plus,
   RotateCcw,
-  SlidersHorizontal,
 } from "lucide-react";
 import { getFoodPublic } from "@/internal/services/food.service";
 import { getApiErrorMessage } from "@/internal/pkg/utils/apiError";
@@ -472,16 +468,13 @@ export function Step3Portion({
 
   const gridColsClass = useMemo(() => {
     const count = photos.length;
-    if (count === 6) return "grid-cols-2 sm:grid-cols-3"; // 3 - 3
-    if (count === 8) return "grid-cols-2 sm:grid-cols-4"; // 4 - 4
+    if (count === 6) return "grid-cols-2 sm:grid-cols-3";
+    if (count === 8) return "grid-cols-2 sm:grid-cols-4";
     if (count === 4) return "grid-cols-2 sm:grid-cols-4";
     if (count === 3) return "grid-cols-3";
     if (count === 2) return "grid-cols-2";
     return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5";
   }, [photos.length]);
-
-  const activePhoto = selectedPhoto ?? photos[0] ?? null;
-  const activePhotoIndex = activePhoto ? photos.findIndex((p) => p.id === activePhoto.id) : 0;
 
   if (!currentFood) {
     return (
@@ -548,102 +541,21 @@ export function Step3Portion({
 
           {/* ── Foto porsi ───────────────────────────────────────────── */}
           {photos.length > 0 ? (
-            <div className="space-y-5">
-              {/* ── Main Proportional Photo Preview ── */}
-              <div className="mx-auto w-full max-w-lg rounded-2xl border border-border bg-surface overflow-hidden shadow-xs">
-                <div className="relative h-44 sm:h-52 w-full bg-slate-50/80 flex items-center justify-center overflow-hidden">
-                  <PortionThumb
-                    src={activePhoto?.image_url || activePhoto?.thumbnail_url}
-                    alt={activePhoto?.label ?? "Porsi Makanan"}
-                    className="h-full w-full object-contain p-2 transition-transform duration-200 hover:scale-102"
-                  />
-
-                  {/* Badge Label & Berat Standar di Kiri Atas */}
-                  <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-bold shadow-xs">
-                      <Layers size={12} className="text-amber-400" />
-                      <span>Foto Porsi {activePhoto?.label}</span>
-                      <span className="text-white/40">|</span>
-                      <span className="text-amber-300 font-mono">{activePhoto?.weight_gram}g</span>
-                    </span>
-                  </div>
-
-                  {/* Tombol Navigasi Panah Kiri/Kanan pada Foto Utama */}
-                  {activePhotoIndex > 0 && (
-                    <button
-                      type="button"
-                      aria-label="Porsi sebelumnya"
-                      onClick={() => handleSelectPhoto(photos[activePhotoIndex - 1])}
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-text-primary shadow-sm flex items-center justify-center transition-all cursor-pointer active:scale-95"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                  )}
-                  {activePhotoIndex < photos.length - 1 && (
-                    <button
-                      type="button"
-                      aria-label="Porsi berikutnya"
-                      onClick={() => handleSelectPhoto(photos[activePhotoIndex + 1])}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-text-primary shadow-sm flex items-center justify-center transition-all cursor-pointer active:scale-95"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  )}
-
-                  {/* Floating Action Button: Sesuaikan Porsi */}
-                  {activePhoto && (
-                    <div className="absolute bottom-2.5 right-2.5 z-10">
-                      <button
-                        type="button"
-                        onClick={() => setActiveModalPhoto(activePhoto)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary text-white text-xs font-bold shadow-md hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
-                      >
-                        <SlidersHorizontal size={12} />
-                        <span>Sesuaikan Porsi ({formatPillValue(currentTotalQty)}x)</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Info Bar Bawah Foto Utama */}
-                <div className="px-3.5 py-2.5 bg-surface-alt/80 border-t border-border flex items-center justify-between flex-wrap gap-2 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-text-primary">
-                      Pilihan aktif: <strong className="text-primary">Porsi {activePhoto?.label}</strong> ({activePhoto?.weight_gram}g)
-                    </span>
-                    {activePhoto?.description && !activePhoto.description.startsWith("food_image:") && (
-                      <>
-                        <span className="text-text-muted">·</span>
-                        <span className="text-text-muted truncate max-w-[180px]">{activePhoto.description}</span>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1.5 font-medium">
-                    <span className="text-text-muted">Total:</span>
-                    <span className="font-mono font-bold text-sm text-primary">
-                      {Math.round((activePhoto?.weight_gram ?? 0) * currentTotalQty * 10) / 10}g
-                    </span>
-                    <span className="text-text-muted">({formatFractionDisplay(currentTotalQty)})</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Subtitle Grid ── */}
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                  Pilih ukuran referensi ({photos.length} pilihan foto):
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                  Pilih foto referensi porsi terdekat ({photos.length} pilihan):
                 </span>
                 <span className="text-xs text-text-muted">
-                  Klik foto untuk memilih
+                  Klik foto porsi aktif untuk menyesuaikan takaran
                 </span>
               </div>
 
-              {/* ── Dynamic Proportional Grid ── */}
+              {/* ── Grid Foto Porsi Proporsional ── */}
               <div
                 role="radiogroup"
                 aria-label="Pilihan porsi"
-                className={cn("grid gap-3.5", gridColsClass)}
+                className={cn("grid gap-3.5 pt-1", gridColsClass)}
               >
                 {photos.map((photo) => {
                   const active = selectedPhoto?.id === photo.id;
@@ -657,9 +569,14 @@ export function Step3Portion({
                       key={photo.id}
                       role="radio"
                       aria-checked={active}
-                      onClick={() => handleSelectPhoto(photo)}
+                      onClick={() => {
+                        handleSelectPhoto(photo);
+                        if (active) {
+                          setActiveModalPhoto(photo);
+                        }
+                      }}
                       className={cn(
-                        "relative flex cursor-pointer flex-col items-center rounded-2xl border-2 p-2.5 text-center transition-all duration-150 select-none group",
+                        "relative flex cursor-pointer flex-col items-center rounded-2xl border-2 p-3 text-center transition-all duration-150 select-none group",
                         active
                           ? "border-primary bg-primary/5 text-primary shadow-sm ring-2 ring-primary/20"
                           : "border-border bg-surface hover:border-primary/50 text-text-secondary hover:text-text-primary"
@@ -677,7 +594,6 @@ export function Step3Portion({
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStep(-1, photo);
-                              setActiveModalPhoto(photo);
                             }}
                             disabled={currentTotalQty <= 0.25}
                             className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
@@ -685,7 +601,7 @@ export function Step3Portion({
                             −
                           </button>
                           <span
-                            title="Klik untuk buka modal pop-up penyesuaian porsi"
+                            title="Klik untuk buka penyesuaian porsi"
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveModalPhoto(photo);
@@ -700,7 +616,6 @@ export function Step3Portion({
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStep(1, photo);
-                              setActiveModalPhoto(photo);
                             }}
                             disabled={currentTotalQty >= 10}
                             className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
@@ -710,18 +625,22 @@ export function Step3Portion({
                         </div>
                       )}
 
-                      {/* Photo Thumbnail Container 16:9 */}
+                      {/* Photo Thumbnail Container 16:9 Proporsional */}
                       <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-surface-alt">
-                        <PortionThumb src={photo.thumbnail_url || photo.image_url} alt={photo.label} />
+                        <PortionThumb
+                          src={photo.thumbnail_url || photo.image_url}
+                          alt={photo.label}
+                          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                        />
                       </div>
 
                       {/* Info porsi di bawah foto */}
-                      <div className="mt-2.5 flex flex-col items-center gap-0.5">
-                        <span className="text-xs font-bold text-primary">
+                      <div className="mt-3 flex flex-col items-center gap-0.5 w-full">
+                        <span className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">
                           Porsi {photo.label}
                         </span>
-                        <span className="text-xs font-semibold text-text-muted">
-                          {displayGram}g ({fractionText})
+                        <span className="text-xs font-medium text-text-muted">
+                          {displayGram}g <span className="text-text-placeholder">·</span> {fractionText}
                         </span>
                       </div>
                     </div>

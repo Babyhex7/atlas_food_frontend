@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import confetti from "canvas-confetti";
 import {
+  ArrowDown,
   CheckCircle2,
   Flame,
   Drumstick,
@@ -61,6 +63,40 @@ export default function SurveyDonePage() {
     // Hidrasi sekali dari localStorage saat mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSession(getRecallSession());
+
+    // Efek perayaan kembang api / confetti saat survei berhasil dikumpulkan
+    const duration = 2.4 * 1000;
+    const animationEnd = Date.now() + duration;
+
+    confetti({
+      particleCount: 70,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#10b981", "#059669", "#34d399", "#f59e0b", "#0284c7"],
+    });
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+      confetti({
+        particleCount: 25,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.7 },
+        colors: ["#10b981", "#3b82f6", "#f59e0b"],
+      });
+      confetti({
+        particleCount: 25,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.7 },
+        colors: ["#10b981", "#3b82f6", "#f59e0b"],
+      });
+    }, 350);
+
+    return () => clearInterval(interval);
   }, []);
 
   const totals = calcDailyTotals(session);
@@ -123,12 +159,12 @@ export default function SurveyDonePage() {
             </span>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
-              Survei Berhasil Dikumpulkan
+              Survei Recall Berhasil Dikumpulkan
             </h1>
 
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-text-muted">
-              Terima kasih{session?.respondent_name ? `, ${session.respondent_name}` : ""}! Data
-              recall konsumsi makanan Anda telah tersimpan secara resmi di sistem penelitian Atlas Food.
+              Terima kasih{session?.respondent_name ? `, ${session.respondent_name}` : ""}! Laporan
+              recall konsumsi makanan Anda telah tersimpan resmi di sistem. Anda dapat melihat ringkasan gizi makro dan rekomendasi AKG di bawah ini.
             </p>
 
             <dl className="mt-6 flex flex-wrap justify-center gap-4 sm:gap-8 w-full max-w-lg rounded-xl border border-border/80 bg-surface/90 py-3.5 px-6 shadow-2xs">
@@ -145,6 +181,20 @@ export default function SurveyDonePage() {
                 </div>
               ))}
             </dl>
+
+            {/* Shortcut Tombol Gulir Cepat ke Rekomendasi AI */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  document.getElementById("ai-evaluation")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary text-white hover:bg-primary-hover px-4 py-2.5 text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-95"
+              >
+                <span>Lihat Evaluasi Gizi & Rekomendasi AI</span>
+                <ArrowDown className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </section>
 
           {/* ── Ringkasan Gizi Makro ─────────────────────────────────────── */}
@@ -223,8 +273,10 @@ export default function SurveyDonePage() {
             </Card>
           ) : null}
 
-          {/* ── AI (sama komponen dengan Step 6 wizard) ────────────────── */}
-          <AiRecommendationPanel submissionId={session?.submission_id} />
+          {/* ── AI (Evaluasi Kecukupan Gizi AKG) ────────────────────────── */}
+          <div id="ai-evaluation" className="scroll-mt-6">
+            <AiRecommendationPanel submissionId={session?.submission_id} />
+          </div>
 
           {/* ── Aksi ───────────────────────────────────────────────────── */}
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">

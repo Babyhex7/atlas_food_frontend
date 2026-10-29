@@ -198,7 +198,7 @@ export function Step5Review({
   return (
     <StepShell>
       <StepHeader
-        title="Tinjau laporan Anda"
+        title="Tinjau Laporan Recall"
         subtitle="Rincian makanan dan perkiraan kandungan gizi berdasarkan data yang Anda isi."
       />
 
@@ -357,18 +357,6 @@ export function Step5Review({
               {error ?? validationError}
             </p>
           ) : null}
-
-          <Button
-            size="lg"
-            fullWidth
-            icon={submitting ? Loader2 : Send}
-            iconPosition="right"
-            onClick={handleSubmit}
-            disabled={submitting || !canSubmit}
-            className={submitting ? "[&>svg]:animate-spin" : undefined}
-          >
-            {submitting ? "Mengirim…" : "Kirim laporan"}
-          </Button>
         </div>
       </div>
 
@@ -381,10 +369,12 @@ export function Step5Review({
           Kembali
         </Button>
         <Button
-          icon={Send}
+          size="lg"
+          icon={submitting ? Loader2 : Send}
           iconPosition="right"
           onClick={handleSubmit}
           disabled={!canSubmit || submitting}
+          className={submitting ? "[&>svg]:animate-spin" : undefined}
         >
           {submitting ? "Mengirim..." : "Kirim Laporan Recall"}
         </Button>

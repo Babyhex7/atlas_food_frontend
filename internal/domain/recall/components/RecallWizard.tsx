@@ -8,7 +8,6 @@ import { Step2AddFood } from "./Step2AddFood";
 import { Step3Portion } from "./Step3Portion";
 import { Step4Additional } from "./Step4Additional";
 import { Step5Review } from "./Step5Review";
-import { Step6Result } from "./Step6Result";
 import { useRecallSession } from "../hooks/useRecallSession";
 import { getRecallSession } from "../services/recallStorage";
 import {
@@ -213,6 +212,13 @@ export function RecallWizard({ guest = false }: WizardProps) {
     if (!next || next === currentStep) return;
     goToStep(next);
   }, [isFollowing, leaderStep, currentStep, goToStep]);
+
+  // Alur langsung: jika status recall mencapai done, arahkan langsung ke halaman hasil detail
+  useEffect(() => {
+    if (currentStep === "done" && accessToken) {
+      router.replace(`/surveys/${accessToken}/done`);
+    }
+  }, [currentStep, accessToken, router]);
 
   return (
     <div className="flex h-[100dvh] flex-col bg-background overflow-hidden">
@@ -453,7 +459,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
               submitRef={submitRef}
               onSubmitted={(submissionId) => {
                 setSubmissionId(submissionId);
-                goToStep("done");
+                router.push(`/surveys/${accessToken}/done`);
               }}
               onBack={prevStep}
               onEditPortions={() => goToStep("portion")}
@@ -462,16 +468,9 @@ export function RecallWizard({ guest = false }: WizardProps) {
           )}
 
           {currentStep === "done" && (
-            <Step6Result
-              respondentName={session.respondent_name}
-              submissionId={session.submission_id}
-              session={session}
-              // Sesi TIDAK direset di sini: halaman /done membaca sesi yang sama
-              // untuk menampilkan ringkasan gizi dan menjalankan analisis AI.
-              // Mereset lebih dulu membuat halaman terakhir tampil kosong.
-              onFinish={() => router.push(`/surveys/${accessToken}/done`)}
-              onFillAgain={reset}
-            />
+            <div className="flex h-64 items-center justify-center">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
           )}
         </main>
       </div>
