@@ -47,3 +47,9 @@ export async function getFoodsByCategoryPublic(categoryCode: string, page = 1, l
   });
   return data.data;
 }
+
+/** Rekomendasi kata kunci pencarian dinamis (trending di Redis & database aktif) */
+export async function getFoodSearchSuggestions(): Promise<string[]> {
+  const { data } = await apiClient.get("/public/foods/suggestions");
+  return Array.isArray(data?.data) ? data.data : [];
+}

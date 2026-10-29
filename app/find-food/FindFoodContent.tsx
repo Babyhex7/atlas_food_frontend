@@ -31,6 +31,7 @@ import {
 import {
   searchFoodsPublic,
   getCategoriesPublic,
+  getFoodSearchSuggestions,
 } from "@/internal/services/food.service";
 import { getImageUrl } from "@/internal/lib/image";
 import { useDebounce } from "@/internal/hooks/use-debounce";
@@ -48,15 +49,14 @@ import styles from "./FindFoodContent.module.css";
 
 const MIN_SEARCH_LENGTH = 2;
 
-const SUGGESTED_SEARCHES = [
-  "Nasi Putih",
-  "Ayam Goreng",
+const FALLBACK_SEARCH_SUGGESTIONS = [
+  "Nasi",
   "Buncis Tumis",
+  "Ayam Goreng",
   "Tempe Goreng",
   "Telur Dadar",
   "Sayur Sop",
   "Pisang Ambon",
-  "Sambal Terasi",
 ];
 
 type PublicCategory = {
@@ -198,6 +198,18 @@ function FindFoodBody() {
     queryFn: getCategoriesPublic,
     staleTime: 5 * 60 * 1000,
   });
+
+  const { data: dynamicSuggestions = [] } = useQuery<string[]>({
+    queryKey: ["public-food-suggestions"],
+    queryFn: getFoodSearchSuggestions,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const suggestionsList = useMemo(() => {
+    return dynamicSuggestions.length > 0
+      ? dynamicSuggestions
+      : FALLBACK_SEARCH_SUGGESTIONS;
+  }, [dynamicSuggestions]);
 
   const {
     data: searchResults = [],
@@ -358,9 +370,9 @@ function FindFoodBody() {
 
           {/* Quick suggestions chips */}
           <div className={styles.suggestionsRow}>
-            <span className={styles.suggestionsLabel}>Contoh pencarian:</span>
+            <span className={styles.suggestionsLabel}>Sering dicari:</span>
             <div className={styles.suggestionsList}>
-              {SUGGESTED_SEARCHES.map((keyword) => (
+              {suggestionsList.map((keyword) => (
                 <button
                   key={keyword}
                   type="button"
@@ -682,7 +694,7 @@ function FindFoodBody() {
                   {searchResults.length === 0 ? (
                     <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 text-xs text-text-muted">
                       <span>Rekomendasi kata kunci:</span>
-                      {["Buncis", "Nasi", "Ayam", "Sayur", "Telur", "Tempe", "Sambal"].map((suggestion) => (
+                      {suggestionsList.slice(0, 7).map((suggestion) => (
                         <button
                           key={suggestion}
                           type="button"
