@@ -372,7 +372,7 @@ function FindFoodBody() {
           <div className={styles.suggestionsRow}>
             <span className={styles.suggestionsLabel}>Sering dicari:</span>
             <div className={styles.suggestionsList}>
-              {suggestionsList.map((keyword) => (
+              {suggestionsList.slice(0, 8).map((keyword) => (
                 <button
                   key={keyword}
                   type="button"
