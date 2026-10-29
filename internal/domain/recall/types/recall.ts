@@ -14,9 +14,10 @@ export type RecallStep =
 export type AdditionalItem = {
   food_id?: string;     // ID makanan jika dipilih dari DB melalui search
   name: string;
-  amount: string;       // display: "3g", "10ml"
+  amount: string;       // display: "3g", "10ml", "Secukupnya"
   amount_value: number; // numerik
-  unit: string;         // "g" | "ml" | "mg" | "sdm" | "sdt" | "buah"
+  unit: string;         // "g" | "ml" | "mg" | "sdm" | "sdt" | "buah" | "porsi"
+  source?: "recommendation" | "search" | "custom";
 };
 
 /** Makanan yang tidak ditemukan di DB */

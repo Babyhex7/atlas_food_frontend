@@ -42,7 +42,13 @@ function useDebounce<T>(value: T, delay: number): T {
 
 interface AdditionalSearchProps {
   foodName: string;
-  onSelect: (item: { food_id?: string; name: string; unit: string; amount_value: number }) => void;
+  onSelect: (item: {
+    food_id?: string;
+    name: string;
+    unit: string;
+    amount_value: number;
+    source?: "recommendation" | "search" | "custom";
+  }) => void;
 }
 
 function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
@@ -104,8 +110,9 @@ function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
     onSelect({
       food_id: food.id,
       name: food.name,
-      unit: "sdm",
+      unit: "porsi",
       amount_value: 1,
+      source: "search",
     });
     setQuery("");
     setResults([]);
@@ -116,8 +123,9 @@ function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
     if (!query.trim()) return;
     onSelect({
       name: query.trim(),
-      unit: "sdm",
+      unit: "porsi",
       amount_value: 1,
+      source: "custom",
     });
     setQuery("");
     setResults([]);
@@ -176,7 +184,7 @@ function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
           {loading && results.length === 0 ? (
             <div className="flex items-center justify-center gap-2 py-6 text-xs text-text-muted">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span>Mencari di master makanan...</span>
+              <span>Mencari pelengkap...</span>
             </div>
           ) : results.length > 0 ? (
             <ul className="flex flex-col gap-0.5">
@@ -211,7 +219,7 @@ function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
             <div className="flex flex-col items-center justify-center gap-2 py-4 px-3 text-center">
               <SearchX className="h-6 w-6 text-text-muted" />
               <p className="text-xs text-text-muted">
-                Tidak ada makanan cocok dengan <span className="font-semibold text-text-primary">&ldquo;{query}&rdquo;</span> di database.
+                Tidak ada makanan cocok dengan <span className="font-semibold text-text-primary">&ldquo;{query}&rdquo;</span>.
               </p>
               <button
                 type="button"
@@ -279,20 +287,31 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
   }, [foods, dynamicAssociated]);
 
   const addOrUpdateItem = useCallback(
-    (foodId: string, item: { food_id?: string; name: string; unit: string; amount_value: number }) => {
+    (
+      foodId: string,
+      item: {
+        food_id?: string;
+        name: string;
+        unit: string;
+        amount_value: number;
+        source?: "recommendation" | "search" | "custom";
+      }
+    ) => {
       setFoodAdditionals((prev) => {
         const existing = prev[foodId] ?? [];
         if (existing.some((a) => a.name.toLowerCase() === item.name.toLowerCase())) {
           return prev;
         }
+        const isSearch = item.source === "search" || item.source === "custom";
         const nextItems: AdditionalItem[] = [
           ...existing,
           {
             food_id: item.food_id,
             name: item.name,
-            amount: `${item.amount_value} ${item.unit}`,
+            amount: isSearch ? "Secukupnya" : `${item.amount_value} ${item.unit}`,
             amount_value: item.amount_value,
             unit: item.unit,
+            source: item.source ?? "recommendation",
           },
         ];
         onSetAdditionals(foodId, nextItems);
@@ -307,7 +326,7 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
 
   const updateAmount = (foodId: string, name: string, value: string) => {
     const parsed = Number.parseFloat(value);
-    const numVal = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    const numVal = Number.isFinite(parsed) && parsed > 0 ? Math.min(50, Math.max(0.5, parsed)) : 1;
     setFoodAdditionals((prev) => {
       const nextItems = (prev[foodId] ?? []).map((a) =>
         a.name === name ? { ...a, amount_value: numVal, amount: `${numVal} ${a.unit}` } : a
@@ -423,7 +442,7 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
               <div className="mb-4">
                 <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
                   <Search className="h-3.5 w-3.5 text-primary" />
-                  <span>Cari Makanan Pelengkap / Bumbu dari Database:</span>
+                  <span>Cari Makanan Pelengkap / Bumbu:</span>
                 </label>
                 <AdditionalSearchBox
                   foodName={rf.food.name}
@@ -431,12 +450,12 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
                 />
               </div>
 
-              {/* Rekomendasi Cepat (Quick Chips) - murni dari database yang dikonfigurasi admin */}
+              {/* Rekomendasi Cepat (Quick Chips) */}
               {dynamicAssociated[rf.food.id] && dynamicAssociated[rf.food.id].length > 0 ? (
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
                     <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                    <span>Rekomendasi Cepat (Dikonfigurasi Admin / Ahli Gizi):</span>
+                    <span>Rekomendasi Cepat:</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {dynamicAssociated[rf.food.id].map((condiment) => {
@@ -457,6 +476,7 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
                                   name: condiment.name,
                                   unit: condiment.unit || "sdm",
                                   amount_value: condiment.defaultVal || 1,
+                                  source: "recommendation",
                                 })
                           }
                         >
@@ -481,82 +501,97 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
                       Pelengkap yang Dipakai ({items.length})
                     </span>
                     <span className="text-[11px] text-text-muted">
-                      Sesuaikan jumlah takaran & satuan
+                      Rekomendasi dapat disesuaikan takarannya
                     </span>
                   </div>
 
                   <ul className="flex flex-col gap-2.5">
-                    {items.map((item) => (
-                      <li
-                        key={item.name}
-                        className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 rounded-lg border border-border/80 bg-surface-alt/50 p-2.5 sm:px-3.5 sm:py-2.5 transition-colors"
-                      >
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <span className="text-sm font-semibold text-text-primary truncate">
-                            {item.name}
-                          </span>
-                          {item.food_id ? (
-                            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200/60 shrink-0">
-                              Database
-                            </span>
-                          ) : null}
-                        </div>
+                    {items.map((item) => {
+                      const isFromSearch =
+                        item.source === "search" ||
+                        item.source === "custom" ||
+                        !dynamicAssociated[rf.food.id]?.some(
+                          (c) =>
+                            (c.food_id && c.food_id === item.food_id) ||
+                            c.name.toLowerCase() === item.name.toLowerCase()
+                        );
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          {/* Stepper Jumlah Cepat [-] [ 1 ] [+] */}
-                          <div className="flex items-center rounded-lg border border-border bg-surface shadow-2xs">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const current = item.amount_value || 1;
-                                const nextVal = Math.max(0.5, current <= 1 ? current - 0.5 : current - 1);
-                                updateAmount(rf.food.id, item.name, String(nextVal));
-                              }}
-                              aria-label={`Kurangi ${item.name}`}
-                              className="flex h-8 w-7 items-center justify-center text-text-muted hover:bg-surface-alt hover:text-text-primary rounded-l-lg transition-colors font-bold text-sm"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min={0.5}
-                              step={0.5}
-                              inputMode="decimal"
-                              value={item.amount_value || 1}
-                              onChange={(e) => updateAmount(rf.food.id, item.name, e.target.value)}
-                              aria-label={`Jumlah ${item.name}`}
-                              className="h-8 w-12 border-x border-border bg-transparent text-center font-mono text-xs font-semibold text-text-primary focus:outline-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const current = item.amount_value || 1;
-                                const nextVal = current + (current < 1 ? 0.5 : 1);
-                                updateAmount(rf.food.id, item.name, String(nextVal));
-                              }}
-                              aria-label={`Tambah ${item.name}`}
-                              className="flex h-8 w-7 items-center justify-center text-text-muted hover:bg-surface-alt hover:text-text-primary rounded-r-lg transition-colors font-bold text-sm"
-                            >
-                              +
-                            </button>
+                      return (
+                        <li
+                          key={item.name}
+                          className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 rounded-lg border border-border/80 bg-surface-alt/50 p-2.5 sm:px-3.5 sm:py-2.5 transition-colors"
+                        >
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className="text-sm font-semibold text-text-primary truncate">
+                              {item.name}
+                            </span>
                           </div>
 
-                          <span className="text-xs font-semibold text-text-secondary min-w-[28px]">
-                            {item.unit || "sdm"}
-                          </span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {isFromSearch ? (
+                              <span className="rounded-md bg-surface-alt px-2.5 py-1 text-xs font-medium text-text-muted border border-border/60">
+                                Ditambahkan
+                              </span>
+                            ) : (
+                              <>
+                                {/* Stepper Jumlah Cepat [-] [ 1 ] [+] */}
+                                <div className="flex items-center rounded-lg border border-border bg-surface shadow-2xs">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const current = item.amount_value || 1;
+                                      const nextVal = Math.max(0.5, current <= 1 ? current - 0.5 : current - 1);
+                                      updateAmount(rf.food.id, item.name, String(nextVal));
+                                    }}
+                                    aria-label={`Kurangi ${item.name}`}
+                                    className="flex h-8 w-7 items-center justify-center text-text-muted hover:bg-surface-alt hover:text-text-primary rounded-l-lg transition-colors font-bold text-sm"
+                                  >
+                                    -
+                                  </button>
+                                  <input
+                                    type="number"
+                                    min={0.5}
+                                    max={50}
+                                    step={0.5}
+                                    inputMode="decimal"
+                                    value={item.amount_value || 1}
+                                    onChange={(e) => updateAmount(rf.food.id, item.name, e.target.value)}
+                                    aria-label={`Jumlah ${item.name}`}
+                                    className="h-8 w-12 border-x border-border bg-transparent text-center font-mono text-xs font-semibold text-text-primary focus:outline-none"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const current = item.amount_value || 1;
+                                      const nextVal = Math.min(50, current + (current < 1 ? 0.5 : 1));
+                                      updateAmount(rf.food.id, item.name, String(nextVal));
+                                    }}
+                                    aria-label={`Tambah ${item.name}`}
+                                    className="flex h-8 w-7 items-center justify-center text-text-muted hover:bg-surface-alt hover:text-text-primary rounded-r-lg transition-colors font-bold text-sm"
+                                  >
+                                    +
+                                  </button>
+                                </div>
 
-                          {/* Tombol Hapus */}
-                          <button
-                            type="button"
-                            onClick={() => removeItem(rf.food.id, item.name)}
-                            aria-label={`Hapus ${item.name}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-danger-light hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </li>
-                    ))}
+                                <span className="text-xs font-semibold text-text-secondary min-w-[28px]">
+                                  {item.unit || "sdm"}
+                                </span>
+                              </>
+                            )}
+
+                            {/* Tombol Hapus */}
+                            <button
+                              type="button"
+                              onClick={() => removeItem(rf.food.id, item.name)}
+                              aria-label={`Hapus ${item.name}`}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-danger-light hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ) : (
