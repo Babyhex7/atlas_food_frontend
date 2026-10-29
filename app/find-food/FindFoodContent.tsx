@@ -51,10 +51,12 @@ const MIN_SEARCH_LENGTH = 2;
 const SUGGESTED_SEARCHES = [
   "Nasi Putih",
   "Ayam Goreng",
+  "Buncis Tumis",
   "Tempe Goreng",
   "Telur Dadar",
   "Sayur Sop",
-  "Pisang",
+  "Pisang Ambon",
+  "Sambal Terasi",
 ];
 
 type PublicCategory = {
@@ -673,9 +675,25 @@ function FindFoodBody() {
 
                   <p>
                     {searchResults.length === 0
-                      ? "Coba gunakan kata kunci umum (misal: 'nasi', 'ayam'), nama lokal, atau kode kategori."
+                      ? "Coba gunakan kata kunci umum (misal: 'nasi', 'buncis', 'ayam'), nama lokal, atau kode kategori."
                       : "Ubah atau reset filter untuk menampilkan kembali semua hasil pencarian."}
                   </p>
+
+                  {searchResults.length === 0 ? (
+                    <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 text-xs text-text-muted">
+                      <span>Rekomendasi kata kunci:</span>
+                      {["Buncis", "Nasi", "Ayam", "Sayur", "Telur", "Tempe", "Sambal"].map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() => setSearchTerm(suggestion)}
+                          className="rounded-md border border-border bg-surface px-2.5 py-1 font-medium text-primary hover:border-primary cursor-pointer transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
 
                   {hasActiveFilters ? (
                     <button
