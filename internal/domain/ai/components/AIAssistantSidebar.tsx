@@ -24,6 +24,7 @@ interface AIAssistantSidebarProps {
   contextFoods?: string[];
   onSelectPortion?: (label: string, gram?: number) => void;
   onAddSuggestedFood?: (foodName: string) => void;
+  onSelectMeal?: (mealType: string, time?: string) => void;
 }
 
 export function AIAssistantSidebar({
@@ -34,6 +35,7 @@ export function AIAssistantSidebar({
   contextFoods = [],
   onSelectPortion,
   onAddSuggestedFood,
+  onSelectMeal,
 }: AIAssistantSidebarProps) {
   const {
     isOpen,
@@ -80,6 +82,23 @@ export function AIAssistantSidebar({
     sendMessage(text);
   };
 
+  const getFabLabel = () => {
+    switch (step) {
+      case "meal":
+        return "Asisten Waktu Makan";
+      case "food":
+        return "AI Cari Makanan";
+      case "portion":
+        return "Tanya AI Porsi";
+      case "additional":
+        return "Asisten Pelengkap";
+      case "review":
+        return "Audit Terlewat";
+      default:
+        return "Asisten AI";
+    }
+  };
+
   return (
     <>
       {/* ─── Floating Action Button (FAB) ─── */}
@@ -97,7 +116,7 @@ export function AIAssistantSidebar({
             </span>
           </div>
           <span className="text-sm font-semibold tracking-wide">
-            {step === "portion" ? "Tanya AI Porsi" : "Asisten AI"}
+            {getFabLabel()}
           </span>
         </button>
       )}
@@ -216,6 +235,38 @@ export function AIAssistantSidebar({
                         </div>
                         <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-transform" />
                       </button>
+                    </div>
+                  )}
+
+                  {/* ─── Smart Action Chip: Pilih Waktu Makan (Step 1) ─── */}
+                  {!isUser && step === "meal" && onSelectMeal && (
+                    <div className="mt-2.5 pt-2 border-t border-slate-100">
+                      <p className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
+                        Pilih Cepat Sesi Makan:
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { name: "Sarapan", time: "07:00" },
+                          { name: "Snack Pagi", time: "10:00" },
+                          { name: "Makan Siang", time: "12:30" },
+                          { name: "Snack Sore", time: "16:00" },
+                          { name: "Makan Malam", time: "19:00" },
+                          { name: "Snack Malam", time: "21:30" },
+                        ].map((m) => (
+                          <button
+                            key={m.name}
+                            onClick={() => onSelectMeal(m.name, m.time)}
+                            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold border transition-all ${
+                              mealType === m.name
+                                ? "bg-red-600 text-white border-red-600 shadow-xs"
+                                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
+                            }`}
+                          >
+                            <CheckCircle2 className="h-3 w-3" />
+                            <span>{m.name} ({m.time})</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 

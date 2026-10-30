@@ -21,6 +21,7 @@ import { useCollab } from "@/internal/domain/collab";
 import { Banner, Button, StepHeader, StepNav, StepShell } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
 import { getImageUrl } from "@/internal/lib/image";
+import { AIAssistantSidebar } from "@/internal/domain/ai";
 
 /** Panjang minimum query — disamakan dengan validasi backend. */
 const MIN_QUERY_LENGTH = 3;
@@ -374,6 +375,28 @@ export function Step2AddFood({
   const canContinue = addedFoods.length > 0;
   const addedIds = useMemo(() => new Set(addedFoods.map((f) => f.food.id)), [addedFoods]);
 
+  const handleAddAISuggestedFood = useCallback(
+    async (foodName: string) => {
+      try {
+        const results = await searchFoodsPublic(foodName, "food", 5);
+        if (results && results.length > 0) {
+          onAddFood(results[0], "food");
+        } else {
+          onAddMissing({
+            name: foodName,
+            description: `Diekstrak oleh Asisten AI (${mealType})`,
+          });
+        }
+      } catch {
+        onAddMissing({
+          name: foodName,
+          description: `Diekstrak oleh Asisten AI (${mealType})`,
+        });
+      }
+    },
+    [mealType, onAddFood, onAddMissing]
+  );
+
   return (
     <StepShell>
       <StepHeader
@@ -526,6 +549,14 @@ export function Step2AddFood({
           Lanjut ke Estimasi Porsi
         </Button>
       </StepNav>
+
+      {/* Asisten AI Recall Sidebar (Ekstraksi & Pencarian Makanan Cepat) */}
+      <AIAssistantSidebar
+        step="food"
+        mealType={mealType}
+        contextFoods={addedFoods.map((f) => f.food.name)}
+        onAddSuggestedFood={handleAddAISuggestedFood}
+      />
     </StepShell>
   );
 }

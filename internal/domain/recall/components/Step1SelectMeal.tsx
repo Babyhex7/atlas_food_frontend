@@ -14,6 +14,7 @@ import {
   StepShell,
 } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
+import { AIAssistantSidebar } from "@/internal/domain/ai";
 
 interface MealOption {
   name: string;
@@ -237,6 +238,16 @@ export function Step1SelectMeal({
           </Button>
         </div>
       </StepNav>
+
+      {/* Asisten AI Recall Sidebar (Waktu & Sesi Makan) */}
+      <AIAssistantSidebar
+        step="meal"
+        mealType={mealType}
+        onSelectMeal={(type, time) => {
+          onMealTypeChange(type);
+          if (time) onMealTimeChange(time);
+        }}
+      />
     </StepShell>
   );
 }
