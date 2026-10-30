@@ -64,3 +64,40 @@ export function normalizeStatus(raw: string | undefined): NutritionStatus {
   }
   return "unknown";
 }
+
+/**
+ * Tipe untuk Asisten AI Interaktif Recall per-step (Slide-over drawer)
+ */
+export type AssistantStep = "meal" | "food" | "portion" | "additional" | "review";
+
+export type AvailablePortion = {
+  label: string;
+  weight_gram: number;
+  description?: string;
+};
+
+export type AssistantRequest = {
+  step: AssistantStep;
+  food_name?: string;
+  user_query: string;
+  available_portions?: AvailablePortion[];
+  context_foods?: string[];
+  meal_type?: string;
+};
+
+export type AssistantResponse = {
+  explanation: string;
+  recommended_label?: string;
+  recommended_gram?: number;
+  suggested_foods?: string[];
+  quick_replies?: string[];
+};
+
+export type ChatMessage = {
+  id: string;
+  sender: "user" | "assistant";
+  text: string;
+  timestamp: Date;
+  response?: AssistantResponse;
+};
+

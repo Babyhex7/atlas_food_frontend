@@ -1,5 +1,7 @@
 import { apiClient } from "@/internal/lib/axios";
 import type {
+  AssistantRequest,
+  AssistantResponse,
   NutritionAnalysisData,
   NutritionAnalysisItem,
   NutritionAnalysisResult,
@@ -78,5 +80,30 @@ export async function analyzeNutrition(submissionId: string): Promise<NutritionA
   return {
     source,
     data: normalizeAnalysisData(body.data),
+  };
+}
+
+/**
+ * askAssistant — POST /api/v1/ai/assistant
+ * Asisten interaktif per step recall (panduan URT, konversi porsi, dsb)
+ */
+export async function askAssistant(req: AssistantRequest): Promise<AssistantResponse> {
+  const response = await apiClient.post<{ status: string; data: AssistantResponse }>(
+    "/ai/assistant",
+    req,
+    { timeout: 25_000 }
+  );
+
+  const resData = response.data?.data;
+  if (!resData) {
+    throw new Error("Respon asisten AI kosong");
+  }
+
+  return {
+    explanation: resData.explanation || "Berikut estimasi porsi berdasarkan data makanan Anda.",
+    recommended_label: resData.recommended_label,
+    recommended_gram: resData.recommended_gram,
+    suggested_foods: Array.isArray(resData.suggested_foods) ? resData.suggested_foods : [],
+    quick_replies: Array.isArray(resData.quick_replies) ? resData.quick_replies : [],
   };
 }
