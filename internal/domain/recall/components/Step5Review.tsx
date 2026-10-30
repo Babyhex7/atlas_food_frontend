@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   AlertCircle,
   ClipboardList,
@@ -24,6 +24,7 @@ import { useCollab } from "@/internal/domain/collab";
 import { Button, Card, StepHeader, StepNav, StepShell } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
 import { getImageUrl } from "@/internal/lib/image";
+import { AIAssistantSidebar } from "@/internal/domain/ai";
 
 interface Props {
   session: RecallSession;
@@ -141,6 +142,11 @@ export function Step5Review({
   // Item di-flatten bersama waktu makannya: makanan yang sama bisa muncul di dua
   // waktu makan, jadi identitas baris harus mencakup meal agar key tetap unik.
   const rows = session.meals.flatMap((meal) => meal.foods.map((food) => ({ meal, food })));
+
+  const allFoodNames = useMemo(
+    () => session.meals.flatMap((m) => m.foods.map((f) => f.food.name)),
+    [session.meals]
+  );
 
   const allAdditionals: AdditionalItem[] = rows
     .flatMap(({ food }) => food.additionals ?? [])
@@ -400,6 +406,12 @@ export function Step5Review({
           {submitting ? "Mengirim..." : "Kirim Laporan Recall"}
         </Button>
       </StepNav>
+
+      {/* Asisten AI Recall Sidebar (Audit & Review Makanan Terlewat) */}
+      <AIAssistantSidebar
+        step="review"
+        contextFoods={allFoodNames}
+      />
     </StepShell>
   );
 }

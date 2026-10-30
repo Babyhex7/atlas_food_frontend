@@ -31,6 +31,7 @@ import {
   StepShell,
 } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
+import { AIAssistantSidebar } from "@/internal/domain/ai";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -378,6 +379,20 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
     });
   };
 
+  const handleAddAISuggestedItem = useCallback(
+    (suggestedName: string) => {
+      const targetFood = foods[0];
+      if (!targetFood) return;
+      addOrUpdateItem(targetFood.food.id, {
+        name: suggestedName,
+        unit: "sdm",
+        amount_value: 1,
+        source: "custom",
+      });
+    },
+    [foods, addOrUpdateItem]
+  );
+
   /** Simpan seluruh bahan tambahan ke session sebelum berpindah langkah */
   const persist = () => {
     foods.forEach((f) => onSetAdditionals(f.food.id, foodAdditionals[f.food.id] ?? []));
@@ -636,6 +651,14 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
           Lanjut ke Tinjau
         </Button>
       </StepNav>
+
+      {/* Asisten AI Recall Sidebar (Bahan pelengkap, bumbu, saus) */}
+      <AIAssistantSidebar
+        step="additional"
+        foodName={foods.map((f) => f.food.name).join(", ")}
+        contextFoods={foods.map((f) => f.food.name)}
+        onAddSuggestedFood={handleAddAISuggestedItem}
+      />
     </StepShell>
   );
 }
