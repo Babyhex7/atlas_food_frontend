@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useCanvasStore } from "../store/canvasStore";
 import { useCollabStore } from "../store/collabStore";
 import { useCollab } from "./CollabSession";
@@ -31,6 +31,24 @@ export function CanvasToolbar({ onClear }: CanvasToolbarProps) {
   // Floating palette dibuka-tutup
   const [isOpen, setIsOpen] = useState(false);
   const { send } = useCollab();
+
+  // Posisi shortcut tombol pensil yang dapat dipindahkan (draggable)
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const dragRef = useRef<{
+    isDragging: boolean;
+    startX: number;
+    startY: number;
+    initialX: number;
+    initialY: number;
+    hasMoved: boolean;
+  }>({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    initialX: 0,
+    initialY: 0,
+    hasMoved: false,
+  });
 
   const {
     activeTool,
@@ -68,34 +86,74 @@ export function CanvasToolbar({ onClear }: CanvasToolbarProps) {
     setDrawingMode(nextMode);
   };
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    dragRef.current = {
+      isDragging: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialX: rect.left,
+      initialY: rect.top,
+      hasMoved: false,
+    };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dragRef.current.isDragging) return;
+    const deltaX = e.clientX - dragRef.current.startX;
+    const deltaY = e.clientY - dragRef.current.startY;
+    if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
+      dragRef.current.hasMoved = true;
+    }
+    const newX = Math.max(12, Math.min(window.innerWidth - 56, dragRef.current.initialX + deltaX));
+    const newY = Math.max(64, Math.min(window.innerHeight - 56, dragRef.current.initialY + deltaY));
+    setPos({ x: newX, y: newY });
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dragRef.current.isDragging) return;
+    dragRef.current.isDragging = false;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
+  const handleTriggerClick = () => {
+    if (dragRef.current.hasMoved) return;
+    setIsOpen(true);
+  };
+
   return (
     <>
-      {/* ── Trigger Pill (Saat Palette Tertutup) ────────────────────────── */}
+      {/* ── Trigger Icon Pensil Draggable (Tanpa Tulisan) ──────────────── */}
       {!isOpen && (
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
-          title="Buka Alat Gambar & Live Annotation"
-          className="fixed right-4 bottom-20 sm:bottom-6 z-[70] flex items-center gap-2.5 rounded-full bg-slate-900/90 hover:bg-slate-800 text-white px-4 py-2.5 shadow-2xl border border-slate-700/80 backdrop-blur-xl transition-all duration-200 hover:scale-105 cursor-pointer select-none group"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onClick={handleTriggerClick}
+          title="Alat Gambar Live Annotation (Geser untuk memindahkan)"
+          aria-label="Buka Live Canvas Annotation"
+          style={
+            pos
+              ? { left: `${pos.x}px`, top: `${pos.y}px` }
+              : { bottom: "5.5rem", right: "1.5rem" }
+          }
+          className="fixed z-[70] h-11 w-11 rounded-full bg-slate-900/95 hover:bg-slate-800 text-white shadow-xl border border-slate-700/80 backdrop-blur-xl flex items-center justify-center cursor-grab active:cursor-grabbing select-none transition-transform active:scale-95 group touch-none"
         >
-          <span className="relative flex h-2.5 w-2.5">
-            {isDrawingMode && (
+          {isDrawingMode && (
+            <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            )}
-            <span
-              className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                isDrawingMode ? "bg-emerald-400" : "bg-slate-400"
-              }`}
-            />
-          </span>
-          <Pencil className="w-4 h-4 text-rose-400 transition-transform group-hover:-rotate-12" />
-          <span className="text-xs font-semibold tracking-wide">
-            Live Annotation
-          </span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+            </span>
+          )}
+          <Pencil className="w-5 h-5 text-rose-400 group-hover:scale-110 transition-transform" />
         </button>
       )}
 
-      {/* ── Floating Modern Palette (Saat Terbuka) ───────────────────────── */}
+      {/* ── Floating Modern Palette (Saat Terbuka Tetap di Kanan) ───────── */}
       {isOpen && (
         <div
           role="region"

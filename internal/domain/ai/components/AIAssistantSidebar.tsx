@@ -106,16 +106,12 @@ export function AIAssistantSidebar({
         <button
           onClick={toggleOpen}
           aria-label="Buka Asisten AI"
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 px-4 py-3 text-white shadow-xl shadow-red-500/25 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/35 focus:outline-none focus:ring-4 focus:ring-red-500/30 active:scale-95 group"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-white hover:bg-slate-50 text-slate-800 px-3.5 py-2 shadow-lg border border-slate-200/90 transition-all duration-150 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-red-500/30 active:scale-95"
         >
-          <div className="relative flex items-center justify-center">
-            <Sparkles className="h-5 w-5 animate-pulse text-amber-200" />
-            <span className="absolute -top-1 -right-1 flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-300 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400"></span>
-            </span>
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-50 text-red-600">
+            <Sparkles className="h-3.5 w-3.5" />
           </div>
-          <span className="text-sm font-semibold tracking-wide">
+          <span className="text-xs font-semibold text-slate-700 tracking-tight">
             {getFabLabel()}
           </span>
         </button>
@@ -125,32 +121,32 @@ export function AIAssistantSidebar({
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-xs transition-opacity duration-300 md:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/20 backdrop-blur-xs transition-opacity duration-200 md:hidden"
         />
       )}
 
       {/* ─── Slide-Over Drawer ─── */}
       <aside
-        className={`fixed top-0 right-0 z-50 flex h-full w-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:w-[400px] border-l border-slate-200 ${
+        className={`fixed top-0 right-0 z-50 flex h-full w-full flex-col bg-white shadow-2xl transition-transform duration-200 ease-in-out sm:w-[380px] border-l border-slate-200 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
         aria-label="Panel Asisten AI Atlas"
       >
         {/* Drawer Header */}
-        <header className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-4 py-3.5 text-white">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-amber-500 shadow-md shadow-red-500/20">
-              <Sparkles className="h-5 w-5 text-white" />
+        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 border border-red-100">
+              <Bot className="h-4 w-4" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h3 className="text-sm font-bold tracking-tight">Atlas AI Assistant</h3>
-                <span className="rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300 border border-amber-400/30">
-                  URT Kemenkes
+                <h3 className="text-xs font-bold text-slate-900">Asisten Recall</h3>
+                <span className="rounded px-1.5 py-0.2 text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                  URT Standar
                 </span>
               </div>
-              <p className="text-[11px] text-slate-300 line-clamp-1">
-                {foodName ? `Konteks: ${foodName}` : "Panduan Estimasi Porsi & URT"}
+              <p className="text-[11px] text-slate-500 line-clamp-1">
+                {foodName ? `Konteks: ${foodName}` : "Panduan Estimasi & Porsi"}
               </p>
             </div>
           </div>
@@ -159,29 +155,29 @@ export function AIAssistantSidebar({
             <button
               onClick={resetChat}
               title="Mulai Ulang Chat"
-              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+              className="rounded-md p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => setIsOpen(false)}
               title="Tutup Panel"
-              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+              className="rounded-md p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         </header>
 
         {/* Info Banner Konteks Makanan */}
         {foodName && step === "portion" && (
-          <div className="flex items-center justify-between bg-amber-50/80 px-4 py-2 text-xs border-b border-amber-100 text-amber-900">
+          <div className="flex items-center justify-between bg-slate-50 px-4 py-2 text-xs border-b border-slate-200 text-slate-700">
             <div className="flex items-center gap-1.5 font-medium line-clamp-1">
-              <span className="text-amber-600 font-bold">Makanan:</span>
-              <span className="font-semibold">{foodName}</span>
+              <span className="text-slate-500">Makanan:</span>
+              <span className="font-semibold text-slate-900">{foodName}</span>
             </div>
             {availablePortions.length > 0 && (
-              <span className="text-[11px] text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded-full shrink-0 font-medium">
+              <span className="text-[10px] text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full shrink-0 font-medium">
                 {availablePortions.length} Foto Porsi
               </span>
             )}
@@ -189,7 +185,7 @@ export function AIAssistantSidebar({
         )}
 
         {/* Chat History Container */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/40">
           {messages.map((msg) => {
             const isUser = msg.sender === "user";
             return (
@@ -198,16 +194,16 @@ export function AIAssistantSidebar({
                 className={`flex gap-2.5 ${isUser ? "justify-end" : "justify-start"}`}
               >
                 {!isUser && (
-                  <div className="flex h-7 w-7 shrink-0 select-none items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-xs">
-                    <Bot className="h-4 w-4" />
+                  <div className="flex h-6 w-6 shrink-0 select-none items-center justify-center rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                    <Bot className="h-3.5 w-3.5" />
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed shadow-xs transition-all ${
+                  className={`max-w-[85%] rounded-xl px-3.5 py-2.5 text-xs leading-relaxed shadow-xs transition-all ${
                     isUser
-                      ? "bg-red-600 text-white rounded-tr-xs"
-                      : "bg-white text-slate-800 border border-slate-200/80 rounded-tl-xs"
+                      ? "bg-slate-900 text-white rounded-tr-xs"
+                      : "bg-white text-slate-800 border border-slate-200/90 rounded-tl-xs"
                   }`}
                 >
                   <p className="whitespace-pre-line">{msg.text}</p>
@@ -222,10 +218,10 @@ export function AIAssistantSidebar({
                             msg.response!.recommended_gram
                           )
                         }
-                        className="group flex w-full items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-red-50 to-amber-50 px-3 py-2 text-xs font-semibold text-red-700 border border-red-200/80 transition-all hover:bg-gradient-to-r hover:from-red-600 hover:to-rose-600 hover:text-white hover:border-transparent hover:shadow-md hover:shadow-red-500/20 active:scale-98"
+                        className="flex w-full items-center justify-between gap-2 rounded-lg bg-red-50 hover:bg-red-600 hover:text-white text-red-700 border border-red-200 px-3 py-2 text-xs font-medium transition-colors group"
                       >
                         <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-600 group-hover:text-white" />
+                          <CheckCircle2 className="h-3.5 w-3.5 text-red-600 group-hover:text-white" />
                           <span>
                             Pilih Porsi {msg.response.recommended_label}
                             {msg.response.recommended_gram
@@ -242,7 +238,7 @@ export function AIAssistantSidebar({
                   {!isUser && step === "meal" && onSelectMeal && (
                     <div className="mt-2.5 pt-2 border-t border-slate-100">
                       <p className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
-                        Pilih Cepat Sesi Makan:
+                        Pilih Sesi Makan:
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {[
@@ -256,13 +252,12 @@ export function AIAssistantSidebar({
                           <button
                             key={m.name}
                             onClick={() => onSelectMeal(m.name, m.time)}
-                            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold border transition-all ${
+                            className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-medium border transition-colors ${
                               mealType === m.name
-                                ? "bg-red-600 text-white border-red-600 shadow-xs"
-                                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
+                                ? "bg-slate-900 text-white border-slate-900"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                             }`}
                           >
-                            <CheckCircle2 className="h-3 w-3" />
                             <span>{m.name} ({m.time})</span>
                           </button>
                         ))}
@@ -284,9 +279,9 @@ export function AIAssistantSidebar({
                             <button
                               key={idx}
                               onClick={() => onAddSuggestedFood(food)}
-                              className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border border-slate-200 transition-colors"
+                              className="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 hover:text-red-700 hover:border-red-200 border border-slate-200 transition-colors"
                             >
-                              <span>+</span> {food}
+                              <span className="text-slate-400 font-bold">+</span> {food}
                             </button>
                           ))}
                         </div>
@@ -295,8 +290,8 @@ export function AIAssistantSidebar({
                 </div>
 
                 {isUser && (
-                  <div className="flex h-7 w-7 shrink-0 select-none items-center justify-center rounded-lg bg-slate-200 text-slate-700">
-                    <User className="h-4 w-4" />
+                  <div className="flex h-6 w-6 shrink-0 select-none items-center justify-center rounded-md bg-red-100 text-red-700 border border-red-200">
+                    <User className="h-3.5 w-3.5" />
                   </div>
                 )}
               </div>
@@ -305,15 +300,15 @@ export function AIAssistantSidebar({
 
           {/* Loading Indicator */}
           {isLoading && (
-            <div className="flex gap-2.5 items-center text-slate-500 text-xs py-1">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 text-white">
-                <Bot className="h-4 w-4" />
+            <div className="flex gap-2 items-center text-slate-500 text-xs py-1">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-500 border border-slate-200">
+                <Bot className="h-3.5 w-3.5" />
               </div>
-              <div className="flex items-center gap-1.5 bg-white border border-slate-200/80 rounded-2xl rounded-tl-xs px-3 py-2 shadow-xs">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-600 animate-bounce [animation-delay:-0.3s]"></span>
-                <span className="h-1.5 w-1.5 rounded-full bg-red-600 animate-bounce [animation-delay:-0.15s]"></span>
-                <span className="h-1.5 w-1.5 rounded-full bg-red-600 animate-bounce"></span>
-                <span className="text-[11px] text-slate-500 ml-1.5">Menganalisis porsi...</span>
+              <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl rounded-tl-xs px-3 py-2 shadow-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-pulse"></span>
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-pulse [animation-delay:200ms]"></span>
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-pulse [animation-delay:400ms]"></span>
+                <span className="text-[11px] text-slate-500 ml-1">Menganalisis porsi URT...</span>
               </div>
             </div>
           )}
@@ -329,12 +324,12 @@ export function AIAssistantSidebar({
 
           return (
             <div className="px-3 py-2 bg-white border-t border-slate-100 overflow-x-auto no-scrollbar flex items-center gap-1.5">
-              <MessageSquare className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <MessageSquare className="h-3 w-3 text-slate-400 shrink-0" />
               {quickReplies.map((reply, i) => (
                 <button
                   key={i}
                   onClick={() => handleQuickReply(reply)}
-                  className="shrink-0 rounded-full bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border border-slate-200 px-2.5 py-1 text-[11px] text-slate-600 transition-colors"
+                  className="shrink-0 rounded-md bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 text-[11px] transition-colors"
                 >
                   {reply}
                 </button>
@@ -354,15 +349,15 @@ export function AIAssistantSidebar({
               placeholder={
                 step === "portion"
                   ? "Tanya porsi (mis. 2 potong sedang)..."
-                  : "Ketik pertanyaan Anda..."
+                  : "Tanyakan bantuan recall..."
               }
               disabled={isLoading}
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 disabled:opacity-50"
+              className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-xs transition-all hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/30 disabled:opacity-40 disabled:hover:bg-red-600"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white transition-colors hover:bg-red-700 focus:outline-none disabled:opacity-40"
             >
               <Send className="h-3.5 w-3.5" />
             </button>
@@ -371,9 +366,9 @@ export function AIAssistantSidebar({
           <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
             <span className="flex items-center gap-1">
               <Info className="h-3 w-3 text-slate-400" />
-              Gizi dihitung akurat dari TKPI 2020
+              Standar URT Kemenkes & TKPI
             </span>
-            <span>Didukung Groq AI</span>
+            <span>Asisten AI</span>
           </div>
         </footer>
       </aside>
