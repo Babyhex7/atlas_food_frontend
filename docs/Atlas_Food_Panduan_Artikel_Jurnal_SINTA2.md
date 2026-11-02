@@ -942,6 +942,30 @@ Endpoint publik hanya menyajikan anotasi *published* (ditegakkan di lapis reposi
 
 **Relevansi untuk naskah:** mutu data R24J berbanding lurus dengan kelengkapan katalog — makanan tanpa foto porsi memaksa isi berat manual (bias naik); makanan yang tidak ada masuk `missing_foods` dan tidak dihitung gizinya.
 
+### D8.1 Kontrak API Ringkas
+
+**Basis:** `/api/v1` · **Autentikasi:** JWT (*cookie*; *query* untuk WS)
+
+| Kategori | Metode | Endpoint | Fungsi |
+|---|---|---|---|
+| **Publik** | GET | `/public/foods/search?q=&food_type=&limit=` | Pencarian makanan (min. 3 karakter) |
+| | GET | `/public/foods/{id}` | Detail makanan: zat gizi + foto porsi |
+| | GET | `/public/categories` & `/{code}/foods` | Daftar kategori & makanan per kategori |
+| | GET | `/public/food-images/…` | Anotasi foto porsi *published* |
+| **Auth** | POST | `/auth/register`, `/login`, `/refresh` | Registrasi & otentikasi JWT |
+| | GET/PATCH | `/auth/me`, `/auth/me/password`, `/photo` | Profil pengguna |
+| **Responden** | GET | `/survey/active`, `/survey/{id}/info` | Survei aktif & metadata |
+| | POST | `/survey/access` | Bergabung sebagai partisipan survei |
+| | POST | `/survey/submit` | Pengiriman laporan recall 6-langkah |
+| | POST | `/ai/nutrition-analysis` | Analisis gizi LLM (Groq) |
+| **Admin** | CRUD | `/admin/surveys` | Kelola survei, konfigurasi waktu makan, klona, ekspor |
+| | CRUD | `/admin/foods`, `/categories`, `/as-served-sets` | Kelola katalog pangan, zat gizi, dan set foto porsi |
+| | CRUD | `/admin/food-images`, `/areas`, `/publish` | CMS anotasi poligon foto porsi makanan |
+| **Kolaborasi**| GET | `/collab/rooms/{room_id}/ws?token=&invite=` | *Handshake* & upgrade WebSocket |
+| | GET/POST | `/collab/rooms/{room_id}`, `/invite` | Info ruang & buat token undangan |
+| | DELETE | `/collab/invites/{token}` | Cabut token undangan |
+| | GET | `/collab/stats` | Pemantauan statistik *hub* WebSocket |
+
 ## D9. Katalog Cacat & Perbaikan
 
 Hasil penelusuran end-to-end; laporkan di Hasil → Pengujian Fungsional (ringkas per kategori).
