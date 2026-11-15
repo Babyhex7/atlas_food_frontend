@@ -9,6 +9,7 @@ import {
   ImageIcon,
   LayoutDashboard,
   LogOut,
+  Sparkles,
   UtensilsCrossed,
 } from "lucide-react";
 import { useAuth } from "@/internal/domain/auth/hooks/useAuth";
@@ -40,6 +41,7 @@ const NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: "/admin/foods", label: "Makanan", icon: UtensilsCrossed },
       { href: "/admin/categories", label: "Kategori", icon: FolderOpen },
+      { href: "/admin/missing-foods", label: "Missing & AI", icon: Sparkles },
     ],
   },
 ];
