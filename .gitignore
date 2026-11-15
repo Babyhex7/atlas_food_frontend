@@ -18,3 +18,8 @@ tsconfig.tsbuildinfo
 playwright-report/
 
 test-results/
+
+# AI Agent Instructions
+agent.md
+AGENTS.md
+

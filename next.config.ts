@@ -28,6 +28,7 @@ const apiHostname = getApiHostname();
 const storageHostname = getStorageHostname();
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   env: {
     API_URL: process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "",
     WS_URL: process.env.WS_URL || process.env.NEXT_PUBLIC_WS_URL || "",

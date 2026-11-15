@@ -13,6 +13,7 @@
     "@hookform/resolvers": "^5.4.0",
     "@tailwindcss/typography": "^0.5.20",
     "@tanstack/react-query": "latest",
+    "atlas-food-frontend": "file:",
     "autoprefixer": "^10.5.0",
     "axios": "^1.18.0",
     "canvas-confetti": "^1.9.4",
