@@ -140,12 +140,12 @@ export function AIAssistantSidebar({
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h3 className="text-xs font-bold text-slate-900">Asisten Recall</h3>
-                <span className="rounded px-1.5 py-0.2 text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                <h3 className="text-sm font-bold text-slate-900">Asisten Recall</h3>
+                <span className="rounded px-1.5 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
                   URT Standar
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 line-clamp-1">
+              <p className="text-xs text-slate-500 line-clamp-1">
                 {foodName ? `Konteks: ${foodName}` : "Panduan Estimasi & Porsi"}
               </p>
             </div>
@@ -200,7 +200,7 @@ export function AIAssistantSidebar({
                 )}
 
                 <div
-                  className={`max-w-[85%] rounded-xl px-3.5 py-2.5 text-xs leading-relaxed shadow-xs transition-all ${
+                  className={`max-w-[85%] rounded-xl px-3.5 py-2.5 text-[13.5px] sm:text-sm leading-relaxed shadow-xs transition-all ${
                     isUser
                       ? "bg-slate-900 text-white rounded-tr-xs"
                       : "bg-white text-slate-800 border border-slate-200/90 rounded-tl-xs"
@@ -218,10 +218,10 @@ export function AIAssistantSidebar({
                             msg.response!.recommended_gram
                           )
                         }
-                        className="flex w-full items-center justify-between gap-2 rounded-lg bg-red-50 hover:bg-red-600 hover:text-white text-red-700 border border-red-200 px-3 py-2 text-xs font-medium transition-colors group"
+                        className="flex w-full items-center justify-between gap-2 rounded-lg bg-red-50 hover:bg-red-600 hover:text-white text-red-700 border border-red-200 px-3 py-2 text-xs sm:text-sm font-semibold transition-colors group"
                       >
                         <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-red-600 group-hover:text-white" />
+                          <CheckCircle2 className="h-4 w-4 text-red-600 group-hover:text-white" />
                           <span>
                             Pilih Porsi {msg.response.recommended_label}
                             {msg.response.recommended_gram
@@ -229,7 +229,7 @@ export function AIAssistantSidebar({
                               : ""}
                           </span>
                         </div>
-                        <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-transform" />
+                        <ChevronRight className="h-4 w-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-transform" />
                       </button>
                     </div>
                   )}
@@ -237,7 +237,7 @@ export function AIAssistantSidebar({
                   {/* ─── Smart Action Chip: Pilih Waktu Makan (Step 1) ─── */}
                   {!isUser && step === "meal" && onSelectMeal && (
                     <div className="mt-2.5 pt-2 border-t border-slate-100">
-                      <p className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
+                      <p className="text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
                         Pilih Sesi Makan:
                       </p>
                       <div className="flex flex-wrap gap-1.5">
@@ -252,7 +252,7 @@ export function AIAssistantSidebar({
                           <button
                             key={m.name}
                             onClick={() => onSelectMeal(m.name, m.time)}
-                            className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-medium border transition-colors ${
+                            className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium border transition-colors ${
                               mealType === m.name
                                 ? "bg-slate-900 text-white border-slate-900"
                                 : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
@@ -271,7 +271,7 @@ export function AIAssistantSidebar({
                     msg.response.suggested_foods.length > 0 &&
                     onAddSuggestedFood && (
                       <div className="mt-2.5 pt-2 border-t border-slate-100">
-                        <p className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
+                        <p className="text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
                           Makanan Terkait:
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -279,7 +279,7 @@ export function AIAssistantSidebar({
                             <button
                               key={idx}
                               onClick={() => onAddSuggestedFood(food)}
-                              className="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 hover:text-red-700 hover:border-red-200 border border-slate-200 transition-colors"
+                              className="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-red-700 hover:border-red-200 border border-slate-200 transition-colors"
                             >
                               <span className="text-slate-400 font-bold">+</span> {food}
                             </button>
@@ -308,7 +308,7 @@ export function AIAssistantSidebar({
                 <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-pulse"></span>
                 <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-pulse [animation-delay:200ms]"></span>
                 <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-pulse [animation-delay:400ms]"></span>
-                <span className="text-[11px] text-slate-500 ml-1">Menganalisis porsi URT...</span>
+                <span className="text-xs text-slate-500 ml-1">Menganalisis porsi URT...</span>
               </div>
             </div>
           )}
@@ -324,12 +324,12 @@ export function AIAssistantSidebar({
 
           return (
             <div className="px-3 py-2 bg-white border-t border-slate-100 overflow-x-auto no-scrollbar flex items-center gap-1.5">
-              <MessageSquare className="h-3 w-3 text-slate-400 shrink-0" />
+              <MessageSquare className="h-3.5 w-3.5 text-slate-400 shrink-0" />
               {quickReplies.map((reply, i) => (
                 <button
                   key={i}
                   onClick={() => handleQuickReply(reply)}
-                  className="shrink-0 rounded-md bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 text-[11px] transition-colors"
+                  className="shrink-0 rounded-md bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 text-xs transition-colors"
                 >
                   {reply}
                 </button>
@@ -352,14 +352,14 @@ export function AIAssistantSidebar({
                   : "Tanyakan bantuan recall..."
               }
               disabled={isLoading}
-              className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-50"
+              className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white transition-colors hover:bg-red-700 focus:outline-none disabled:opacity-40"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white transition-colors hover:bg-red-700 focus:outline-none disabled:opacity-40"
             >
-              <Send className="h-3.5 w-3.5" />
+              <Send className="h-4 w-4" />
             </button>
           </form>
 
