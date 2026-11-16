@@ -10,6 +10,7 @@ import {
   Plus,
   Search,
   SearchX,
+  Sparkles,
   Trash2,
   UtensilsCrossed,
 } from "lucide-react";
@@ -336,19 +337,25 @@ function FoodSearchBox({
             })}
 
             {showMissingHint ? (
-              <div className="flex flex-wrap items-center gap-2 bg-surface-alt px-4 py-3 text-xs text-text-muted">
-                <SearchX aria-hidden className="h-4 w-4 shrink-0" />
-                <span>Tidak ketemu?</span>
-                <button
-                  type="button"
-                  className="font-semibold text-primary hover:underline"
-                  onClick={() => {
-                    onAddMissing({ name: debouncedQuery });
-                    resetSearch();
-                  }}
-                >
-                  Catat &quot;{debouncedQuery}&quot; secara manual
-                </button>
+              <div className="flex flex-col gap-1.5 bg-surface-alt px-4 py-3 text-xs text-text-muted border-t border-border">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles aria-hidden className="h-3.5 w-3.5 shrink-0 text-primary" />
+                  <span className="font-medium text-text-primary">Makanan tidak ditemukan di katalog?</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-1">
+                  <span>Klik untuk</span>
+                  <button
+                    type="button"
+                    className="font-semibold text-primary underline underline-offset-2 hover:text-primary-dark"
+                    onClick={() => {
+                      onAddMissing({ name: debouncedQuery });
+                      resetSearch();
+                    }}
+                  >
+                    catat &quot;{debouncedQuery}&quot; secara manual
+                  </button>
+                  <span>— item akan direview & digenerate porsinya oleh AI Studio.</span>
+                </div>
               </div>
             ) : null}
           </div>

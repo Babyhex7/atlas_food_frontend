@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Sparkles,
   AlertCircle,
@@ -14,6 +15,7 @@ import {
   Scale,
   X,
   Search,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/internal/pkg/components/Button";
 import { PageHeader } from "@/internal/pkg/components/PageHeader";
@@ -28,6 +30,7 @@ import {
 } from "@/internal/domain/ai/services/aiGeneratorService";
 
 export default function AdminMissingFoodsPage() {
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<MissingFoodSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -36,6 +39,10 @@ export default function AdminMissingFoodsPage() {
   // State Modal AI Studio
   const [selectedFood, setSelectedFood] = useState<MissingFoodSummary | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCustomInputModalOpen, setIsCustomInputModalOpen] = useState(false);
+  const [customFoodName, setCustomFoodName] = useState("");
+  const [customDescription, setCustomDescription] = useState("");
+
   const [generating, setGenerating] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [aiDraft, setAiDraft] = useState<GenerateFoodAIResponse | null>(null);
@@ -56,7 +63,17 @@ export default function AdminMissingFoodsPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+
+    // Jika datang dari query parameter ?mode=generate
+    const mode = searchParams.get("mode");
+    const nameParam = searchParams.get("name");
+    if (mode === "generate") {
+      if (nameParam) {
+        setCustomFoodName(nameParam);
+      }
+      setIsCustomInputModalOpen(true);
+    }
+  }, [searchParams]);
 
   // Filter items
   const filteredItems = items.filter((it) => {
@@ -69,7 +86,7 @@ export default function AdminMissingFoodsPage() {
     return matchSearch;
   });
 
-  // Handle open generator modal
+  // Handle open generator modal for existing missing food
   const handleOpenGenerator = async (item: MissingFoodSummary) => {
     setSelectedFood(item);
     setIsModalOpen(true);
@@ -82,6 +99,38 @@ export default function AdminMissingFoodsPage() {
       const res = await generateFoodAI({
         food_name: item.name,
         description: item.description,
+      });
+      setAiDraft(res);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Gagal melakukan generate dengan AI");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // Handle trigger custom generation
+  const handleTriggerCustomGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customFoodName.trim()) return;
+
+    setIsCustomInputModalOpen(false);
+    setSelectedFood({
+      name: customFoodName.trim(),
+      description: customDescription.trim(),
+      report_count: 1,
+      last_reported_at: new Date().toISOString(),
+      is_in_catalog: false,
+    });
+    setIsModalOpen(true);
+    setGenerating(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    setAiDraft(null);
+
+    try {
+      const res = await generateFoodAI({
+        food_name: customFoodName.trim(),
+        description: customDescription.trim(),
       });
       setAiDraft(res);
     } catch (err: any) {
@@ -143,6 +192,11 @@ export default function AdminMissingFoodsPage() {
       <PageHeader
         title="Missing Foods & AI Studio"
         description="Daftar makanan yang dilaporkan responden namun belum terdaftar di basis data. Buat foto porsi standar dan estimasi nilai gizi secara otomatis menggunakan Gemini & Imagen 3."
+        action={
+          <Button onClick={() => setIsCustomInputModalOpen(true)}>
+            <Sparkles className="h-4 w-4 mr-1.5" /> Buat Makanan Baru (AI)
+          </Button>
+        }
       />
 
       {/* Toolbar Filter */}
@@ -274,6 +328,78 @@ export default function AdminMissingFoodsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Modal Input Custom Food AI */}
+      {isCustomInputModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-md rounded-xl border border-border bg-surface shadow-2xl p-6">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-2">
+                <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Generate Makanan Baru (AI)</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Buat makanan baru lengkap dengan estimasi gizi & 4 foto porsi.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCustomInputModalOpen(false)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleTriggerCustomGenerate} className="mt-4 space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-foreground">
+                  Nama Makanan <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Mis. Soto Betawi, Nasi Ulam, Es Cendol..."
+                  value={customFoodName}
+                  onChange={(e) => setCustomFoodName(e.target.value)}
+                  className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground">
+                  Deskripsi / Keterangan Bahan (Opsional)
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Mis. Daging sapi dengan kuah santan dan susu, disajikan dengan kentang dan emping..."
+                  value={customDescription}
+                  onChange={(e) => setCustomDescription(e.target.value)}
+                  className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCustomInputModalOpen(false)}
+                >
+                  Batal
+                </Button>
+                <Button type="submit" size="sm" className="gap-1.5">
+                  <Sparkles className="h-4 w-4" />
+                  Mulai Generate Studio
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

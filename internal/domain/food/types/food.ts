@@ -12,6 +12,7 @@ export type Food = {
   category?: Category;
   nutrients?: NutritionMap;
   is_active: boolean;
+  is_ai_generated?: boolean;
   created_at: string;
 };
 
@@ -62,6 +63,7 @@ export type SearchFoodResult = {
   photo_type?: "series" | "range" | "guide";
   image_url?: string | null;
   thumbnail_url?: string | null;
+  is_ai_generated?: boolean;
   /** Diturunkan backend dari kategori: kategori 'drinks' → "drink", sisanya "food". */
   food_type?: "food" | "drink";
   category?: {
@@ -80,6 +82,7 @@ export type PortionPhoto = {
   thumbnail_url?: string | null;
   weight_gram: number;
   description?: string | null;
+  is_ai_generated?: boolean;
   food_image_id?: string;
 };
 

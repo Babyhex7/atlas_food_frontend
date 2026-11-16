@@ -12,7 +12,7 @@ import {
   AdminToolbar,
 } from "@/internal/components/admin/AdminToolbar";
 import { AdminPagination } from "@/internal/components/admin/AdminPagination";
-import { Plus, ChevronRight, UtensilsCrossed } from "lucide-react";
+import { Plus, ChevronRight, UtensilsCrossed, Sparkles } from "lucide-react";
 import { cn } from "@/internal/lib/cn";
 import { useAdminFoods } from "../hooks/useFoodQueries";
 import { useAdminCategories } from "@/internal/domain/category/hooks/useCategoryQueries";
@@ -81,9 +81,18 @@ export function FoodList() {
         title="Makanan"
         description={isLoading ? "Memuat…" : `${total} makanan di database`}
         action={
-          <Button onClick={() => router.push("/admin/foods/new")}>
-            <Plus size={15} /> Tambah Makanan
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => router.push("/admin/missing-foods?mode=generate")}
+              className="border-primary/20 text-primary hover:bg-primary/5"
+            >
+              <Sparkles size={15} /> Buat dengan AI
+            </Button>
+            <Button onClick={() => router.push("/admin/foods/new")}>
+              <Plus size={15} /> Tambah Makanan
+            </Button>
+          </div>
         }
       />
 
@@ -196,12 +205,19 @@ export function FoodList() {
                           {food.category?.icon || "🍽️"}
                         </span>
                         <div className="min-w-0">
-                          <Link
-                            href={`/admin/foods/${food.id}`}
-                            className="font-semibold text-text-primary no-underline hover:text-primary hover:underline block truncate"
-                          >
-                            {food.name}
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/admin/foods/${food.id}`}
+                              className="font-semibold text-text-primary no-underline hover:text-primary hover:underline block truncate"
+                            >
+                              {food.name}
+                            </Link>
+                            {food.is_ai_generated && (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-700 border border-purple-200">
+                                <Sparkles className="h-2.5 w-2.5" /> AI
+                              </span>
+                            )}
+                          </div>
                           {food.local_name && (
                             <span className="text-xs text-text-muted block truncate">
                               {food.local_name}
