@@ -24,7 +24,6 @@ import { useCollab } from "@/internal/domain/collab";
 import { Button, Card, StepHeader, StepNav, StepShell } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
 import { getImageUrl } from "@/internal/lib/image";
-import { AIAssistantSidebar } from "@/internal/domain/ai";
 
 interface Props {
   session: RecallSession;
@@ -406,12 +405,6 @@ export function Step5Review({
           {submitting ? "Mengirim..." : "Kirim Laporan Recall"}
         </Button>
       </StepNav>
-
-      {/* Asisten AI Recall Sidebar (Audit & Review Makanan Terlewat) */}
-      <AIAssistantSidebar
-        step="review"
-        contextFoods={allFoodNames}
-      />
     </StepShell>
   );
 }

@@ -50,7 +50,11 @@ export function RegisterForm() {
         getPostAuthPath(response.user.role),
         response.user.role
       );
-      router.push(target);
+      if (typeof window !== "undefined") {
+        window.location.assign(target);
+      } else {
+        router.push(target);
+      }
     } catch (err: any) {
       toast.error(
         "Registrasi gagal",

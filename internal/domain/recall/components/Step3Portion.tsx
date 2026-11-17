@@ -37,7 +37,6 @@ import {
 } from "./ui/Primitives";
 import { cn } from "@/internal/lib/cn";
 import { PortionAdjustModal } from "./PortionAdjustModal";
-import { AIAssistantSidebar } from "@/internal/domain/ai";
 
 /** Batas berat yang masuk akal untuk satu porsi (gram) — maksimal 3.000g (3 kg) */
 const MIN_PORTION_GRAM = 1;
@@ -396,20 +395,6 @@ export function Step3Portion({
         description: p.description || "",
       })),
     [photos]
-  );
-
-  const handleAISelectPortion = useCallback(
-    (label: string, gram?: number) => {
-      const match = photos.find(
-        (p) =>
-          p.label.toLowerCase() === label.toLowerCase() ||
-          (typeof gram === "number" && Math.abs(p.weight_gram - gram) < 1)
-      );
-      if (match) {
-        handleSelectPhoto(match);
-      }
-    },
-    [photos, handleSelectPhoto]
   );
 
   const handlePresetSelect = useCallback(
@@ -913,15 +898,6 @@ export function Step3Portion({
               : "Lanjut ke Makanan Berikutnya"}
         </Button>
       </StepNav>
-
-      {/* Asisten AI Recall Sidebar (estimasi porsi URT & foto) */}
-      <AIAssistantSidebar
-        step="portion"
-        foodName={currentFood?.food.name}
-        availablePortions={availablePortions}
-        contextFoods={foods.map((f) => f.food.name)}
-        onSelectPortion={handleAISelectPortion}
-      />
     </StepShell>
   );
 }

@@ -71,29 +71,29 @@ export function AnnotatedFoodViewer({
             const color = areaColor(index);
             const isHot = area.id === highlightedId;
 
-            // Garis tajam dihilangkan total — murni pendaran kabut blur lembut (full blur glow)
-            const isVisible = overlay ? (visiblePolygons && isHot) : (visiblePolygons || isHot);
-            const strokeOpacity = isVisible ? (isHot ? 0.85 : 0.5) : 0;
-            const strokeWidth = isHot ? 5 : 2;
+            // Kontur tajam & jelas — saat di-hover/aktif bersinar lembut
+            const isVisible = visiblePolygons || isHot;
+            const strokeOpacity = isVisible ? (isHot ? 0.95 : 0.65) : 0;
+            const strokeWidth = isHot ? 3 : 1.75;
 
             return (
               <polygon
                 key={area.id}
                 points={toSvgPoints(area.polygon)}
-                fill="transparent"
-                fillOpacity={0}
+                fill={isHot ? color : "transparent"}
+                fillOpacity={isHot ? 0.18 : 0}
                 stroke={color}
                 strokeOpacity={strokeOpacity}
                 strokeWidth={strokeWidth}
                 strokeLinejoin="round"
                 strokeLinecap="round"
-                className="cursor-pointer transition-[stroke-width,stroke-opacity,filter] duration-200 ease-out pointer-events-auto"
+                className="cursor-pointer transition-[stroke-width,stroke-opacity,fill-opacity,filter] duration-200 ease-out pointer-events-auto"
                 style={{
-                  pointerEvents: visiblePolygons ? "all" : "none",
+                  pointerEvents: visiblePolygons || isHot ? "all" : "none",
                   filter: isHot
-                    ? `blur(4px) drop-shadow(0 0 8px ${color}) drop-shadow(0 0 18px ${color})`
+                    ? `drop-shadow(0 0 6px ${color}bb) drop-shadow(0 0 2px ${color})`
                     : isVisible
-                    ? `blur(2px) drop-shadow(0 0 6px ${color}88)`
+                    ? `drop-shadow(0 0 3px ${color}66)`
                     : "none",
                 }}
                 tabIndex={0}
@@ -163,6 +163,27 @@ export function AnnotatedFoodViewer({
               );
             })}
         </svg>
+
+        {overlay && highlighted && (
+          <div className="absolute left-3 bottom-3 z-10 pointer-events-none transition-all duration-200">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 text-white text-xs font-semibold shadow-lg backdrop-blur-md border border-white/20">
+              <span
+                className="w-2.5 h-2.5 rounded-full"
+                style={{
+                  backgroundColor: areaColor(
+                    Math.max(0, areas.findIndex((a) => a.id === highlighted.id))
+                  ),
+                }}
+              />
+              <span>{highlighted.name}</span>
+              {highlighted.weight_gram != null && highlighted.weight_gram > 0 && (
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary text-white font-bold">
+                  {highlighted.weight_gram} g
+                </span>
+              )}
+            </span>
+          </div>
+        )}
       </div>
 
       {!overlay && (
