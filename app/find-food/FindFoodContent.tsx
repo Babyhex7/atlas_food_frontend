@@ -762,10 +762,10 @@ function FindFoodBody() {
                             }`}
                           >
                             <div className={styles.foodVisual} aria-hidden>
-                              {food.thumbnail_url || food.image_url ? (
+                              {food.image_url || food.thumbnail_url ? (
                                 <img
                                   src={getImageUrl(
-                                    food.thumbnail_url || food.image_url
+                                    food.image_url || food.thumbnail_url
                                   )}
                                   alt={food.name}
                                   className={styles.foodRealImg}

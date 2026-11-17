@@ -255,7 +255,7 @@ export default function SurveyDonePage() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {meal.foods.map((rf) => {
-                        const img = rf.portion?.image_url || rf.food.thumbnail_url || rf.food.image_url;
+                        const img = rf.portion?.image_url || rf.food.image_url || rf.food.thumbnail_url;
                         return (
                           <span
                             key={`${meal.name}-${rf.food.id}`}

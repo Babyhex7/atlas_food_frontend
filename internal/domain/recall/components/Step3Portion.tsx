@@ -363,7 +363,7 @@ export function Step3Portion({
         method: "simple_grid",
         image_id: photo.id,
         image_label: photo.label,
-        image_url: photo.thumbnail_url || photo.image_url,
+        image_url: (photo.image_url || photo.thumbnail_url) ?? undefined,
         base_weight: photo.weight_gram,
         quantity: 1,
         fraction: 0,
@@ -416,7 +416,7 @@ export function Step3Portion({
         method: total === 1 ? "simple_grid" : "as_served_quantity",
         image_id: photoToUse.id,
         image_label: photoToUse.label,
-        image_url: photoToUse.thumbnail_url || photoToUse.image_url,
+        image_url: (photoToUse.image_url || photoToUse.thumbnail_url) ?? undefined,
         base_weight: photoToUse.weight_gram,
         quantity: qty,
         fraction: frac,
@@ -781,7 +781,7 @@ export function Step3Portion({
                       {/* Photo Thumbnail Container 16:9 Proporsional */}
                       <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-surface-alt">
                         <PortionThumb
-                          src={photo.thumbnail_url || photo.image_url}
+                          src={photo.image_url || photo.thumbnail_url}
                           alt={photo.label}
                           className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
                         />

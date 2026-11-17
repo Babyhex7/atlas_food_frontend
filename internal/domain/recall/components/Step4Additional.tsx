@@ -197,9 +197,9 @@ function AdditionalSearchBox({ foodName, onSelect }: AdditionalSearchProps) {
                     className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-xs sm:text-sm transition-colors hover:bg-surface-alt active:bg-primary-light"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      {food.thumbnail_url || food.image_url ? (
+                      {food.image_url || food.thumbnail_url ? (
                         <img
-                          src={getImageUrl(food.thumbnail_url || food.image_url)}
+                          src={getImageUrl(food.image_url || food.thumbnail_url)}
                           alt=""
                           className="h-8 w-8 rounded-md object-cover border border-border shrink-0 bg-surface-alt"
                           loading="lazy"
@@ -433,9 +433,9 @@ export function Step4Additional({ foods, onSetAdditionals, onContinue, onBack }:
               {/* Header Makanan Utama */}
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3.5">
                 <div className="flex items-center gap-3">
-                  {rf.portion?.image_url || rf.food.thumbnail_url || rf.food.image_url ? (
+                  {rf.portion?.image_url || rf.food.image_url || rf.food.thumbnail_url ? (
                     <img
-                      src={getImageUrl(rf.portion?.image_url || rf.food.thumbnail_url || rf.food.image_url)}
+                      src={getImageUrl(rf.portion?.image_url || rf.food.image_url || rf.food.thumbnail_url)}
                       alt=""
                       className="h-11 w-11 rounded-lg object-cover border border-border shrink-0 bg-surface-alt"
                       loading="lazy"

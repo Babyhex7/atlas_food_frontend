@@ -229,12 +229,12 @@ export function Step5Review({
                 food.portion?.image_url ||
                 food.detail?.portion_photos?.find(
                   (p) => p.id === food.portion?.image_id || p.label === food.portion?.image_label
-                )?.thumbnail_url ||
+                )?.image_url ||
                 food.detail?.portion_photos?.find(
                   (p) => p.id === food.portion?.image_id || p.label === food.portion?.image_label
-                )?.image_url ||
-                food.food.thumbnail_url ||
-                food.food.image_url;
+                )?.thumbnail_url ||
+                food.food.image_url ||
+                food.food.thumbnail_url;
 
               return (
                 <li

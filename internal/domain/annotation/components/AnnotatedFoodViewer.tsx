@@ -80,14 +80,14 @@ export function AnnotatedFoodViewer({
               <polygon
                 key={area.id}
                 points={toSvgPoints(area.polygon)}
-                fill={isHot ? color : "transparent"}
-                fillOpacity={isHot ? 0.18 : 0}
+                fill="transparent"
+                fillOpacity={0}
                 stroke={color}
                 strokeOpacity={strokeOpacity}
                 strokeWidth={strokeWidth}
                 strokeLinejoin="round"
                 strokeLinecap="round"
-                className="cursor-pointer transition-[stroke-width,stroke-opacity,fill-opacity,filter] duration-200 ease-out pointer-events-auto"
+                className="cursor-pointer transition-[stroke-width,stroke-opacity,filter] duration-200 ease-out pointer-events-auto"
                 style={{
                   pointerEvents: visiblePolygons || isHot ? "all" : "none",
                   filter: isHot

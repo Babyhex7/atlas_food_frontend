@@ -593,7 +593,7 @@ function SeriesPhotoView({
                 aria-pressed={isActive}
               >
                 <PhotoImg
-                  src={photo.thumbnail_url || photo.image_url}
+                  src={photo.image_url || photo.thumbnail_url}
                   alt=""
                   className="w-full h-full object-cover"
                 />

@@ -306,9 +306,9 @@ function FoodSearchBox({
                     i === highlight && !already && "bg-primary-light text-primary"
                   )}
                 >
-                  {food.thumbnail_url || food.image_url ? (
+                  {food.image_url || food.thumbnail_url ? (
                     <img
-                      src={getImageUrl(food.thumbnail_url || food.image_url)}
+                      src={getImageUrl(food.image_url || food.thumbnail_url)}
                       alt=""
                       className="h-10 w-10 rounded-lg object-cover border border-border shrink-0 bg-surface-alt"
                       loading="lazy"
@@ -436,9 +436,9 @@ export function Step2AddFood({
                   key={rf.food.id}
                   className="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0"
                 >
-                  {rf.food.thumbnail_url || rf.food.image_url ? (
+                  {rf.food.image_url || rf.food.thumbnail_url ? (
                     <img
-                      src={getImageUrl(rf.food.thumbnail_url || rf.food.image_url)}
+                      src={getImageUrl(rf.food.image_url || rf.food.thumbnail_url)}
                       alt=""
                       className="h-10 w-10 rounded-lg object-cover border border-border shrink-0 bg-surface-alt"
                       loading="lazy"

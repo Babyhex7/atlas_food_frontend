@@ -79,7 +79,7 @@ export function PortionAdjustModal({
 
   if (!isOpen) return null;
 
-  const resolvedImgUrl = getImageUrl(photo.thumbnail_url || photo.image_url);
+  const resolvedImgUrl = getImageUrl(photo.image_url || photo.thumbnail_url);
   const totalWeight = Math.round(photo.weight_gram * currentTotalQty * 10) / 10;
   const isCustomMode = customGram.trim() !== "";
 
