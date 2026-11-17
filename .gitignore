@@ -23,3 +23,10 @@ test-results/
 agent.md
 AGENTS.md
 
+# Skripsi documents & backups
+docs/SKRIPSI_ATLAS_FOOD_FINAL.md
+docs/*.bak
+*.bak
+*.docx
+docs/*.pdf
+*.pdf
