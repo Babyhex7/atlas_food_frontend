@@ -69,12 +69,13 @@ export function AnnotatedFoodViewer({
 
           {areas.map((area, index) => {
             const color = areaColor(index);
-            const isHot = area.id === highlightedId;
-
-            // Kontur tajam & jelas — saat di-hover/aktif bersinar lembut
-            const isVisible = visiblePolygons || isHot;
-            const strokeOpacity = isVisible ? (isHot ? 0.95 : 0.65) : 0;
-            const strokeWidth = isHot ? 3 : 1.75;
+            // Mode overlay (recall): hanya menyala ketika kursor berada di atas piring (hover)
+            // Mode preview (admin): tampilkan kontur bila visiblePolygons=true atau aktif
+            const isHovered = hoverId === area.id;
+            const isHot = overlay ? isHovered : (area.id === highlightedId);
+            const isVisible = overlay ? isHot : (visiblePolygons || isHot);
+            const strokeOpacity = isVisible ? (isHot ? 0.95 : 0.6) : 0;
+            const strokeWidth = isHot ? 4 : 2;
 
             return (
               <polygon
@@ -87,13 +88,13 @@ export function AnnotatedFoodViewer({
                 strokeWidth={strokeWidth}
                 strokeLinejoin="round"
                 strokeLinecap="round"
-                className="cursor-pointer transition-[stroke-width,stroke-opacity,filter] duration-200 ease-out pointer-events-auto"
+                className="cursor-pointer transition-[stroke-width,stroke-opacity,filter] duration-250 ease-out pointer-events-auto"
                 style={{
-                  pointerEvents: visiblePolygons || isHot ? "all" : "none",
+                  pointerEvents: "all",
                   filter: isHot
-                    ? `drop-shadow(0 0 6px ${color}bb) drop-shadow(0 0 2px ${color})`
+                    ? `blur(3.5px) drop-shadow(0 0 10px ${color}) drop-shadow(0 0 24px ${color})`
                     : isVisible
-                    ? `drop-shadow(0 0 3px ${color}66)`
+                    ? `blur(2px) drop-shadow(0 0 6px ${color}88)`
                     : "none",
                 }}
                 tabIndex={0}
@@ -164,8 +165,8 @@ export function AnnotatedFoodViewer({
             })}
         </svg>
 
-        {overlay && highlighted && (
-          <div className="absolute left-3 bottom-3 z-10 pointer-events-none transition-all duration-200">
+        {overlay && highlighted && hoverId && (
+          <div className="absolute left-3 bottom-3 z-10 pointer-events-none transition-all duration-200 animate-fade-in">
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 text-white text-xs font-semibold shadow-lg backdrop-blur-md border border-white/20">
               <span
                 className="w-2.5 h-2.5 rounded-full"

@@ -5,8 +5,6 @@ import {
   AlertCircle,
   ArrowRight,
   Check,
-  Eye,
-  EyeOff,
   ImageOff,
   Scale,
   Minus,
@@ -156,7 +154,6 @@ export function Step3Portion({
   const [fetched, setFetched] = useState<FetchedDetail | null>(null);
   const [selection, setSelection] = useState<PortionSelection | null>(null);
   const [activeModalPhoto, setActiveModalPhoto] = useState<PortionPhoto | null>(null);
-  const [visiblePolygons, setVisiblePolygons] = useState(true);
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [currentAreas, setCurrentAreas] = useState<FoodImage["areas"]>([]);
   const { send, isConnected } = useCollab();
@@ -651,24 +648,10 @@ export function Step3Portion({
                 <AnnotationHoverOverlay
                   foodImageId={effectiveFoodImageId}
                   foodId={currentFoodId}
-                  visiblePolygons={visiblePolygons}
                   selectedAreaId={selectedAreaId}
                   onAreaSelect={handleAreaSelect}
                   onLoadedAreas={setCurrentAreas}
                 />
-
-                {/* Toggle Visibility Area Button */}
-                {currentAreas.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setVisiblePolygons(!visiblePolygons)}
-                    className="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md bg-white/95 text-text-primary border border-border hover:bg-white transition-fast shadow-xs cursor-pointer"
-                    title={visiblePolygons ? "Sembunyikan batas area" : "Tampilkan batas area"}
-                  >
-                    {visiblePolygons ? <Eye size={13} className="text-primary" /> : <EyeOff size={13} className="text-text-muted" />}
-                    <span>{visiblePolygons ? "Area: ON" : "Area: OFF"}</span>
-                  </button>
-                )}
 
                 {/* Badge Tipe Panduan */}
                 <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
