@@ -531,72 +531,70 @@ export function MetodologiPage() {
             </FadeInView>
 
             <StaggerContainer className={styles.tips} staggerDelay={0.08}>
-              <StaggerItem yOffset={20}>
-                <motion.article
-                  className={`${styles.tip} ${styles.tipMain}`}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                >
-                  <span className={styles.tipIcon}>
-                    <Images size={40} aria-hidden />
-                  </span>
-                  <div>
-                    <span className={styles.tipTag}>TIPS UTAMA</span>
-                    <h3>Foto Terdekat</h3>
-                    <p>
-                      Pilih foto yang porsinya paling mendekati konsumsi responden untuk akurasi
-                      maksimal. Jika porsi berada di antara dua foto, gunakan nilai tengah
-                      (interpolasi).
-                    </p>
-                  </div>
-                </motion.article>
+              <StaggerItem
+                className={`${styles.tip} ${styles.tipMain}`}
+                yOffset={20}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              >
+                <span className={styles.tipIcon}>
+                  <Images size={40} aria-hidden />
+                </span>
+                <div>
+                  <span className={styles.tipTag}>TIPS UTAMA</span>
+                  <h3>Foto Terdekat</h3>
+                  <p>
+                    Pilih foto yang porsinya paling mendekati konsumsi responden untuk akurasi
+                    maksimal. Jika porsi berada di antara dua foto, gunakan nilai tengah
+                    (interpolasi).
+                  </p>
+                </div>
               </StaggerItem>
 
               {SIDE_TIPS.map(({ title, description, icon: Icon }) => (
-                <StaggerItem key={title} yOffset={20}>
-                  <motion.article
-                    className={`${styles.tip} ${styles.tipSide}`}
-                    whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  >
-                    <span className={styles.tipIcon}>
-                      <Icon size={22} aria-hidden />
-                    </span>
-                    <div>
-                      <h3>{title}</h3>
-                      <p>{description}</p>
-                    </div>
-                  </motion.article>
+                <StaggerItem
+                  key={title}
+                  className={`${styles.tip} ${styles.tipSide}`}
+                  yOffset={20}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                >
+                  <span className={styles.tipIcon}>
+                    <Icon size={22} aria-hidden />
+                  </span>
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{description}</p>
+                  </div>
                 </StaggerItem>
               ))}
 
               {MORE_TIPS.map(({ title, description, icon: Icon }) => (
-                <StaggerItem key={title} yOffset={20}>
-                  <motion.article
-                    className={styles.tip}
-                    whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  >
-                    <span className={styles.tipIcon}>
-                      <Icon size={20} aria-hidden />
-                    </span>
-                    <h3>{title}</h3>
-                    <p>{description}</p>
-                  </motion.article>
-                </StaggerItem>
-              ))}
-
-              <StaggerItem yOffset={20}>
-                <motion.article
-                  className={`${styles.tip} ${styles.tipAlert}`}
+                <StaggerItem
+                  key={title}
+                  className={styles.tip}
+                  yOffset={20}
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
                 >
                   <span className={styles.tipIcon}>
-                    <CircleHelp size={20} aria-hidden />
+                    <Icon size={20} aria-hidden />
                   </span>
-                  <h3>Jangan Ragu</h3>
-                  <p>
-                    Jangan ragu untuk bertanya kembali jika pilihan responden terasa tidak konsisten
-                    dengan deskripsi verbalnya.
-                  </p>
-                </motion.article>
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                </StaggerItem>
+              ))}
+
+              <StaggerItem
+                className={`${styles.tip} ${styles.tipAlert}`}
+                yOffset={20}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              >
+                <span className={styles.tipIcon}>
+                  <CircleHelp size={20} aria-hidden />
+                </span>
+                <h3>Jangan Ragu</h3>
+                <p>
+                  Jangan ragu untuk bertanya kembali jika pilihan responden terasa tidak konsisten
+                  dengan deskripsi verbalnya.
+                </p>
               </StaggerItem>
             </StaggerContainer>
           </div>
