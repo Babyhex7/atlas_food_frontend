@@ -12,6 +12,7 @@ import {
   FileSpreadsheet,
   Play,
   X,
+  Calendar,
 } from "lucide-react";
 import { AppHeader } from "@/internal/components/layout/AppHeader";
 import { CONTAINER_CLASS, loginWithRedirect } from "@/internal/lib/layout";
@@ -26,6 +27,8 @@ type ActiveSurvey = {
   name: string;
   description?: string;
   status: string;
+  start_date?: string;
+  end_date?: string;
   created_at?: string;
 };
 
@@ -36,6 +39,33 @@ const DEFAULT_MEALS: MealConfig[] = [
   { name: "Makan Siang", time: "12:00" },
   { name: "Makan Malam", time: "19:00" },
 ];
+
+function isSurveyExpired(survey: ActiveSurvey): boolean {
+  if (survey.status === "closed") return true;
+  if (!survey.end_date) return false;
+  const [year, month, day] = survey.end_date.split("-").map(Number);
+  if (!year || !month || !day) return false;
+  const end = new Date(year, month - 1, day, 23, 59, 59, 999);
+  return new Date() > end;
+}
+
+function isSurveyUpcoming(survey: ActiveSurvey): boolean {
+  if (!survey.start_date) return false;
+  const [year, month, day] = survey.start_date.split("-").map(Number);
+  if (!year || !month || !day) return false;
+  const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+  return new Date() < start;
+}
+
+function formatSurveyPeriod(startDate?: string, endDate?: string): string | null {
+  if (!startDate && !endDate) return null;
+  if (startDate && endDate) {
+    if (startDate === endDate) return startDate;
+    return `${startDate} s/d ${endDate}`;
+  }
+  if (startDate) return `Mulai ${startDate}`;
+  return `Hingga ${endDate}`;
+}
 
 function resolveAlias(user: { name?: string; email?: string; id?: string } | null | undefined): string {
   const name = user?.name?.trim();
@@ -64,6 +94,8 @@ export default function SurveysHubPage() {
   const surveys = data?.surveys ?? [];
 
   const filteredSurveys = surveys.filter((s) => {
+    // Sembunyikan survey yang sudah berakhir secara periode tanggal
+    if (isSurveyExpired(s)) return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
     return s.name.toLowerCase().includes(q) || (s.description && s.description.toLowerCase().includes(q));
@@ -72,6 +104,15 @@ export default function SurveysHubPage() {
   const handleJoin = async (survey: ActiveSurvey) => {
     if (!getAccessToken()) {
       router.push(loginWithRedirect("/surveys"));
+      return;
+    }
+
+    if (isSurveyExpired(survey)) {
+      setJoinError("Survey ini telah berakhir dan tidak dapat diakses.");
+      return;
+    }
+    if (isSurveyUpcoming(survey)) {
+      setJoinError("Survey belum dimulai.");
       return;
     }
 
@@ -232,13 +273,15 @@ export default function SurveysHubPage() {
               <div className="grid grid-cols-1 gap-4">
                 {filteredSurveys.map((survey, index) => {
                   const busy = joiningId === survey.id;
+                  const upcoming = isSurveyUpcoming(survey);
+                  const period = formatSurveyPeriod(survey.start_date, survey.end_date);
                   return (
                     <button
                       key={survey.id}
                       type="button"
-                      disabled={Boolean(joiningId)}
+                      disabled={Boolean(joiningId) || upcoming}
                       onClick={() => handleJoin(survey)}
-                      className="group w-full text-left bg-surface rounded-2xl border border-border p-5 sm:p-6 hover:border-primary/50 hover:shadow-md transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-5 disabled:opacity-60 disabled:cursor-wait"
+                      className="group w-full text-left bg-surface rounded-2xl border border-border p-5 sm:p-6 hover:border-primary/50 hover:shadow-md transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-5 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <div className="flex items-start gap-4 flex-1 min-w-0">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
@@ -249,10 +292,23 @@ export default function SurveysHubPage() {
                             <span className="text-xs font-mono font-semibold text-muted bg-muted/20 px-2 py-0.5 rounded-md">
                               #{index + 1}
                             </span>
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                              Aktif
-                            </span>
+                            {upcoming ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                Belum Dimulai
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Aktif
+                              </span>
+                            )}
+                            {period && (
+                              <span className="inline-flex items-center gap-1 text-xs text-muted">
+                                <Calendar className="w-3.5 h-3.5" />
+                                {period}
+                              </span>
+                            )}
                           </div>
                           <h2 className="font-bold text-foreground text-lg group-hover:text-primary transition-colors">
                             {survey.name}
@@ -268,12 +324,20 @@ export default function SurveysHubPage() {
                       </div>
 
                       <div className="flex items-center justify-end shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-border">
-                        <span className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-medium text-sm group-hover:bg-primary-hover active:scale-[0.98] transition-all shadow-sm">
+                        <span
+                          className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-white font-medium text-sm transition-all shadow-sm ${
+                            upcoming
+                              ? "bg-muted text-muted-foreground cursor-not-allowed"
+                              : "bg-primary group-hover:bg-primary-hover active:scale-[0.98]"
+                          }`}
+                        >
                           {busy ? (
                             <>
                               <Loader2 className="w-4 h-4 animate-spin" />
                               <span>Memproses…</span>
                             </>
+                          ) : upcoming ? (
+                            <span>Belum Dimulai</span>
                           ) : (
                             <>
                               <Play className="w-4 h-4 fill-current" />
