@@ -69,10 +69,10 @@ export function AnnotatedFoodViewer({
 
           {areas.map((area, index) => {
             const color = areaColor(index);
-            // Mode overlay (recall): hanya menyala ketika kursor berada di atas piring (hover)
-            // Mode preview (admin): tampilkan kontur bila visiblePolygons=true atau aktif
+            // Mode overlay: menyala saat kursor hover di atas makanan atau saat porsi dipilih dari tombol
             const isHovered = hoverId === area.id;
-            const isHot = overlay ? isHovered : (area.id === highlightedId);
+            const isSelected = area.id === selectedAreaId || area.id === activeId;
+            const isHot = isHovered || isSelected;
             const isVisible = overlay ? isHot : (visiblePolygons || isHot);
             const strokeOpacity = isVisible ? (isHot ? 0.95 : 0.6) : 0;
             const strokeWidth = isHot ? 4 : 2;
@@ -165,7 +165,7 @@ export function AnnotatedFoodViewer({
             })}
         </svg>
 
-        {overlay && highlighted && hoverId && (
+        {overlay && highlighted && (hoverId || selectedAreaId) && (
           <div className="absolute left-3 bottom-3 z-10 pointer-events-none transition-all duration-200 animate-fade-in">
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 text-white text-xs font-semibold shadow-lg backdrop-blur-md border border-white/20">
               <span

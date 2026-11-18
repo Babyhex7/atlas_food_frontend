@@ -1348,7 +1348,16 @@
   }
 
   .tips {
+    display: flex;
+    flex-direction: column;
     gap: 16px;
+  }
+
+  .tip,
+  .tipMain,
+  .tipSide {
+    grid-column: auto !important;
+    width: 100%;
   }
 
   .tipMain {

@@ -51,7 +51,7 @@ function PhotoImg({
   );
 }
 
-// ─── Tampilan Range — 1 foto makanan sama, gradasi ukuran kecil ke besar ────
+// ─── Tampilan Range — 1 foto makanan sama atau foto potongan, gradasi ukuran kecil ke besar ────
 function RangePhotoView({
   photos,
   foodId,
@@ -71,11 +71,54 @@ function RangePhotoView({
   activeIndex: number;
   onSelect: (i: number) => void;
 }) {
-  const rangePhoto = photos[0];
   const [currentAreas, setCurrentAreas] = useState<FoodImage["areas"]>([]);
   const maxWeight = Math.max(...photos.map((p) => p.weight_gram || 1), 1);
 
-  if (!rangePhoto) return null;
+  // 1. Deteksi apakah ada foto potongan komposit (seperti Gurame LH-34_cut.jpg atau Patin LH-31_cut.jpg)
+  const cutPhoto = photos.find((p) => p.image_url?.includes('_cut.'));
+  // 2. Deteksi apakah porsi memiliki foto piring yang berbeda per tingkatan (seperti Kakap LH-32, Nila LH-33, Lele LH-35)
+  const hasDistinctPerPortionImages = !cutPhoto && photos.some((p) => p.image_url !== photos[0]?.image_url);
+
+  // Foto yang aktif ditampilkan di hero canvas
+  const activePhoto = photos[activeIndex] || photos[0];
+  const displayedPhoto = cutPhoto || (hasDistinctPerPortionImages ? activePhoto : photos[0]);
+  const foodImageId = displayedPhoto?.food_image_id || activePhoto?.food_image_id || photos[0]?.food_image_id;
+
+  // Sinkronisasi dua arah: Saat user hover/klik bagian di foto, otomatis pilih porsi terkait
+  const handleAreaSelect = useCallback((area: FoodImage["areas"][number]) => {
+    setSelectedAreaId(area.id);
+    const nameUpper = area.name.toUpperCase();
+    const matchedIdx = photos.findIndex((p) => {
+      const labelRegex = new RegExp(`(^|\\s|PORSI\\s*)${p.label}(\\s|\\.|$)`, 'i');
+      if (labelRegex.test(nameUpper)) return true;
+      if (area.weight_gram && p.weight_gram && Math.abs(area.weight_gram - p.weight_gram) < 0.5) return true;
+      return false;
+    });
+    if (matchedIdx !== -1 && matchedIdx !== activeIndex) {
+      onSelect(matchedIdx);
+    }
+  }, [photos, activeIndex, onSelect, setSelectedAreaId]);
+
+  // Sinkronisasi terbalik: Saat activeIndex berubah dari klik tombol porsi, highlight area terkait di kanvas
+  useEffect(() => {
+    if (!currentAreas || currentAreas.length === 0) return;
+    const curr = photos[activeIndex];
+    if (!curr) return;
+
+    const matchedArea = currentAreas.find((area) => {
+      const nameUpper = area.name.toUpperCase();
+      const labelRegex = new RegExp(`(^|\\s|PORSI\\s*)${curr.label}(\\s|\\.|$)`, 'i');
+      if (labelRegex.test(nameUpper)) return true;
+      if (area.weight_gram && curr.weight_gram && Math.abs(area.weight_gram - curr.weight_gram) < 0.5) return true;
+      return false;
+    });
+
+    if (matchedArea && matchedArea.id !== selectedAreaId) {
+      setSelectedAreaId(matchedArea.id);
+    }
+  }, [activeIndex, currentAreas, photos, selectedAreaId, setSelectedAreaId]);
+
+  if (!displayedPhoto) return null;
 
   return (
     <div className="space-y-5">
@@ -97,18 +140,18 @@ function RangePhotoView({
       <div className="bg-white dark:bg-card rounded-2xl border border-emerald-100 dark:border-emerald-900/50 overflow-hidden shadow-sm relative">
         <div className="aspect-[16/9] max-h-[380px] bg-emerald-50/20 relative flex items-center justify-center">
           <PhotoImg
-            src={rangePhoto.image_url}
+            src={displayedPhoto.image_url}
             alt="Range foto — rentang ukuran makanan"
             className="w-full h-full object-contain animate-fade-in"
           />
 
           {/* Interactive Polygons Overlay */}
           <AnnotationHoverOverlay
-            foodImageId={rangePhoto.food_image_id}
+            foodImageId={foodImageId}
             foodId={foodId}
             visiblePolygons={visiblePolygons}
             selectedAreaId={selectedAreaId}
-            onAreaSelect={(area) => setSelectedAreaId(area.id)}
+            onAreaSelect={handleAreaSelect}
             onLoadedAreas={setCurrentAreas}
           />
 
@@ -247,6 +290,40 @@ function GuidePhotoView({
   const { send } = useCollab();
   const [currentAreas, setCurrentAreas] = useState<FoodImage["areas"]>([]);
 
+  // Sinkronisasi dua arah: Saat user hover/klik bagian di foto, otomatis pilih varian terkait
+  const handleAreaSelect = useCallback((area: FoodImage["areas"][number]) => {
+    setSelectedAreaId(area.id);
+    const nameUpper = area.name.toUpperCase();
+    const matchedIdx = photos.findIndex((p) => {
+      const labelRegex = new RegExp(`(^|\\s|PORSI\\s*)${p.label}(\\s|\\.|$)`, 'i');
+      if (labelRegex.test(nameUpper)) return true;
+      if (area.weight_gram && p.weight_gram && Math.abs(area.weight_gram - p.weight_gram) < 0.5) return true;
+      return false;
+    });
+    if (matchedIdx !== -1 && matchedIdx !== activeIndex) {
+      onSelect?.(matchedIdx);
+    }
+  }, [photos, activeIndex, onSelect, setSelectedAreaId]);
+
+  // Sinkronisasi terbalik: Saat activeIndex berubah dari klik tombol varian, highlight area terkait di kanvas
+  useEffect(() => {
+    if (!currentAreas || currentAreas.length === 0) return;
+    const curr = activeIndex !== undefined ? photos[activeIndex] : null;
+    if (!curr) return;
+
+    const matchedArea = currentAreas.find((area) => {
+      const nameUpper = area.name.toUpperCase();
+      const labelRegex = new RegExp(`(^|\\s|PORSI\\s*)${curr.label}(\\s|\\.|$)`, 'i');
+      if (labelRegex.test(nameUpper)) return true;
+      if (area.weight_gram && curr.weight_gram && Math.abs(area.weight_gram - curr.weight_gram) < 0.5) return true;
+      return false;
+    });
+
+    if (matchedArea && matchedArea.id !== selectedAreaId) {
+      setSelectedAreaId(matchedArea.id);
+    }
+  }, [activeIndex, currentAreas, photos, selectedAreaId, setSelectedAreaId]);
+
   if (!guidePhoto) return null;
 
   return (
@@ -280,7 +357,7 @@ function GuidePhotoView({
             foodId={foodId}
             visiblePolygons={visiblePolygons}
             selectedAreaId={selectedAreaId}
-            onAreaSelect={(area) => setSelectedAreaId(area.id)}
+            onAreaSelect={handleAreaSelect}
             onLoadedAreas={setCurrentAreas}
           />
 
