@@ -127,12 +127,13 @@ function RangePhotoView({
         <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-medium">
           <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>
-            Foto <span className="font-bold text-emerald-700 dark:text-emerald-300">Range (Rentang Ukuran)</span> — 1 makanan dengan{" "}
-            <span className="font-bold">{photos.length}</span> tingkatan ukuran
+            Foto <span className="font-bold text-emerald-700 dark:text-emerald-300">
+              {cutPhoto ? "Potongan Bagian" : "Range (Rentang Ukuran)"}
+            </span> — {cutPhoto ? `1 porsi terbagi ${photos.length} bagian potongan` : `1 makanan dengan ${photos.length} tingkatan ukuran`}
           </span>
         </div>
         <span className="text-xs text-muted-foreground flex items-center gap-1 font-medium">
-          <Scale size={13} className="text-emerald-600" /> Gradasi Ukuran
+          <Scale size={13} className="text-emerald-600" /> {cutPhoto ? "Bagian Potongan" : "Gradasi Ukuran"}
         </span>
       </div>
 
@@ -195,20 +196,20 @@ function RangePhotoView({
           {/* Badge tipe */}
           <div className="absolute bottom-3 left-3">
             <span className="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
-              <Layers size={11} /> Range
+              <Layers size={11} /> {cutPhoto ? "Potongan" : "Range"}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Gradasi Tingkatan Ukuran (Kecil → Besar) */}
+      {/* Gradasi Tingkatan Ukuran / Bagian Potongan */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm font-semibold text-text-primary m-0">
-            Gradasi Tingkatan Ukuran:
+            {cutPhoto ? "Pilihan Bagian Potongan:" : "Gradasi Tingkatan Ukuran:"}
           </p>
           <span className="text-xs text-muted-foreground">
-            Kecil → Sedang → Besar
+            {cutPhoto ? "Kepala · Badan · Ekor" : "Kecil → Sedang → Besar"}
           </span>
         </div>
 

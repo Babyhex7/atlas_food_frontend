@@ -34,12 +34,18 @@ export function AnnotatedFoodViewer({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hoverId, setHoverId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (selectedAreaId) {
+      setActiveId(selectedAreaId);
+    }
+  }, [selectedAreaId]);
+
   const src = image.image_url.startsWith("http")
     ? image.image_url
     : `${API_ASSET_ORIGIN}${image.image_url}`;
 
   const areas = image.areas ?? [];
-  const highlightedId = hoverId ?? activeId ?? selectedAreaId;
+  const highlightedId = hoverId ?? selectedAreaId ?? activeId;
   const highlighted = areas.find((area) => area.id === highlightedId) ?? null;
 
   function handleSelect(area: FoodImage["areas"][number]) {
