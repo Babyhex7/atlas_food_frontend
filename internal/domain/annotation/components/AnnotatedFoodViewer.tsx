@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
 import { areaColor } from "../constants/annotationStatus";
 import { polygonCentroid, toSvgPoints } from "../utils/polygonMath";
