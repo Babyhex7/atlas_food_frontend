@@ -209,17 +209,28 @@ export function Step3Portion({
   const activeSelection = selection?.foodId === currentFoodId ? selection : null;
   const selectedPhoto = activeSelection ? activeSelection.photo : (matchingSavedPhoto ?? photos[0] ?? null);
 
+  // 1. Deteksi apakah ada foto potongan komposit (seperti Gurame LH-34_cut.jpg atau Patin LH-31_cut.jpg)
+  const cutPhoto = photos.find((p) => p.image_url?.includes('_cut.'));
+  // 2. Deteksi apakah porsi memiliki foto piring yang berbeda per tingkatan (seperti Kakap LH-32, Nila LH-33, Lele LH-35)
+  const hasDistinctPerPortionImages = !cutPhoto && photos.some((p) => p.image_url !== photos[0]?.image_url);
+  const maxWeight = Math.max(...photos.map((p) => p.weight_gram || 1), 1);
+
   // Foto yang digunakan sebagai scene anotasi:
-  // Untuk Series, selalu ikuti foto porsi aktif (A, B, C, dst.) agar anotasinya tepat sesuai ukuran makanan.
-  const effectiveFoodImageId =
-    (isGuide || isRange)
-      ? (photos.find((p) => p.food_image_id)?.food_image_id || photos[0]?.food_image_id || publishedImage?.id)
+  const effectiveFoodImageId = cutPhoto
+    ? cutPhoto.food_image_id
+    : (isGuide || isRange)
+      ? (hasDistinctPerPortionImages
+          ? (selectedPhoto?.food_image_id || photos[0]?.food_image_id)
+          : (photos.find((p) => p.food_image_id)?.food_image_id || photos[0]?.food_image_id || publishedImage?.id))
       : (selectedPhoto?.food_image_id || photos[0]?.food_image_id || publishedImage?.id);
 
   const hasInteractiveAnnotation = isGuide || isRange || Boolean(effectiveFoodImageId);
-  const interactiveSceneUrl =
-    (isGuide || isRange)
-      ? (photos[0]?.image_url || publishedImage?.image_url)
+  const interactiveSceneUrl = cutPhoto
+    ? cutPhoto.image_url
+    : (isGuide || isRange)
+      ? (hasDistinctPerPortionImages
+          ? (selectedPhoto?.image_url || photos[0]?.image_url)
+          : (photos[0]?.image_url || publishedImage?.image_url))
       : (selectedPhoto?.image_url || photos[0]?.image_url || publishedImage?.image_url);
 
   // Sinkronkan highlight anotasi saat area selesai dimuat atau saat foto aktif berganti
@@ -681,113 +692,229 @@ export function Step3Portion({
                 </span>
               </div>
 
-              {/* ── Grid Foto Porsi Proporsional ── */}
-              <div
-                role="radiogroup"
-                aria-label="Pilihan porsi"
-                className={cn("grid gap-3.5 pt-1", gridColsClass)}
-              >
-                {photos.map((photo) => {
-                  const active = selectedPhoto?.id === photo.id;
-                  const displayQty = active ? currentTotalQty : 1;
-                  const displayGram = Math.round(photo.weight_gram * displayQty * 10) / 10;
-                  const fractionText = formatFractionDisplay(displayQty);
-                  const pillVal = formatPillValue(displayQty);
+              {/* ── Grid Foto/Opsi Porsi ── */}
+              {isRange ? (
+                <div
+                  role="radiogroup"
+                  aria-label="Pilihan porsi"
+                  className={cn("grid gap-3 pt-1", gridColsClass)}
+                >
+                  {photos.map((photo) => {
+                    const active = selectedPhoto?.id === photo.id;
+                    const displayQty = active ? currentTotalQty : 1;
+                    const displayGram = Math.round(photo.weight_gram * displayQty * 10) / 10;
+                    const pillVal = formatPillValue(displayQty);
+                    const percent = Math.round(((photo.weight_gram || 0) / maxWeight) * 100);
 
-                  return (
-                    <div
-                      key={photo.id}
-                      role="radio"
-                      aria-checked={active}
-                      onClick={() => {
-                        handleSelectPhoto(photo);
-                        if (active) {
-                          setActiveModalPhoto(photo);
-                        }
-                      }}
-                      className={cn(
-                        "relative flex cursor-pointer flex-col items-center rounded-2xl border-2 p-3 text-center transition-all duration-150 select-none group",
-                        active
-                          ? "border-primary bg-primary/5 text-primary shadow-sm ring-2 ring-primary/20"
-                          : "border-border bg-surface hover:border-primary/50 text-text-secondary hover:text-text-primary"
-                      )}
-                    >
-                      {/* Top-Right Floating Pill Stepper Badge */}
-                      {active && (
-                        <div
-                          className="absolute -top-3 -right-2 z-20 flex items-center justify-between gap-1 rounded-full bg-primary px-2.5 py-0.5 text-white shadow-md cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
+                    return (
+                      <div
+                        key={photo.id}
+                        role="radio"
+                        aria-checked={active}
+                        onClick={() => {
+                          handleSelectPhoto(photo);
+                          if (active) {
                             setActiveModalPhoto(photo);
-                          }}
-                          title="Klik untuk buka modal penyesuaian porsi"
-                        >
-                          <button
-                            type="button"
-                            aria-label="Kurangi porsi"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStep(-1, photo);
-                              setActiveModalPhoto(photo);
-                            }}
-                            disabled={currentTotalQty <= 0.25}
-                            className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
-                          >
-                            −
-                          </button>
-                          <span
-                            title="Klik untuk buka penyesuaian porsi"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveModalPhoto(photo);
-                            }}
-                            className="mx-1 font-mono text-xs font-bold leading-none text-white cursor-pointer hover:underline"
-                          >
-                            {pillVal}
-                          </span>
-                          <button
-                            type="button"
-                            aria-label="Tambah porsi"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStep(1, photo);
-                              setActiveModalPhoto(photo);
-                            }}
-                            disabled={currentTotalQty >= 10}
-                            className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
-                          >
-                            +
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Photo Thumbnail Container 16:9 Proporsional */}
-                      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-surface-alt">
-                        <PortionThumb
-                          src={photo.image_url || photo.thumbnail_url}
-                          alt={photo.label}
-                          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                        />
-                      </div>
-
-                      {/* Info porsi di bawah foto */}
-                      <div className="mt-3 flex flex-col items-center gap-0.5 w-full">
-                        <span className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">
-                          Porsi {photo.label}
-                        </span>
-                        <span className="text-xs font-medium text-text-muted">
-                          {displayGram}g <span className="text-text-placeholder">·</span> {fractionText}
-                        </span>
-                        {active && (
-                          <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
-                            ✏️ Atur takaran
-                          </span>
+                          }
+                        }}
+                        className={cn(
+                          "relative flex cursor-pointer flex-col justify-between rounded-xl border-2 p-3.5 text-left transition-all duration-150 select-none group",
+                          active
+                            ? "border-primary bg-primary/5 text-primary shadow-sm ring-2 ring-primary/20"
+                            : "border-border bg-surface hover:border-primary/50 text-text-secondary hover:text-text-primary"
                         )}
+                      >
+                        {/* Top-Right Floating Pill Stepper Badge */}
+                        {active && (
+                          <div
+                            className="absolute -top-3 -right-2 z-20 flex items-center justify-between gap-1 rounded-full bg-primary px-2.5 py-0.5 text-white shadow-md cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveModalPhoto(photo);
+                            }}
+                            title="Klik untuk buka modal penyesuaian porsi"
+                          >
+                            <button
+                              type="button"
+                              aria-label="Kurangi porsi"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStep(-1, photo);
+                                setActiveModalPhoto(photo);
+                              }}
+                              disabled={currentTotalQty <= 0.25}
+                              className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
+                            >
+                              −
+                            </button>
+                            <span
+                              title="Klik untuk buka penyesuaian porsi"
+                              className="mx-1 font-mono text-xs font-bold leading-none text-white cursor-pointer hover:underline"
+                            >
+                              {pillVal}
+                            </span>
+                            <button
+                              type="button"
+                              aria-label="Tambah porsi"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStep(1, photo);
+                                setActiveModalPhoto(photo);
+                              }}
+                              disabled={currentTotalQty >= 10}
+                              className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+
+                        <div>
+                          <div className="flex items-center justify-between w-full mb-1.5">
+                            <div
+                              className={cn(
+                                "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs",
+                                active
+                                  ? "bg-primary text-white shadow-sm"
+                                  : "bg-primary/10 text-primary"
+                              )}
+                            >
+                              {photo.label}
+                            </div>
+                            <span className="text-sm font-bold font-mono text-text-primary">
+                              {displayGram}g
+                            </span>
+                          </div>
+
+                          <div className="text-xs font-semibold text-text-primary mb-1">
+                            Porsi {photo.label}
+                          </div>
+
+                          {photo.description && !photo.description.startsWith("food_image:") && (
+                            <p className="text-[11px] text-text-muted m-0 line-clamp-1 mb-2">
+                              {photo.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="w-full bg-black/5 dark:bg-white/10 rounded-full h-1.5 overflow-hidden mt-2">
+                          <div
+                            className="bg-primary h-full rounded-full transition-all duration-300"
+                            style={{ width: `${Math.max(percent, 12)}%` }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div
+                  role="radiogroup"
+                  aria-label="Pilihan porsi"
+                  className={cn("grid gap-3.5 pt-1", gridColsClass)}
+                >
+                  {photos.map((photo) => {
+                    const active = selectedPhoto?.id === photo.id;
+                    const displayQty = active ? currentTotalQty : 1;
+                    const displayGram = Math.round(photo.weight_gram * displayQty * 10) / 10;
+                    const fractionText = formatFractionDisplay(displayQty);
+                    const pillVal = formatPillValue(displayQty);
+
+                    return (
+                      <div
+                        key={photo.id}
+                        role="radio"
+                        aria-checked={active}
+                        onClick={() => {
+                          handleSelectPhoto(photo);
+                          if (active) {
+                            setActiveModalPhoto(photo);
+                          }
+                        }}
+                        className={cn(
+                          "relative flex cursor-pointer flex-col items-center rounded-2xl border-2 p-3 text-center transition-all duration-150 select-none group",
+                          active
+                            ? "border-primary bg-primary/5 text-primary shadow-sm ring-2 ring-primary/20"
+                            : "border-border bg-surface hover:border-primary/50 text-text-secondary hover:text-text-primary"
+                        )}
+                      >
+                        {/* Top-Right Floating Pill Stepper Badge */}
+                        {active && (
+                          <div
+                            className="absolute -top-3 -right-2 z-20 flex items-center justify-between gap-1 rounded-full bg-primary px-2.5 py-0.5 text-white shadow-md cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveModalPhoto(photo);
+                            }}
+                            title="Klik untuk buka modal penyesuaian porsi"
+                          >
+                            <button
+                              type="button"
+                              aria-label="Kurangi porsi"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStep(-1, photo);
+                                setActiveModalPhoto(photo);
+                              }}
+                              disabled={currentTotalQty <= 0.25}
+                              className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
+                            >
+                              −
+                            </button>
+                            <span
+                              title="Klik untuk buka penyesuaian porsi"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveModalPhoto(photo);
+                              }}
+                              className="mx-1 font-mono text-xs font-bold leading-none text-white cursor-pointer hover:underline"
+                            >
+                              {pillVal}
+                            </span>
+                            <button
+                              type="button"
+                              aria-label="Tambah porsi"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStep(1, photo);
+                                setActiveModalPhoto(photo);
+                              }}
+                              disabled={currentTotalQty >= 10}
+                              className="text-base font-bold leading-none text-white hover:scale-125 active:scale-95 disabled:opacity-40 transition-transform cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Photo Thumbnail Container 16:9 Proporsional */}
+                        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-surface-alt">
+                          <PortionThumb
+                            src={photo.image_url || photo.thumbnail_url}
+                            alt={photo.label}
+                            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                          />
+                        </div>
+
+                        {/* Info porsi di bawah foto */}
+                        <div className="mt-3 flex flex-col items-center gap-0.5 w-full">
+                          <span className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">
+                            Porsi {photo.label}
+                          </span>
+                          <span className="text-xs font-medium text-text-muted">
+                            {displayGram}g <span className="text-text-placeholder">·</span> {fractionText}
+                          </span>
+                          {active && (
+                            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                              ✏️ Atur takaran
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           ) : !detailError ? (
             <EmptyState icon={ImageOff}>
