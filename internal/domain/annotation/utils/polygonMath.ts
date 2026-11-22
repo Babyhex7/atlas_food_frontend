@@ -74,20 +74,25 @@ export function isPointInPolygon(polygon: Point[], point: Point): boolean {
 export function polygonBounds(
   polygon: Point[]
 ): { minX: number; minY: number; maxX: number; maxY: number } | null {
-  if (polygon.length === 0) return null;
+  if (!polygon || !Array.isArray(polygon) || polygon.length === 0) return null;
 
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
 
-  for (const [x, y] of polygon) {
+  for (const pt of polygon) {
+    if (!Array.isArray(pt) || pt.length < 2) continue;
+    const x = Number(pt[0]);
+    const y = Number(pt[1]);
+    if (isNaN(x) || isNaN(y)) continue;
     if (x < minX) minX = x;
     if (y < minY) minY = y;
     if (x > maxX) maxX = x;
     if (y > maxY) maxY = y;
   }
 
+  if (minX === Infinity) return null;
   return { minX, minY, maxX, maxY };
 }
 
@@ -100,7 +105,11 @@ export function polygonCentroid(polygon: Point[]): Point | null {
 
 /** Serialisasi ke atribut `points` milik <polygon> SVG */
 export function toSvgPoints(polygon: Point[]): string {
-  return polygon.map(([x, y]) => `${x},${y}`).join(" ");
+  if (!polygon || !Array.isArray(polygon)) return "";
+  return polygon
+    .filter((pt) => Array.isArray(pt) && pt.length >= 2)
+    .map(([x, y]) => `${Number(x)},${Number(y)}`)
+    .join(" ");
 }
 
 /**

@@ -46,10 +46,11 @@ export function PolygonLayer({
           <g key={area.localId}>
             <polygon
               points={toSvgPoints(area.polygon)}
-              fill="transparent"
-              fillOpacity={0}
+              fill={color}
+              fillOpacity={selected ? 0.35 : 0.18}
               stroke={color}
               strokeWidth={zoomAdjusted(selected ? 3.5 : 2.5, zoom)}
+              vectorEffect="non-scaling-stroke"
               strokeLinejoin="round"
               strokeLinecap="round"
               style={{

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ImagePlus, Pencil, Trash2, Upload } from "lucide-react";
+import { Eye, ImagePlus, Pencil, Trash2, Upload } from "lucide-react";
 import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
 import { Button } from "@/internal/pkg/components/Button";
 import { Input } from "@/internal/pkg/components/Input";
@@ -377,6 +377,14 @@ function PhotoCard({ photo, returnTo, busy, onSave, onDelete, onPublish, onUnpub
           >
             <Pencil size={14} />
             Anotasi
+          </Link>
+          <Link
+            href={`/admin/annotations/${photo.id}/preview?returnTo=${returnTo}`}
+            className="btn btn-ghost btn-sm"
+            title="Pratinjau poligon anotasi"
+          >
+            <Eye size={14} />
+            Pratinjau
           </Link>
           {photo.status === "published" ? (
             <Button

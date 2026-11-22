@@ -80,33 +80,35 @@ export function AnnotatedFoodViewer({
             const isSelected = area.id === selectedAreaId || area.id === activeId;
             const isHot = isHovered || isSelected;
             const isVisible = overlay ? isHot : (visiblePolygons || isHot);
-            const strokeOpacity = isVisible ? (isHot ? 0.95 : 0.6) : 0;
-            const strokeWidth = isHot ? 4 : 2;
+            const strokeOpacity = isVisible ? (isHot ? 1 : 0.85) : 0;
+            const strokeWidth = isHot ? 3.5 : 2;
+            const fillOpacity = isHot ? 0.42 : (isVisible ? 0.22 : 0);
 
             return (
               <polygon
                 key={area.id}
                 points={toSvgPoints(area.polygon)}
-                fill="transparent"
-                fillOpacity={0}
+                fill={color}
+                fillOpacity={fillOpacity}
                 stroke={color}
                 strokeOpacity={strokeOpacity}
                 strokeWidth={strokeWidth}
+                vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
                 strokeLinecap="round"
-                className="cursor-pointer transition-[stroke-width,stroke-opacity,filter] duration-250 ease-out pointer-events-auto"
+                className="cursor-pointer transition-[stroke-width,stroke-opacity,fill-opacity] duration-200 ease-out pointer-events-auto"
                 style={{
                   pointerEvents: "all",
                   filter: isHot
-                    ? `blur(3.5px) drop-shadow(0 0 10px ${color}) drop-shadow(0 0 24px ${color})`
+                    ? `drop-shadow(0 0 6px ${color})`
                     : isVisible
-                    ? `blur(2px) drop-shadow(0 0 6px ${color}88)`
+                    ? `drop-shadow(0 0 2px ${color}88)`
                     : "none",
                 }}
                 tabIndex={0}
                 role="button"
                 aria-label={area.name}
-                aria-pressed={area.id === activeId}
+                aria-pressed={isSelected}
                 onMouseEnter={() => setHoverId(area.id)}
                 onMouseLeave={() => setHoverId(null)}
                 onFocus={() => setHoverId(area.id)}
@@ -138,8 +140,9 @@ export function AnnotatedFoodViewer({
                 area.weight_gram != null && area.weight_gram > 0
                   ? `${area.name} (${area.weight_gram}g)`
                   : area.name;
-              const pillWidth = Math.max(70, Math.min(150, labelText.length * 7.5 + 24));
-              const pillHeight = 24;
+              const charCount = Math.min(labelText.length, 24);
+              const pillWidth = Math.max(80, Math.min(200, charCount * 8 + 28));
+              const pillHeight = 26;
 
               return (
                 <g key={`label-${area.id}`} className="pointer-events-none transition-opacity animate-fade-in">
@@ -149,22 +152,29 @@ export function AnnotatedFoodViewer({
                     width={pillWidth}
                     height={pillHeight}
                     rx={pillHeight / 2}
-                    fill="rgba(0, 0, 0, 0.85)"
+                    fill="rgba(15, 23, 42, 0.9)"
                     stroke={color}
-                    strokeWidth={isHot ? 2 : 1}
+                    strokeWidth={isHot ? 2.5 : 1.5}
+                    vectorEffect="non-scaling-stroke"
                     className="backdrop-blur-sm"
                   />
+                  <circle
+                    cx={centroid[0] - pillWidth / 2 + 12}
+                    cy={centroid[1]}
+                    r={3.5}
+                    fill={color}
+                  />
                   <text
-                    x={centroid[0]}
-                    y={centroid[1] + 1}
+                    x={centroid[0] + 5}
+                    y={centroid[1]}
                     textAnchor="middle"
                     dominantBaseline="central"
                     fill="#ffffff"
-                    fontSize={11}
+                    fontSize={12}
                     fontWeight="600"
-                    className="select-none"
+                    className="select-none font-sans"
                   >
-                    {labelText.length > 18 ? `${labelText.slice(0, 17)}…` : labelText}
+                    {labelText.length > 20 ? `${labelText.slice(0, 19)}…` : labelText}
                   </text>
                 </g>
               );

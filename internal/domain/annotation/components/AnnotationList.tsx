@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ImageIcon, Plus, Trash2 } from "lucide-react";
+import { Eye, ImageIcon, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/internal/lib/cn";
 import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
 import { useAnnotationList } from "../hooks/useAnnotationQueries";
@@ -142,6 +142,14 @@ export function AnnotationList() {
                   </td>
                   <td>
                     <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/admin/annotations/${item.id}/preview`}
+                        className="btn btn-ghost btn-xs text-text-muted hover:text-text-primary"
+                        title="Pratinjau poligon"
+                      >
+                        <Eye size={12} />
+                        Pratinjau
+                      </Link>
                       <Link
                         href={`/admin/annotations/${item.id}`}
                         className="btn btn-outline btn-xs"
