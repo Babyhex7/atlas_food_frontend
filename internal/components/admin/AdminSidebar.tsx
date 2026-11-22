@@ -40,6 +40,7 @@ const NAV_GROUPS: AdminNavGroup[] = [
     label: "Data",
     items: [
       { href: "/admin/foods", label: "Makanan", icon: UtensilsCrossed },
+      { href: "/admin/annotations", label: "Anotasi Foto", icon: ImageIcon },
       { href: "/admin/categories", label: "Kategori", icon: FolderOpen },
       { href: "/admin/missing-foods", label: "Missing & AI", icon: Sparkles },
     ],

@@ -22,20 +22,30 @@ export function AreaFoodPicker({ value, onChange }: AreaFoodPickerProps) {
   const [results, setResults] = useState<SearchFoodResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedName, setSelectedName] = useState<string | null>(null);
+  const [loadingName, setLoadingName] = useState(false);
 
   useEffect(() => {
-    if (value && !selectedName) {
+    if (value) {
       let active = true;
+      setLoadingName(true);
       getFoodDetailPublic(value)
         .then((food) => {
           if (active && food?.name) setSelectedName(food.name);
         })
-        .catch(() => undefined);
+        .catch(() => {
+          if (active) setSelectedName(null);
+        })
+        .finally(() => {
+          if (active) setLoadingName(false);
+        });
       return () => {
         active = false;
       };
+    } else {
+      setSelectedName(null);
+      setLoadingName(false);
     }
-  }, [value, selectedName]);
+  }, [value]);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -82,10 +92,13 @@ export function AreaFoodPicker({ value, onChange }: AreaFoodPickerProps) {
   }, [query]);
 
   if (value) {
+    const displayName = selectedName || (loadingName ? "Memuat nama makanan…" : "Makanan Tertaut");
+
     return (
-      <div className="flex items-center justify-between gap-2 rounded-sm border border-border bg-surface-alt px-2 py-1.5">
-        <span className="text-xs truncate text-text-primary font-medium" title={selectedName || value}>
-          {selectedName ? `🍽️ ${selectedName}` : value}
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-alt px-2.5 py-1.5 shadow-2xs">
+        <span className="text-xs truncate text-text-primary font-medium flex items-center gap-1.5" title={displayName}>
+          <span className="text-sm">🍽️</span>
+          <span className="truncate">{displayName}</span>
         </span>
         <button
           type="button"
@@ -93,7 +106,7 @@ export function AreaFoodPicker({ value, onChange }: AreaFoodPickerProps) {
             setSelectedName(null);
             onChange(null);
           }}
-          className="btn btn-ghost btn-xs btn-icon shrink-0"
+          className="btn btn-ghost btn-xs btn-icon shrink-0 text-text-muted hover:text-danger"
           title="Lepas tautan food"
         >
           <X size={12} />
@@ -108,14 +121,14 @@ export function AreaFoodPicker({ value, onChange }: AreaFoodPickerProps) {
         type="text"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Cari food master (opsional)…"
-        className="w-full text-xs"
+        placeholder="Tautkan ke Master Makanan (opsional)…"
+        className="w-full text-xs px-2.5 py-1.5 rounded-md border border-border bg-surface text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none transition-fast"
       />
 
-      {loading && <p className="text-xs text-text-muted mt-1">Mencari…</p>}
+      {loading && <p className="text-[11px] text-text-muted mt-1 m-0">Mencari…</p>}
 
       {results.length > 0 && (
-        <ul className="mt-1 max-h-40 overflow-y-auto rounded-sm border border-border bg-surface">
+        <ul className="absolute left-0 right-0 z-20 mt-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-surface shadow-md p-1 list-none m-0">
           {results.map((food) => (
             <li key={food.id}>
               <button
@@ -126,11 +139,11 @@ export function AreaFoodPicker({ value, onChange }: AreaFoodPickerProps) {
                   setQuery("");
                   setResults([]);
                 }}
-                className="w-full text-left px-2 py-1.5 text-xs hover:bg-surface-alt"
+                className="w-full text-left px-2.5 py-1.5 rounded-md text-xs hover:bg-surface-alt text-text-primary transition-fast"
               >
-                <span className="font-medium">{food.name}</span>
+                <span className="font-semibold">{food.name}</span>
                 {food.local_name && (
-                  <span className="text-text-muted"> · {food.local_name}</span>
+                  <span className="text-text-muted text-[11px]"> · {food.local_name}</span>
                 )}
               </button>
             </li>

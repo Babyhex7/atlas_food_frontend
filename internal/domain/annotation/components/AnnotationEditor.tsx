@@ -153,8 +153,8 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
 
         {/* Switcher Antar Foto Porsi Makanan (Zero Context Switch) */}
         {siblingPhotos.length > 1 && (
-          <div className="flex items-center gap-1 bg-surface-alt border border-border rounded-lg p-1 text-xs">
-            <span className="text-text-muted px-2 font-medium">Porsi:</span>
+          <div className="flex items-center gap-1 bg-surface-alt border border-border rounded-lg p-1 text-xs shadow-2xs">
+            <span className="text-text-muted px-2 font-medium">Navigasi Porsi:</span>
             {prevPhoto && (
               <button
                 type="button"
@@ -162,14 +162,14 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
                   await autosave.flush();
                   window.location.href = `/admin/annotations/${prevPhoto.id}?returnTo=${encodeURIComponent(backHref)}`;
                 }}
-                className="btn btn-ghost btn-xs text-text-secondary"
+                className="btn btn-ghost btn-xs text-text-secondary hover:text-text-primary px-2"
                 title={`Pindah ke ${prevPhoto.title}`}
               >
-                ← {prevPhoto.title}
+                ← {prevPhoto.label ? `Porsi ${prevPhoto.label}` : "Sebelumnya"}
               </button>
             )}
-            <span className="px-2 py-0.5 rounded bg-surface font-semibold text-primary border border-border shadow-xs">
-              {image.title} ({currentIndex + 1}/{siblingPhotos.length})
+            <span className="px-2.5 py-1 rounded bg-surface font-semibold text-primary border border-border shadow-xs">
+              {siblingPhotos[currentIndex]?.label ? `Porsi ${siblingPhotos[currentIndex].label}` : `Porsi ${currentIndex + 1}`} ({currentIndex + 1}/{siblingPhotos.length})
             </span>
             {nextPhoto && (
               <button
@@ -178,10 +178,10 @@ export function AnnotationEditor({ id }: AnnotationEditorProps) {
                   await autosave.flush();
                   window.location.href = `/admin/annotations/${nextPhoto.id}?returnTo=${encodeURIComponent(backHref)}`;
                 }}
-                className="btn btn-ghost btn-xs text-primary font-semibold"
+                className="btn btn-ghost btn-xs text-primary font-semibold px-2 hover:bg-primary-light"
                 title={`Pindah ke ${nextPhoto.title}`}
               >
-                {nextPhoto.title} →
+                {nextPhoto.label ? `Porsi ${nextPhoto.label}` : "Berikutnya"} →
               </button>
             )}
           </div>

@@ -1,6 +1,10 @@
-import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { AnnotationList } from "@/internal/domain/annotation/components/AnnotationList";
 
-/** Anotasi dikelola dari form makanan — bukan menu terpisah */
 export default function AdminAnnotationsPage() {
-  redirect("/admin/foods");
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-text-muted">Memuat anotasi…</div>}>
+      <AnnotationList />
+    </Suspense>
+  );
 }

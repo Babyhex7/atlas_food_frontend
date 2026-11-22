@@ -75,13 +75,15 @@ export function AreaSidePanel({
             key={area.localId}
             onClick={() => onSelect(area.localId)}
             className={cn(
-              "rounded-md border p-3 cursor-pointer transition-fast",
-              selected ? "border-primary bg-primary-light" : "border-border bg-surface hover:bg-surface-alt"
+              "rounded-xl border p-3.5 cursor-pointer transition-fast shadow-2xs flex flex-col gap-2.5",
+              selected
+                ? "border-primary bg-primary-light/50 ring-1 ring-primary/30"
+                : "border-border bg-surface hover:border-border-strong hover:bg-surface-alt/50"
             )}
           >
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2">
               <span
-                className="w-3 h-3 rounded-sm shrink-0"
+                className="w-3.5 h-3.5 rounded-full shrink-0 shadow-2xs border border-white"
                 style={{ backgroundColor: color }}
                 aria-hidden
               />
@@ -90,8 +92,8 @@ export function AreaSidePanel({
                 value={area.name}
                 onChange={(event) => onRename(area.localId, event.target.value)}
                 onClick={(event) => event.stopPropagation()}
-                placeholder="Nama area"
-                className="flex-1 text-sm font-medium min-w-0"
+                placeholder="Nama bagian makanan…"
+                className="flex-1 text-sm font-semibold min-w-0 px-2 py-1 rounded-md border border-border/80 bg-surface text-text-primary focus:border-primary focus:outline-none transition-fast"
               />
               <button
                 type="button"
@@ -99,7 +101,7 @@ export function AreaSidePanel({
                   event.stopPropagation();
                   onDelete(area.localId);
                 }}
-                className="btn btn-ghost btn-xs btn-icon shrink-0"
+                className="btn btn-ghost btn-xs btn-icon shrink-0 text-text-muted hover:text-danger hover:bg-danger/10"
                 title="Hapus area"
               >
                 <Trash2 size={13} />
@@ -118,11 +120,11 @@ export function AreaSidePanel({
               />
             </div>
 
-            <div className="flex items-center gap-2 mt-2" onClick={(event) => event.stopPropagation()}>
-              <label htmlFor={`weight-${area.localId}`} className="text-xs text-text-muted shrink-0">
-                Porsi / Berat:
+            <div className="flex items-center justify-between gap-2 pt-0.5" onClick={(event) => event.stopPropagation()}>
+              <label htmlFor={`weight-${area.localId}`} className="text-xs font-medium text-text-secondary shrink-0">
+                Bobot porsi:
               </label>
-              <div className="relative flex-1">
+              <div className="relative w-28">
                 <input
                   id={`weight-${area.localId}`}
                   type="number"
@@ -134,25 +136,25 @@ export function AreaSidePanel({
                     const num = Number(val);
                     onWeightChange(area.localId, val === "" || isNaN(num) ? null : Math.max(0, num));
                   }}
-                  placeholder="Misal 100"
-                  className="w-full text-xs py-1 px-2 pr-6 rounded border border-border bg-surface text-text-primary"
+                  placeholder="0"
+                  className="w-full text-xs font-semibold py-1 pl-2 pr-6 rounded-md border border-border bg-surface text-text-primary focus:border-primary outline-none transition-fast text-right"
                 />
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-text-muted pointer-events-none">
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] font-bold text-text-muted pointer-events-none">
                   g
                 </span>
               </div>
             </div>
 
-            <p
-              className={cn(
-                "text-xs mt-2 mb-0",
-                tooFewPoints ? "text-danger font-medium" : "text-text-muted"
-              )}
-            >
-              {area.polygon.length} titik
-              {area.weightGram != null && area.weightGram > 0 && ` · ${area.weightGram} g`}
-              {tooFewPoints && ` — minimal ${MIN_POLYGON_POINTS} agar bisa dipublish`}
-            </p>
+            <div className="flex items-center justify-between text-[11px] pt-2 border-t border-border/50 text-text-muted">
+              <span className={cn(tooFewPoints && "text-danger font-medium")}>
+                {tooFewPoints
+                  ? `Min. ${MIN_POLYGON_POINTS} titik (${area.polygon.length} terdaftar)`
+                  : `${area.polygon.length} titik koordinat`}
+              </span>
+              <span className="font-semibold text-text-secondary">
+                {area.weightGram != null && area.weightGram > 0 ? `${area.weightGram} g` : "Belum diisi"}
+              </span>
+            </div>
           </div>
         );
       })}

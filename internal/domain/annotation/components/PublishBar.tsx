@@ -31,18 +31,13 @@ export function PublishBar({
   const isPublished = status === "published";
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2.5">
       <div className="flex items-center gap-2 flex-wrap">
         <span className={ANNOTATION_STATUS_CLASS[status]}>{ANNOTATION_STATUS_LABEL[status]}</span>
 
         <div className="ml-auto flex items-center gap-2">
-          <Link href={`/admin/annotations/${id}/preview`} className="btn btn-outline btn-sm">
-            <Eye size={14} />
-            Preview
-          </Link>
-
-          <button type="button" onClick={onExport} className="btn btn-outline btn-sm">
-            <Download size={14} />
+          <button type="button" onClick={onExport} className="btn btn-outline btn-sm text-xs">
+            <Download size={13} />
             Export JSON
           </button>
 
@@ -51,9 +46,9 @@ export function PublishBar({
               type="button"
               onClick={onUnpublish}
               disabled={publishing}
-              className="btn btn-secondary btn-sm"
+              className="btn btn-secondary btn-sm text-xs"
             >
-              <Undo size={14} />
+              <Undo size={13} />
               Unpublish
             </button>
           ) : (
@@ -61,10 +56,10 @@ export function PublishBar({
               type="button"
               onClick={onPublish}
               disabled={publishing || !canPublish}
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary btn-sm text-xs"
               title={canPublish ? undefined : issues.join(" · ")}
             >
-              <Globe size={14} />
+              <Globe size={13} />
               {publishing ? "Memproses…" : "Publish"}
             </button>
           )}
@@ -74,10 +69,9 @@ export function PublishBar({
       {/* Gambar published yang masih diedit tetap published — perubahan
           langsung terlihat responden, jadi admin perlu tahu. */}
       {isPublished && (
-        <div className="alert alert-warning">
-          <span className="text-sm">
-            Gambar ini sudah published. Setiap perubahan yang tersimpan langsung terlihat oleh
-            responden. Klik <strong>Unpublish</strong> dulu bila ingin mengedit diam-diam.
+        <div className="rounded-lg border border-warning-border bg-warning-light/60 px-3.5 py-2 text-xs text-warning flex items-center justify-between shadow-2xs">
+          <span>
+            ℹ️ Status <strong>Published</strong>: Setiap perubahan yang tersimpan langsung tercermin di publik. Klik <strong>Unpublish</strong> bila ingin menyunting secara tertutup.
           </span>
         </div>
       )}
