@@ -6,7 +6,7 @@ import {
   Loader2, User, Shield, Camera, LogOut, Settings, Search,
   X, Upload, Image as ImageIcon, Eye, EyeOff, Lock, CheckCircle2,
   Info, ArrowRight, AlertCircle, ClipboardList, Calendar, Flame, Utensils,
-  ChevronRight, FileText,
+  ChevronRight, FileText, ZoomIn, ZoomOut, RotateCcw, Move,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLogout } from "../hooks/useLogout";
@@ -23,7 +23,7 @@ import type { SurveySubmission } from "@/internal/domain/submission/types/submis
 import { AiRecommendationPanel } from "@/internal/domain/ai";
 
 type ActiveSection = "personal" | "history" | "security";
-type PhotoModal = "change" | "uploading" | null;
+type PhotoModal = "change" | "adjust" | "uploading" | null;
 type PasswordModal = "form" | "success" | null;
 
 const FOOTER_LINKS = ["Privacy Policy", "Terms of Service", "Clinical Standards", "Contact"];
@@ -77,7 +77,7 @@ function ChangePhotoModal({
 
   const handleFile = (file: File) => {
     if (!file.type.match(/^image\/(jpeg|png|webp)$/)) return;
-    if (file.size > 5 * 1024 * 1024) return;
+    if (file.size > 10 * 1024 * 1024) return;
     onFileSelected(file);
   };
 
@@ -90,8 +90,8 @@ function ChangePhotoModal({
               <ImageIcon size={18} />
             </div>
             <div>
-              <p className="m-0 font-semibold text-base text-text-primary">Change Profile Photo</p>
-              <p className="m-0 text-sm text-text-muted">Update how you appear to others on Atlas Food</p>
+              <p className="m-0 font-semibold text-base text-text-primary">Ganti Foto Profil</p>
+              <p className="m-0 text-sm text-text-muted">Pilih foto dari perangkat Anda untuk profil Atlas Food</p>
             </div>
           </div>
           <button onClick={onClose} className="bg-transparent border-none cursor-pointer text-text-muted p-1">
@@ -113,8 +113,8 @@ function ChangePhotoModal({
             <div className="w-12 h-12 rounded-full bg-primary-light text-primary flex items-center justify-center mx-auto mb-3">
               <Upload size={20} />
             </div>
-            <p className="m-0 mb-1 font-semibold text-base text-text-primary">Upload From Device</p>
-            <p className="m-0 text-sm text-text-muted">Drag and drop your file here, or click to browse</p>
+            <p className="m-0 mb-1 font-semibold text-base text-text-primary">Unggah Dari Perangkat</p>
+            <p className="m-0 text-sm text-text-muted">Tarik dan letakkan file gambar di sini, atau klik untuk memilih</p>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -126,15 +126,285 @@ function ChangePhotoModal({
           <div className="flex items-start gap-2 py-3 px-4 bg-background rounded-md">
             <Info size={14} className="text-text-muted shrink-0 mt-px" />
             <p className="m-0 text-xs text-text-muted leading-relaxed">
-              Supported formats: JPG, PNG, WEBP.
+              Format didukung: JPG, PNG, WEBP.
               <br />
-              Maximum file size: 5 MB. For best results, use a square image of at least 400×400px.
+              Ukuran maks: 10 MB. Anda dapat mengatur posisi & zoom agar proporsional sebelum disimpan.
             </p>
           </div>
         </div>
 
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
-          <button onClick={onClose} className="btn btn-secondary btn-sm">Cancel</button>
+          <button onClick={onClose} className="btn btn-secondary btn-sm">Batal</button>
+        </div>
+      </div>
+    </ModalOverlay>
+  );
+}
+
+function AdjustPhotoModal({
+  file,
+  onClose,
+  onCancel,
+  onApply,
+  error,
+}: {
+  file: File;
+  onClose: () => void;
+  onCancel: () => void;
+  onApply: (croppedFile: File) => void;
+  error: string | null;
+}) {
+  const [imageSrc, setImageSrc] = useState<string>("");
+  const [naturalDim, setNaturalDim] = useState<{ width: number; height: number } | null>(null);
+  const [zoom, setZoom] = useState<number>(1);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [processing, setProcessing] = useState(false);
+
+  const dragStartRef = useRef<{ mouseX: number; mouseY: number; panX: number; panY: number }>({
+    mouseX: 0,
+    mouseY: 0,
+    panX: 0,
+    panY: 0,
+  });
+
+  const CROP_SIZE = 260; // 260px circular viewport
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setImageSrc(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  // Hitung scale dan batas pan agar foto selalu menutupi lingkaran
+  const baseScale = naturalDim
+    ? Math.max(CROP_SIZE / naturalDim.width, CROP_SIZE / naturalDim.height)
+    : 1;
+  const totalScale = baseScale * zoom;
+  const renderedW = naturalDim ? naturalDim.width * totalScale : CROP_SIZE;
+  const renderedH = naturalDim ? naturalDim.height * totalScale : CROP_SIZE;
+  const maxPanX = Math.max(0, (renderedW - CROP_SIZE) / 2);
+  const maxPanY = Math.max(0, (renderedH - CROP_SIZE) / 2);
+  const clampedX = Math.max(-maxPanX, Math.min(maxPanX, pan.x));
+  const clampedY = Math.max(-maxPanY, Math.min(maxPanY, pan.y));
+
+  // Pointer drag events
+  const handlePointerDown = (clientX: number, clientY: number) => {
+    dragStartRef.current = {
+      mouseX: clientX,
+      mouseY: clientY,
+      panX: clampedX,
+      panY: clampedY,
+    };
+    setIsDragging(true);
+  };
+
+  const handlePointerMove = (clientX: number, clientY: number) => {
+    if (!isDragging) return;
+    const dx = clientX - dragStartRef.current.mouseX;
+    const dy = clientY - dragStartRef.current.mouseY;
+    setPan({
+      x: dragStartRef.current.panX + dx,
+      y: dragStartRef.current.panY + dy,
+    });
+  };
+
+  const handlePointerUp = () => {
+    setIsDragging(false);
+  };
+
+  // Wheel zoom
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.08 : -0.08;
+    setZoom((prev) => Math.max(1, Math.min(3, parseFloat((prev + delta).toFixed(2)))));
+  };
+
+  // Crop & generate 512x512 JPEG
+  const handleApply = () => {
+    if (!naturalDim || processing) return;
+    setProcessing(true);
+
+    const canvas = document.createElement("canvas");
+    const TARGET_SIZE = 512;
+    canvas.width = TARGET_SIZE;
+    canvas.height = TARGET_SIZE;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      setProcessing(false);
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const scaleRatio = TARGET_SIZE / CROP_SIZE;
+      ctx.save();
+      // Pindahkan pusat ke tengah canvas 512x512
+      ctx.translate(TARGET_SIZE / 2 + clampedX * scaleRatio, TARGET_SIZE / 2 + clampedY * scaleRatio);
+      ctx.scale(totalScale * scaleRatio, totalScale * scaleRatio);
+      ctx.drawImage(img, -naturalDim.width / 2, -naturalDim.height / 2);
+      ctx.restore();
+
+      canvas.toBlob(
+        (blob) => {
+          setProcessing(false);
+          if (!blob) return;
+          const croppedFile = new File(
+            [blob],
+            file.name.replace(/\.[^.]+$/, "") + "_cropped.jpg",
+            { type: "image/jpeg" }
+          );
+          onApply(croppedFile);
+        },
+        "image/jpeg",
+        0.92
+      );
+    };
+    img.onerror = () => {
+      setProcessing(false);
+    };
+    img.src = imageSrc;
+  };
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <div
+        className="bg-surface rounded-xl w-full max-w-[460px] shadow-2xl overflow-hidden flex flex-col"
+        onMouseUp={handlePointerUp}
+        onMouseLeave={handlePointerUp}
+      >
+        <div className="flex items-start justify-between px-6 py-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary-light text-primary flex items-center justify-center">
+              <Move size={18} />
+            </div>
+            <div>
+              <p className="m-0 font-semibold text-base text-text-primary">Sesuaikan Posisi Foto</p>
+              <p className="m-0 text-xs text-text-muted">Geser & zoom agar foto profil proporsional</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="bg-transparent border-none cursor-pointer text-text-muted p-1 hover:text-text-primary">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="p-6 flex flex-col items-center gap-5">
+          {error && <ErrorBanner message={error} />}
+
+          {/* Interactive Crop Viewport */}
+          <div className="relative flex items-center justify-center">
+            {/* Viewport Circle */}
+            <div
+              onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
+              onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
+              onTouchStart={(e) => {
+                const t = e.touches[0];
+                if (t) handlePointerDown(t.clientX, t.clientY);
+              }}
+              onTouchMove={(e) => {
+                const t = e.touches[0];
+                if (t) handlePointerMove(t.clientX, t.clientY);
+              }}
+              onTouchEnd={handlePointerUp}
+              onWheel={handleWheel}
+              className={cn(
+                "relative w-[260px] h-[260px] rounded-full overflow-hidden select-none bg-neutral-900 border-4 border-primary shadow-lg",
+                isDragging ? "cursor-grabbing" : "cursor-grab"
+              )}
+            >
+              {imageSrc && (
+                <img
+                  src={imageSrc}
+                  alt="Crop preview"
+                  draggable={false}
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    setNaturalDim({ width: img.naturalWidth, height: img.naturalHeight });
+                  }}
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    width: naturalDim ? `${naturalDim.width}px` : "auto",
+                    height: naturalDim ? `${naturalDim.height}px` : "auto",
+                    maxWidth: "none",
+                    maxHeight: "none",
+                    transformOrigin: "center center",
+                    transform: `translate(-50%, -50%) translate(${clampedX}px, ${clampedY}px) scale(${totalScale})`,
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
+
+              {/* Faint Center Guides */}
+              <div className="absolute inset-0 pointer-events-none border border-white/20 rounded-full" />
+              <div className="absolute top-1/2 left-0 right-0 h-px bg-white/20 pointer-events-none" />
+              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/20 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Zoom controls & reset */}
+          <div className="w-full max-w-[340px] flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs text-text-muted">
+              <span className="flex items-center gap-1 font-medium">
+                <ZoomOut size={14} /> Perbesaran
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setZoom(1);
+                  setPan({ x: 0, y: 0 });
+                }}
+                className="bg-transparent border-none cursor-pointer text-xs text-primary font-medium hover:underline flex items-center gap-1 p-0"
+              >
+                <RotateCcw size={12} /> Reset
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <ZoomOut size={16} className="text-text-muted shrink-0" />
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.05"
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+                className="w-full accent-primary cursor-pointer h-1.5 bg-border rounded-lg"
+              />
+              <ZoomIn size={16} className="text-text-muted shrink-0" />
+            </div>
+          </div>
+
+          <p className="m-0 text-xs text-text-muted text-center leading-relaxed">
+            Klik dan geser pada lingkaran foto untuk memposisikan subjek/wajah secara proporsional.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-border bg-surface-alt">
+          <button onClick={onCancel} className="btn btn-secondary btn-sm" disabled={processing}>
+            Ganti Foto
+          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={onClose} className="btn btn-secondary btn-sm" disabled={processing}>
+              Batal
+            </button>
+            <button
+              onClick={handleApply}
+              className="btn btn-primary btn-sm flex items-center gap-1.5"
+              disabled={processing || !naturalDim}
+            >
+              {processing ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Memproses...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={15} /> Terapkan & Simpan
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </ModalOverlay>
@@ -763,6 +1033,7 @@ export function ProfileCard() {
   const [activeSection, setActiveSection] = useState<ActiveSection>("personal");
 
   const [photoModal, setPhotoModal] = useState<PhotoModal>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -788,7 +1059,13 @@ export function ProfileCard() {
     });
   }, [user]);
 
-  const handleFileSelected = useCallback(async (file: File) => {
+  const handleFilePicked = useCallback((file: File) => {
+    setSelectedFile(file);
+    setPhotoError(null);
+    setPhotoModal("adjust");
+  }, []);
+
+  const handleUploadPhoto = useCallback(async (file: File) => {
     setUploadFile(file);
     setUploading(true);
     setPhotoError(null);
@@ -874,7 +1151,11 @@ export function ProfileCard() {
     .toUpperCase()
     .slice(0, 2);
 
-  const photoSrc = user.photo_url ? `${API_ASSET_ORIGIN}${user.photo_url}` : null;
+  const photoSrc = user.photo_url
+    ? user.photo_url.startsWith("http")
+      ? user.photo_url
+      : `${API_ASSET_ORIGIN}${user.photo_url}`
+    : null;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -884,7 +1165,16 @@ export function ProfileCard() {
       {photoModal === "change" && (
         <ChangePhotoModal
           onClose={() => { setPhotoModal(null); setPhotoError(null); }}
-          onFileSelected={handleFileSelected}
+          onFileSelected={handleFilePicked}
+          error={photoError}
+        />
+      )}
+      {photoModal === "adjust" && selectedFile && (
+        <AdjustPhotoModal
+          file={selectedFile}
+          onClose={() => { setPhotoModal(null); setSelectedFile(null); setPhotoError(null); }}
+          onCancel={() => { setPhotoModal("change"); setSelectedFile(null); }}
+          onApply={handleUploadPhoto}
           error={photoError}
         />
       )}
@@ -893,7 +1183,7 @@ export function ProfileCard() {
           file={uploadFile}
           uploading={uploading}
           error={photoError}
-          onClose={() => { setPhotoModal(null); setUploadFile(null); setPhotoError(null); }}
+          onClose={() => { setPhotoModal(null); setUploadFile(null); setSelectedFile(null); setPhotoError(null); }}
         />
       )}
       {passwordModal === "form" && (

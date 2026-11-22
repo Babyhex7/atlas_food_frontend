@@ -9,6 +9,7 @@ import { CollabHeaderControls } from "@/internal/domain/collab/components/Collab
 import { CollabStatusStrip } from "@/internal/domain/collab/components/CollabStatusStrip";
 import { CONTAINER_CLASS } from "@/internal/lib/layout";
 import { cn } from "@/internal/lib/cn";
+import { API_ASSET_ORIGIN } from "@/internal/pkg/api";
 
 const NAV_ITEMS = [
   { href: "/find-food", icon: Search, label: "Find Your Food" },
@@ -71,12 +72,21 @@ export function AppHeader() {
               <span className="hidden max-w-40 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-text-muted lg:inline">
                 {user.name}
               </span>
-              <span
-                aria-hidden
-                className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary md:flex"
-              >
-                {user.name.charAt(0).toUpperCase()}
-              </span>
+              {user.photo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.photo_url.startsWith("http") ? user.photo_url : `${API_ASSET_ORIGIN}${user.photo_url}`}
+                  alt={user.name}
+                  className="hidden h-8 w-8 shrink-0 rounded-full object-cover border border-primary/30 md:block"
+                />
+              ) : (
+                <span
+                  aria-hidden
+                  className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary md:flex"
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={logout}
