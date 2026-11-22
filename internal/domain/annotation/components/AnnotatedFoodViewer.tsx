@@ -82,21 +82,20 @@ export function AnnotatedFoodViewer({
             const isVisible = overlay ? isHot : (visiblePolygons || isHot);
             const strokeOpacity = isVisible ? (isHot ? 1 : 0.85) : 0;
             const strokeWidth = isHot ? 3.5 : 2;
-            const fillOpacity = isHot ? 0.42 : (isVisible ? 0.22 : 0);
 
             return (
               <polygon
                 key={area.id}
                 points={toSvgPoints(area.polygon)}
-                fill={color}
-                fillOpacity={fillOpacity}
+                fill="transparent"
+                fillOpacity={0}
                 stroke={color}
                 strokeOpacity={strokeOpacity}
                 strokeWidth={strokeWidth}
                 vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
                 strokeLinecap="round"
-                className="cursor-pointer transition-[stroke-width,stroke-opacity,fill-opacity] duration-200 ease-out pointer-events-auto"
+                className="cursor-pointer transition-[stroke-width,stroke-opacity] duration-150 ease-out pointer-events-auto"
                 style={{
                   pointerEvents: "all",
                   filter: isHot
