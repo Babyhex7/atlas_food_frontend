@@ -9,6 +9,7 @@ import { useCollab } from "@/internal/domain/collab";
 import { usePublishedAnnotationsByFood } from "@/internal/domain/annotation/hooks/useAnnotationQueries";
 import type { FoodImage } from "@/internal/domain/annotation/types/annotation";
 import { cn } from "@/internal/lib/cn";
+import { findAreaForPhoto, findPhotoIndexForArea } from "@/internal/lib/portionAreaMatch";
 
 interface PortionPhotoViewerProps {
   photos: PortionPhoto[];
@@ -87,13 +88,8 @@ function RangePhotoView({
   // Sinkronisasi dua arah: Saat user hover/klik bagian di foto, otomatis pilih porsi terkait
   const handleAreaSelect = useCallback((area: FoodImage["areas"][number]) => {
     setSelectedAreaId(area.id);
-    const nameUpper = area.name.toUpperCase();
-    const matchedIdx = photos.findIndex((p) => {
-      const labelRegex = new RegExp(`(^|\\s|PORSI\\s*)${p.label}(\\s|\\.|$)`, 'i');
-      if (labelRegex.test(nameUpper)) return true;
-      if (area.weight_gram && p.weight_gram && Math.abs(area.weight_gram - p.weight_gram) < 0.5) return true;
-      return false;
-    });
+    // Label diprioritaskan agar kepala & ekor yang beratnya sama (mis. Patin 59g) tidak tertukar
+    const matchedIdx = findPhotoIndexForArea(photos, area);
     if (matchedIdx !== -1 && matchedIdx !== activeIndex) {
       onSelect(matchedIdx);
     }
@@ -105,13 +101,7 @@ function RangePhotoView({
     const curr = photos[activeIndex];
     if (!curr) return;
 
-    const matchedArea = currentAreas.find((area) => {
-      const nameUpper = area.name.toUpperCase();
-      const labelRegex = new RegExp(`(^|\\s|PORSI\\s*)${curr.label}(\\s|\\.|$)`, 'i');
-      if (labelRegex.test(nameUpper)) return true;
-      if (area.weight_gram && curr.weight_gram && Math.abs(area.weight_gram - curr.weight_gram) < 0.5) return true;
-      return false;
-    });
+    const matchedArea = findAreaForPhoto(currentAreas, curr);
 
     if (matchedArea && matchedArea.id !== selectedAreaId) {
       setSelectedAreaId(matchedArea.id);
@@ -294,13 +284,8 @@ function GuidePhotoView({
   // Sinkronisasi dua arah: Saat user hover/klik bagian di foto, otomatis pilih varian terkait
   const handleAreaSelect = useCallback((area: FoodImage["areas"][number]) => {
     setSelectedAreaId(area.id);
-    const nameUpper = area.name.toUpperCase();
-    const matchedIdx = photos.findIndex((p) => {
-      const labelRegex = new RegExp(`(^|\\s|PORSI\\s*)${p.label}(\\s|\\.|$)`, 'i');
-      if (labelRegex.test(nameUpper)) return true;
-      if (area.weight_gram && p.weight_gram && Math.abs(area.weight_gram - p.weight_gram) < 0.5) return true;
-      return false;
-    });
+    // Label diprioritaskan agar varian yang beratnya sama tidak tertukar
+    const matchedIdx = findPhotoIndexForArea(photos, area);
     if (matchedIdx !== -1 && matchedIdx !== activeIndex) {
       onSelect?.(matchedIdx);
     }
@@ -312,13 +297,7 @@ function GuidePhotoView({
     const curr = activeIndex !== undefined ? photos[activeIndex] : null;
     if (!curr) return;
 
-    const matchedArea = currentAreas.find((area) => {
-      const nameUpper = area.name.toUpperCase();
-      const labelRegex = new RegExp(`(^|\\s|PORSI\\s*)${curr.label}(\\s|\\.|$)`, 'i');
-      if (labelRegex.test(nameUpper)) return true;
-      if (area.weight_gram && curr.weight_gram && Math.abs(area.weight_gram - curr.weight_gram) < 0.5) return true;
-      return false;
-    });
+    const matchedArea = findAreaForPhoto(currentAreas, curr);
 
     if (matchedArea && matchedArea.id !== selectedAreaId) {
       setSelectedAreaId(matchedArea.id);
@@ -522,11 +501,8 @@ function SeriesPhotoView({
 
   useEffect(() => {
     if (currentAreas.length > 0) {
-      const match = currentAreas.find(
-        (a) =>
-          (activePhoto && a.weight_gram && Math.abs(a.weight_gram - activePhoto.weight_gram) < 0.5) ||
-          (activePhoto && a.name.toLowerCase().includes(`porsi ${activePhoto.label.toLowerCase()}`))
-      );
+      // Label dulu, berat sebagai cadangan (hindari tertukar saat berat dua porsi sama)
+      const match = findAreaForPhoto(currentAreas, activePhoto);
       setSelectedAreaId(match ? match.id : currentAreas[0].id);
     } else {
       setSelectedAreaId(null);

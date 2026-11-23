@@ -18,6 +18,7 @@ import type { RecallFood } from "../types/recall";
 import type { SelectedPortion } from "@/internal/domain/portion/types/portion";
 import { useCollab } from "@/internal/domain/collab";
 import { getImageUrl, isGuideType, isRangeType } from "@/internal/lib/image";
+import { findAreaForPhoto, findPhotoIndexForArea } from "@/internal/lib/portionAreaMatch";
 import { AnnotationHoverOverlay } from "@/internal/domain/annotation/components/AnnotationHoverOverlay";
 import { usePublishedAnnotationsByFood } from "@/internal/domain/annotation/hooks/useAnnotationQueries";
 import type { FoodImage } from "@/internal/domain/annotation/types/annotation";
@@ -236,11 +237,8 @@ export function Step3Portion({
   // Sinkronkan highlight anotasi saat area selesai dimuat atau saat foto aktif berganti
   useEffect(() => {
     if (currentAreas.length > 0) {
-      const match = currentAreas.find(
-        (a) =>
-          (selectedPhoto && a.weight_gram && Math.abs(a.weight_gram - selectedPhoto.weight_gram) < 0.5) ||
-          (selectedPhoto && a.name.toLowerCase().includes(`porsi ${selectedPhoto.label.toLowerCase()}`))
-      );
+      // Label dulu, berat sebagai cadangan (hindari tertukar saat berat dua porsi sama, mis. kepala & ekor Patin)
+      const match = findAreaForPhoto(currentAreas, selectedPhoto);
       setSelectedAreaId(match ? match.id : currentAreas[0].id);
     } else {
       setSelectedAreaId(null);
@@ -356,12 +354,12 @@ export function Step3Portion({
 
       // Sinkronkan highlight anotasi jika foto ini memiliki area yang cocok
       if (currentAreas && currentAreas.length > 0) {
-        const matchingArea = currentAreas.find(
-          (a) =>
-            a.name.toLowerCase() === photo.label.toLowerCase() ||
-            (photo.description && a.name.toLowerCase() === photo.description.toLowerCase()) ||
-            (a.weight_gram && Math.abs(a.weight_gram - photo.weight_gram) < 0.5)
-        );
+        // Label dulu (berat bisa sama antar potongan), lalu deskripsi persis sebagai cadangan
+        const matchingArea =
+          findAreaForPhoto(currentAreas, photo) ??
+          currentAreas.find(
+            (a) => photo.description && a.name.toLowerCase() === photo.description.toLowerCase()
+          );
         setSelectedAreaId(matchingArea ? matchingArea.id : null);
       } else {
         setSelectedAreaId(null);
@@ -519,13 +517,15 @@ export function Step3Portion({
     (area: FoodImage["areas"][number]) => {
       setSelectedAreaId(area.id);
       // Cari apakah ada foto porsi dalam `photos` yang sesuai dengan nama/label area
-      const match = photos.find(
-        (p) =>
-          p.label.toLowerCase() === area.name.toLowerCase() ||
-          (p.description && p.description.toLowerCase().includes(area.name.toLowerCase())) ||
-          (area.name && area.name.toLowerCase().includes(p.label.toLowerCase())) ||
-          (area.weight_gram && Math.abs(p.weight_gram - area.weight_gram) < 0.5)
-      );
+      // Label di nama area dulu, lalu berat; deskripsi sebagai cadangan terakhir.
+      // (Dulu memakai includes(label) sehingga label "A" cocok ke hampir semua nama area.)
+      const matchIdx = findPhotoIndexForArea(photos, area);
+      const match =
+        matchIdx !== -1
+          ? photos[matchIdx]
+          : photos.find(
+              (p) => p.description && p.description.toLowerCase().includes(area.name.toLowerCase())
+            );
 
       if (match) {
         handleSelectPhoto(match);
