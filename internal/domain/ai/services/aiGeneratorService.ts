@@ -24,6 +24,7 @@ export interface GenerateFoodAIResponse {
   description: string;
   category_id?: string;
   category_name: string;
+  photo_type?: "series" | "range" | "guide";
   calories_per_100g: number;
   protein_per_100g: number;
   fat_per_100g: number;
@@ -36,6 +37,7 @@ export interface PublishFoodAIRequest {
   local_name: string;
   description: string;
   category_id?: string;
+  photo_type?: "series" | "range" | "guide";
   calories_per_100g: number;
   protein_per_100g: number;
   fat_per_100g: number;

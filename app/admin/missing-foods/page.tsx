@@ -165,6 +165,7 @@ export default function AdminMissingFoodsPage() {
         local_name: aiDraft.local_name,
         description: aiDraft.description,
         category_id: aiDraft.category_id,
+        photo_type: aiDraft.photo_type || "series",
         calories_per_100g: Number(aiDraft.calories_per_100g),
         protein_per_100g: Number(aiDraft.protein_per_100g),
         fat_per_100g: Number(aiDraft.fat_per_100g),
@@ -490,6 +491,31 @@ export default function AdminMissingFoodsPage() {
                         onChange={(e) => setAiDraft({ ...aiDraft, description: e.target.value })}
                         className="w-full mt-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm"
                       />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground">Kategori Makanan</label>
+                      <input
+                        type="text"
+                        value={aiDraft.category_name}
+                        disabled
+                        className="w-full mt-1 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-sm text-muted-foreground cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground">
+                        Tipe Foto Porsi ({aiDraft.photo_type === "range" ? "Range (Ukuran S/M/L)" : aiDraft.photo_type === "guide" ? "Guide (Ragam Potongan)" : "Series (Porsi Bertingkat)"})
+                      </label>
+                      <select
+                        value={aiDraft.photo_type || "series"}
+                        onChange={(e) =>
+                          setAiDraft({ ...aiDraft, photo_type: e.target.value as any })
+                        }
+                        className="w-full mt-1 rounded-md border border-primary/40 bg-surface px-3 py-1.5 text-sm font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      >
+                        <option value="series">Series — Porsi bertingkat (A, B, C, D)</option>
+                        <option value="range">Range — Rentang ukuran fisik satuan (S, M, L)</option>
+                        <option value="guide">Guide — Ragam bentuk potongan / variasi</option>
+                      </select>
                     </div>
                   </div>
 
