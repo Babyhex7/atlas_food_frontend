@@ -447,22 +447,33 @@ export default function AdminMissingFoodsPage() {
               )}
 
               {generating ? (
-                <div className="flex flex-col items-center justify-center py-16 space-y-4">
+                <div className="flex flex-col items-center justify-center py-12 space-y-5">
                   <div className="relative">
                     <div className="h-14 w-14 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
                     <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary animate-pulse" />
                   </div>
-                  <div className="text-center">
-                    <p className="font-medium text-foreground">
-                      Menganalisis Komposisi Gizi & Merender Porsi...
+                  <div className="text-center space-y-2 max-w-md">
+                    <p className="font-semibold text-foreground">
+                      Sedang Memproses AI Food Studio...
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                      Gemini sedang menghitung kalori, protein, lemak, dan menyusun porsi piring 23cm sesuai standar buku foto makanan.
-                    </p>
+                    <div className="text-xs text-muted-foreground space-y-1 text-left bg-muted/30 rounded-lg p-3 border border-border">
+                      <p>1. Menganalisis komposisi & gizi per 100g (standar TKPI)...</p>
+                      <p>2. Menentukan tipe foto (Series / Range / Guide) & gramasi A–D...</p>
+                      <p>3. Merender 4 visual porsi piring standar 23cm...</p>
+                    </div>
                   </div>
                 </div>
               ) : aiDraft ? (
                 <div className="space-y-6">
+                  {aiDraft.portions?.some((p) => p.image_url?.startsWith("data:image/svg+xml")) && (
+                    <div className="flex items-start gap-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-300">
+                      <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-semibold">Mode Ilustrasi Piring (SVG Placeholder):</span>{" "}
+                        Estimasi gizi & porsi dihasilkan oleh Gemini, namun generate foto realistis (Imagen/Gemini Image) sedang memakai ilustrasi piring standar karena kuota/billing image generation di API key belum aktif. Kamu tetap bisa lanjut publish atau ganti foto di menu As-Served nanti.
+                      </div>
+                    </div>
+                  )}
                   {/* Bagian 1: Identitas Makanan */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 rounded-lg border border-border p-4 bg-muted/20">
                     <div>

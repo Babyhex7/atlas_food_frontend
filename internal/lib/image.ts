@@ -40,8 +40,15 @@ function getStorageBase(): string {
  */
 export function getImageUrl(path: string | null | undefined): string {
   if (!path) return "";
-  // Sudah absolute URL
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  // Data URL / Blob URL (misal hasil AI generator) atau absolute URL
+  if (
+    path.startsWith("data:") ||
+    path.startsWith("blob:") ||
+    path.startsWith("http://") ||
+    path.startsWith("https://")
+  ) {
+    return path;
+  }
   // Relative path — prepend storage base
   const base = getStorageBase();
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
