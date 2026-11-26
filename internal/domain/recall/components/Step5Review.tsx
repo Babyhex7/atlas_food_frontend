@@ -114,8 +114,8 @@ function validateSession(session: RecallSession): string | null {
     return "Survei belum diinisialisasi. Silakan mulai ulang dari halaman join.";
   }
   const filledMeals = session.meals.filter((m) => m.foods.length > 0);
-  if (filledMeals.length === 0) {
-    return "Minimal satu waktu makan harus diisi sebelum mengirim.";
+  if (filledMeals.length === 0 && session.missing_foods.length === 0) {
+    return "Minimal satu waktu makan atau catatan makanan harus diisi sebelum mengirim.";
   }
   const incomplete = filledMeals.some((m) =>
     m.foods.some((f) => !f.portion || f.portion.portion_gram <= 0)
@@ -152,7 +152,7 @@ export function Step5Review({
     .filter((a) => a.amount_value > 0);
 
   const validationError = validateSession(session);
-  const canSubmit = !validationError && rows.length > 0;
+  const canSubmit = !validationError && (rows.length > 0 || session.missing_foods.length > 0);
 
   const totals = session.meals.reduce(
     (acc, meal) => {

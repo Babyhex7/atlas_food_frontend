@@ -378,7 +378,7 @@ export function Step2AddFood({
   // Item manual tidak punya data gizi, jadi tidak bisa jadi satu-satunya isi
   // waktu makan — porsi & perhitungan di langkah berikutnya butuh makanan dari
   // database. Tetap dicatat dan ikut terkirim sebagai masukan untuk peneliti.
-  const canContinue = addedFoods.length > 0;
+  const canContinue = addedFoods.length > 0 || missingFoods.length > 0;
   const addedIds = useMemo(() => new Set(addedFoods.map((f) => f.food.id)), [addedFoods]);
 
   return (
@@ -516,7 +516,7 @@ export function Step2AddFood({
 
       {missingFoods.length > 0 && addedFoods.length === 0 ? (
         <p className="text-center text-xs text-warning">
-          Catatan manual tersimpan. Tambahkan minimal 1 makanan atau minuman dari pencarian basis data untuk melanjutkan ke estimasi porsi.
+          Catatan manual tersimpan. Anda dapat langsung melanjutkan ke tinjauan laporan atau menambahkan makanan dari basis data.
         </p>
       ) : null}
 

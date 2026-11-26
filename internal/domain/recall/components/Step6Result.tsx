@@ -68,12 +68,21 @@ export function Step6Result({ respondentName, submissionId, session, onFinish, o
       .flatMap((m) => m.foods)
       .reduce((sum, f) => sum + (f.portion?.portion_gram ?? 0), 0) ?? 0;
 
+  const mealTimesSummary =
+    activeMeals.length > 1
+      ? `${activeMeals.length} waktu (${activeMeals.map((m) => m.time).filter(Boolean).join(", ")})`
+      : activeMeals[0]?.time
+        ? `Pukul ${activeMeals[0].time}`
+        : session?.current_meal?.time
+          ? `Pukul ${session.current_meal.time}`
+          : "Tercatat";
+
   const summaryStats = [
     {
       icon: Clock,
       label: "Waktu Makan",
       value: mealName,
-      desc: session?.current_meal?.time ? `Pukul ${session.current_meal.time}` : "Tercatat",
+      desc: mealTimesSummary,
     },
     {
       icon: UtensilsCrossed,

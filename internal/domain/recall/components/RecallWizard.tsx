@@ -140,7 +140,7 @@ export function RecallWizard({ guest = false }: WizardProps) {
   if (currentStep === "select_meal") {
     canContinueHeader = Boolean(session.current_meal.type);
   } else if (currentStep === "add_food") {
-    canContinueHeader = foods.length > 0;
+    canContinueHeader = foods.length > 0 || session.missing_foods.length > 0;
   } else if (currentStep === "portion") {
     const currentFood = foods[session.portion_food_index ?? 0];
     canContinueHeader =
@@ -153,7 +153,8 @@ export function RecallWizard({ guest = false }: WizardProps) {
     canContinueHeader = true;
   } else if (currentStep === "review") {
     canContinueHeader =
-      session.meals.some((m) => m.foods.length > 0) &&
+      (session.meals.some((m) => m.foods.length > 0) ||
+        session.missing_foods.length > 0) &&
       session.meals.every((m) =>
         m.foods.every((f) => f.portion && f.portion.portion_gram > 0)
       );
@@ -164,6 +165,12 @@ export function RecallWizard({ guest = false }: WizardProps) {
       submitRef.current?.();
     } else if (currentStep === "portion") {
       portionNextRef.current?.();
+    } else if (
+      currentStep === "add_food" &&
+      foods.length === 0 &&
+      session.missing_foods.length > 0
+    ) {
+      goToStep("review");
     } else {
       nextStep();
     }
@@ -422,7 +429,13 @@ export function RecallWizard({ guest = false }: WizardProps) {
               onRemoveFood={removeFood}
               onAddMissing={addMissingFood}
               onRemoveMissing={removeMissingFood}
-              onContinue={nextStep}
+              onContinue={() => {
+                if (foods.length === 0 && session.missing_foods.length > 0) {
+                  goToStep("review");
+                } else {
+                  nextStep();
+                }
+              }}
               onBack={prevStep}
             />
           )}
