@@ -32,6 +32,8 @@ export function RegisterForm() {
     defaultValues: {
       name: "",
       email: "",
+      gender: undefined,
+      birth_date: "",
       password: "",
       confirmPassword: "",
     },
@@ -122,6 +124,56 @@ export function RegisterForm() {
           {errors.email?.message && (
             <p className="text-xs text-red-600 mt-1 font-medium">{errors.email.message}</p>
           )}
+        </div>
+
+        {/* Gender & Birth Date Inputs (untuk acuan AKG PMK 28/2019) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="space-y-1.5">
+            <label htmlFor="gender" className="block text-xs font-semibold text-slate-700">
+              Jenis Kelamin
+            </label>
+            <select
+              id="gender"
+              defaultValue=""
+              className={cn(
+                "w-full px-3.5 py-2.5 bg-white border rounded-lg text-sm text-slate-900 focus:outline-none transition-colors shadow-2xs font-sans",
+                errors.gender
+                  ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                  : "border-slate-300 hover:border-slate-400 focus:border-[#C0001B] focus:ring-1 focus:ring-[#C0001B]"
+              )}
+              {...formRegister("gender")}
+            >
+              <option value="" disabled>
+                Pilih jenis kelamin
+              </option>
+              <option value="male">Laki-laki</option>
+              <option value="female">Perempuan</option>
+            </select>
+            {errors.gender?.message && (
+              <p className="text-xs text-red-600 mt-1 font-medium">{errors.gender.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="birth_date" className="block text-xs font-semibold text-slate-700">
+              Tanggal Lahir
+            </label>
+            <input
+              id="birth_date"
+              type="date"
+              max={new Date().toISOString().split("T")[0]}
+              className={cn(
+                "w-full px-3.5 py-2.5 bg-white border rounded-lg text-sm text-slate-900 focus:outline-none transition-colors shadow-2xs font-sans",
+                errors.birth_date
+                  ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                  : "border-slate-300 hover:border-slate-400 focus:border-[#C0001B] focus:ring-1 focus:ring-[#C0001B]"
+              )}
+              {...formRegister("birth_date")}
+            />
+            {errors.birth_date?.message && (
+              <p className="text-xs text-red-600 mt-1 font-medium">{errors.birth_date.message}</p>
+            )}
+          </div>
         </div>
 
         {/* Password Input */}

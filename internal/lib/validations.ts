@@ -9,6 +9,14 @@ export const loginSchema = z.object({
 export const registerSchema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter"),
   email: z.string().email("Email tidak valid"),
+  gender: z.enum(["male", "female"], { message: "Pilih jenis kelamin" }),
+  birth_date: z
+    .string()
+    .min(1, "Tanggal lahir wajib diisi")
+    .refine((val) => {
+      const parsed = new Date(val);
+      return !Number.isNaN(parsed.getTime()) && parsed <= new Date();
+    }, "Tanggal lahir tidak valid"),
   password: z.string().min(8, "Password minimal 8 karakter"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {

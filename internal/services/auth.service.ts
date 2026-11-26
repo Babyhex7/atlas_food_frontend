@@ -10,6 +10,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
+  gender?: "male" | "female";
+  birth_date?: string;
 }
 
 export interface AuthResponse {
