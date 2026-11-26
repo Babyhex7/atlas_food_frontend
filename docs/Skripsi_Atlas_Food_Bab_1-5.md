@@ -399,7 +399,7 @@ Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 1. Sistem berbasis web responsif; tidak dikembangkan aplikasi seluler _native_.
 2. Kolaborasi bersifat _awareness_ (kehadiran, kursor, _viewport_, langkah, aktivitas, kunci entitas) — **bukan** penyuntingan bersama satu dokumen. Isian _recall_ tidak direplikasi antar peserta demi validitas data _self-report_. Kanvas langsung (coretan, bentuk, dan penunjuk laser di atas foto porsi) termasuk lapisan _awareness_ ini: bersifat sementara di memori ruang dan tidak disimpan ke laporan final.
 3. _Hub_ kolaborasi, kunci entitas, dan token undangan disimpan di memori proses (_in-memory_); sistem belum mendukung penyebaran multi-instans.
-4. Fitur kolaborasi aktif pada halaman pengisian _recall_ dan halaman pencarian makanan; portal admin tidak dilengkapi kolaborasi real-time pada versi 1.
+4. Fokus utama penelitian adalah alur pengisian _dietary recall_ 24 jam (termasuk kolaborasi real-time, kanvas anotasi di atas foto porsi `series`/`range`/`guide`, obrolan kursor, dan rekomendasi gizi LLM); modul katalog _Find Your Food_ berperan sebagai referensi pendukung di luar alur survei, sementara portal admin tidak dilengkapi kolaborasi real-time pada versi 1.
 5. Perhitungan nilai gizi terbatas pada empat zat gizi makro: energi, protein, karbohidrat, dan lemak, dengan data komposisi zat gizi per 100 gram bahan makanan untuk sementara mengadopsi data Tabel Komposisi Pangan Indonesia (TKPI) 2020 yang diterbitkan oleh Kementerian Kesehatan Republik Indonesia.
 6. Analisis rekomendasi gizi memanfaatkan model pihak ketiga melalui Groq API; penelitian tidak melakukan pelatihan atau _fine-tuning_ model mandiri. AI dilarang keras menghitung nilai kalori/makronutrien sendiri.
 7. Rekomendasi LLM bersifat edukatif/informatif dan tidak divalidasi sebagai diagnosis atau nasihat medis klinis.
@@ -1547,7 +1547,7 @@ flowchart LR
 
 Modul ini diimplementasikan sebagai tiga rute Next.js — `/find-food` (beranda katalog dan pencarian), `/find-food/[id]` (detail makanan), dan `/find-food/category/[code]` (daftar per kategori) — yang memanfaatkan _endpoint_ `/public/*` di layanan Go tanpa menambahkan tabel basis data baru. Sesi kolaborasi dipasang pada _layout_ `/find-food` (bukan per halaman) dengan `autoConnect` nonaktif, sehingga koneksi, kehadiran, dan status ikut bertahan ketika pengguna berpindah antar-halaman katalog.
 
-> **⚠ Ketidaksesuaian yang harus diputuskan sebelum sidang.** _Endpoint_ `/public/*` tidak mensyaratkan token, tetapi `middleware.ts` mendaftarkan `/find-food` sebagai rute terlindung dan kotak pencarian di beranda mengarahkan pengunjung ke login. Jadi pada kode saat ini katalog **tidak** dapat dibuka tanpa login. Pilih salah satu: **(a)** keluarkan `/find-food` dari daftar rute terlindung (kolaborasi di katalog tetap hanya aktif bagi pengguna yang login), lalu klaim "katalog publik tanpa login" pada Subbab 1.6, 2.9, dan 4.7.6 sah; atau **(b)** biarkan kodenya dan pertahankan rumusan hati-hati yang dipakai draf ini ("API publik tanpa token; halaman web memerlukan login"). Draf ini ditulis mengikuti pilihan (b) karena itulah keadaan kode.
+> **Catatan akses versi 1.** Meskipun _endpoint_ `/public/*` tidak mensyaratkan token untuk keperluan pembacaan data referensi, rute halaman `/find-food` pada versi 1 tetap ditempatkan di balik autentikasi melalui `middleware.ts` karena fokus utama penelitian ini berada pada alur survei _recall_ terotentikasi.
 
 **Komponen utama:**
 
