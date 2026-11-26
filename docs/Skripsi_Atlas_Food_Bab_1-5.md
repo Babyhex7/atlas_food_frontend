@@ -200,7 +200,8 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
   - [1.4 Manfaat Penelitian](#14-manfaat-penelitian)
   - [1.5 Batasan Penelitian](#15-batasan-penelitian)
   - [1.6 Ruang Lingkup Penelitian](#16-ruang-lingkup-penelitian)
-  - [1.7 Struktur Organisasi Skripsi](#17-struktur-organisasi-skripsi)
+  - [1.7 Definisi Operasional](#17-definisi-operasional)
+  - [1.8 Struktur Organisasi Skripsi](#18-struktur-organisasi-skripsi)
 - [BAB II TINJAUAN PUSTAKA](#bab-ii-tinjauan-pustaka)
   - [2.1 Metode _Dietary Recall_ 24 Jam](#21-metode-dietary-recall-24-jam)
   - [2.2 Sistem _Dietary Recall_ Terkomputerisasi](#22-sistem-dietary-recall-terkomputerisasi)
@@ -250,14 +251,12 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
   - [4.5 Hasil Pengujian Penerimaan Pengguna](#45-hasil-pengujian-penerimaan-pengguna)
   - [4.6 Hasil Penilaian Pakar terhadap Keluaran LLM](#46-hasil-penilaian-pakar-terhadap-keluaran-llm)
   - [4.7 Pembahasan](#47-pembahasan)
-    - [4.7.1 Menjawab RM-1 — Perancangan dan Pembangunan Sistem R24J](#471-menjawab-rm-1--perancangan-dan-pembangunan-sistem-r24j)
-    - [4.7.2 Menjawab RM-2 — Kolaborasi Real-Time dan Sinkronisasi Langkah](#472-menjawab-rm-2--kolaborasi-real-time-dan-sinkronisasi-langkah)
-    - [4.7.3 Menjawab RM-3 — Penegakan Kontrol Peran](#473-menjawab-rm-3--penegakan-kontrol-peran)
-    - [4.7.4 Menjawab RM-4 — Integrasi Rekomendasi Gizi Berbasis LLM](#474-menjawab-rm-4--integrasi-rekomendasi-gizi-berbasis-llm)
-    - [4.7.5 Menjawab RM-5 — Hasil Pengujian Fungsional, Kinerja, dan Kebergunaan](#475-menjawab-rm-5--hasil-pengujian-fungsional-kinerja-dan-kebergunaan)
-    - [4.7.6 Pembahasan Modul Katalog Publik](#476-pembahasan-modul-katalog-publik)
-    - [4.7.7 Pembahasan Kanvas Langsung dan Obrolan Kursor](#477-pembahasan-kanvas-langsung-dan-obrolan-kursor)
-    - [4.7.8 Perbandingan dengan Sistem Terdahulu](#478-perbandingan-dengan-sistem-terdahulu)
+    - [4.7.1 Menjawab RM-1 — Sistem R24J dan Estimasi Porsi Visual (`Series`, `Range`, `Guide`)](#471-menjawab-rm-1--sistem-r24j-dan-estimasi-porsi-visual-series-range-guide)
+    - [4.7.2 Menjawab RM-2 — Kolaborasi Real-Time dan Kontrol Peran _Fail-Closed_](#472-menjawab-rm-2--kolaborasi-real-time-dan-kontrol-peran-fail-closed)
+    - [4.7.3 Menjawab RM-3 — Rekomendasi Gizi LLM dan Evaluasi Sistem](#473-menjawab-rm-3--rekomendasi-gizi-llm-dan-evaluasi-sistem)
+    - [4.7.4 Pembahasan Modul Katalog Publik](#474-pembahasan-modul-katalog-publik)
+    - [4.7.5 Pembahasan Kanvas Langsung dan Obrolan Kursor](#475-pembahasan-kanvas-langsung-dan-obrolan-kursor)
+    - [4.7.6 Perbandingan dengan Sistem Terdahulu](#476-perbandingan-dengan-sistem-terdahulu)
 - [BAB V PENUTUP](#bab-v-penutup)
   - [5.1 Kesimpulan](#51-kesimpulan)
   - [5.2 Saran](#52-saran)
@@ -374,19 +373,15 @@ Berdasarkan uraian tersebut, penelitian ini merancang dan membangun **Atlas Food
 
 Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 
-1. **RM-1.** Bagaimana merancang dan membangun sistem survei _dietary recall_ 24 jam berbasis web yang memandu responden secara terstruktur hingga menghasilkan estimasi asupan gizi harian yang deterministik?
-2. **RM-2.** Bagaimana menerapkan mekanisme kolaborasi real-time yang memungkinkan pendampingan jarak jauh pada sistem tersebut, termasuk penyelarasan langkah antar pengguna pada aplikasi satu halaman yang tidak memiliki URL berbeda per langkah?
-3. **RM-3.** Bagaimana menegakkan kontrol peran _owner_, _editor_, dan _viewer_ di dalam sesi kolaborasi sehingga pendamping berperan _viewer_ tidak dapat mengubah data responden melalui jalur mana pun?
-4. **RM-4.** Bagaimana mengintegrasikan _large language model_ (LLM) sebagai penghasil rekomendasi naratif gizi pasca-laporan yang terstruktur, aman, dapat diaudit, dan tidak mengambil alih kalkulasi gizi deterministik?
-5. **RM-5.** Bagaimana hasil pengujian fungsional, kinerja, dan kebergunaan sistem yang dibangun?
+1. **RM-1.** Bagaimana merancang dan membangun sistem survei _dietary recall_ 24 jam berbasis web yang mengintegrasikan tiga tipe visualisasi foto porsi _as served_ terpadu (`series`, `range`, dan `guide`) beserta pengelolaan anotasi visual dan perhitungan asupan zat gizi makro secara deterministik?
+2. **RM-2.** Bagaimana menerapkan mekanisme kolaborasi real-time berbasis WebSocket untuk pendampingan jarak jauh — mencakup penyelarasan langkah pada aplikasi satu halaman serta penegakan kontrol peran berlapis tiga (`owner`, `editor`, `viewer`) secara _fail-closed_ — sehingga pendamping tidak dapat mengubah data responden?
+3. **RM-3.** Bagaimana mengintegrasikan _large language model_ (LLM) berkendala skema JSON untuk menyusun rekomendasi gizi pasca-laporan mengacu pada Angka Kecukupan Gizi (Permenkes RI Nomor 28 Tahun 2019) tanpa mengambil alih kalkulasi deterministik, serta bagaimana hasil evaluasi fungsional, kinerja, dan kebergunaan sistem bersama tim ahli BRIN?
 
 ## 1.3 Tujuan Penelitian
 
-1. **T-1.** Merancang dan membangun sistem survei R24J berbasis web dengan alur pengisian enam langkah yang menghasilkan estimasi asupan gizi harian secara deterministik. _(menjawab RM-1)_
-2. **T-2.** Mengimplementasikan mekanisme kolaborasi real-time berbasis WebSocket yang mencakup kehadiran, kursor bersama, mode ikut, penyelarasan langkah _wizard_, dan kanvas bersama di atas foto porsi. _(menjawab RM-2)_
-3. **T-3.** Merancang dan mengimplementasikan model otorisasi peran per-ruang berlapis tiga yang bersifat _fail-closed_. _(menjawab RM-3)_
-4. **T-4.** Membangun _pipeline_ rekomendasi gizi pasca-laporan berbasis LLM berkendala skema JSON dengan penyimpanan hasil dan jejak audit. _(menjawab RM-4)_
-5. **T-5.** Menguji artefak sistem melalui pengujian kotak-hitam, pengukuran kinerja real-time, dan evaluasi kebergunaan (_System Usability Scale_) bersama tim ahli Pusat Riset Kesehatan Masyarakat dan Gizi BRIN. _(menjawab RM-5)_
+1. **T-1.** Merancang dan membangun sistem survei R24J berbasis web dengan alur enam langkah, tiga tipe foto porsi terpadu (`series`, `range`, `guide`), CMS anotasi poligon, dan kalkulasi gizi deterministik. _(menjawab RM-1)_
+2. **T-2.** Mengimplementasikan mekanisme kolaborasi real-time berbasis WebSocket (kehadiran, kursor bersama, mode ikut, penyelarasan langkah, kanvas bersama) dengan model otorisasi peran berlapis tiga yang bersifat _fail-closed_. _(menjawab RM-2)_
+3. **T-3.** Membangun _pipeline_ rekomendasi gizi pasca-laporan berbasis LLM berkendala skema JSON sesuai acuan AKG Permenkes RI Nomor 28 Tahun 2019, serta mengevaluasi fungsionalitas, kinerja, dan kebergunaan (_System Usability Scale_) bersama tim ahli Pusat Riset Kesehatan Masyarakat dan Gizi BRIN. _(menjawab RM-3)_
 
 ## 1.4 Manfaat Penelitian
 
@@ -427,7 +422,17 @@ Berdasarkan latar belakang, rumusan masalah penelitian ini adalah:
 
 **Ruang lingkup pengujian.** Pengujian kotak-hitam terhadap seluruh kebutuhan fungsional; pengujian kinerja terhadap latensi dan _throughput_ kolaborasi; evaluasi kebergunaan pengguna menggunakan _System Usability Scale_ (SUS) bersama tim ahli BRIN.
 
-## 1.7 Struktur Organisasi Skripsi
+## 1.7 Definisi Operasional
+
+Untuk menyamakan pemahaman istilah yang digunakan dalam penelitian ini:
+
+1. **_Dietary Recall_ 24 Jam (R24J):** Metode pengumpulan data konsumsi pangan individu secara retrospektif untuk mencatat seluruh makanan dan minuman beserta porsinya dalam 24 jam terakhir.
+2. **Foto Porsi _As Served_ (`Series`, `Range`, `Guide`):** Metode penaksiran porsi visual berbasis foto terstandar: `series` menyajikan satu menu dalam deret foto bertahap (A–H), `range` menyajikan satu menu dengan variasi ukuran/potongan dalam satu bingkai foto, dan `guide` menyajikan beberapa varian/jenis makanan dalam satu bingkai foto komposit.
+3. **Kolaborasi _Real-Time_ Berkesadaran Ruang:** Mekanisme pendampingan jarak jauh berbasis WebSocket yang menampilkan kehadiran peserta, kursor bersama, penyelarasan langkah pengisian, dan penunjuk kanvas tanpa menyalin atau mengubah isian laporan responden.
+4. **Otorisasi _Fail-Closed_:** Prinsip pengendalian akses yang secara bawaan menolak tindakan penyuntingan apabila peran pengguna belum terverifikasi atau hanya berstatus `viewer`.
+5. **Rekomendasi Gizi Berkendala Skema:** Keluaran naratif dari _large language model_ (LLM) yang dikunci ke struktur JSON tetap di atas hasil perhitungan gizi deterministik (TKPI 2020) dan acuan AKG (Permenkes RI Nomor 28 Tahun 2019).
+
+## 1.8 Struktur Organisasi Skripsi
 
 Penulisan skripsi ini disusun dalam lima bab dengan struktur dan sistematika pembahasan sebagai berikut:
 
@@ -441,7 +446,7 @@ Penulisan skripsi ini disusun dalam lima bab dengan struktur dan sistematika pem
    Menjelaskan pendekatan _Design Research Methodology_ (DRM) yang diintegrasikan dengan kerangka kerja tangkas _Scrum_, lingkungan dan alat pengembangan, metode pengumpulan data, analisis kebutuhan fungsional dan non-fungsional, perancangan arsitektur sistem modular terpisah (Next.js dan Go), pemodelan sistem menggunakan diagram UML (_use case_, _activity_, _sequence_, _class_), _entity relationship diagram_ (ERD), diagram mesin keadaan _wizard_, perancangan basis data relasional MySQL, serta instrumen dan teknik pengujian sistem.
 
 4. **BAB IV HASIL DAN PEMBAHASAN**  
-   Menyajikan hasil implementasi sistem Atlas Food pada keenam modul utama, hasil verifikasi fungsional melalui pengujian kotak-hitam (_black-box testing_) terhadap 92 kasus uji, temuan dan klasifikasi cacat logika hasil penelusuran _end-to-end_, hasil pengujian kinerja real-time, evaluasi kebergunaan menggunakan _System Usability Scale_ (SUS), penilaian pakar gizi terhadap keluaran rekomendasi AI, serta pembahasan komprehensif yang menjawab kelima rumusan masalah penelitian.
+   Menyajikan hasil implementasi sistem Atlas Food pada modul utama, hasil verifikasi fungsional melalui pengujian kotak-hitam (_black-box testing_) terhadap 92 kasus uji, temuan dan klasifikasi cacat logika hasil penelusuran _end-to-end_, hasil pengujian kinerja real-time, evaluasi kebergunaan menggunakan _System Usability Scale_ (SUS), penilaian pakar gizi terhadap keluaran rekomendasi AI, serta pembahasan komprehensif yang menjawab ketiga rumusan masalah penelitian.
 
 5. **BAB V PENUTUP**  
    Memuat kesimpulan umum dan pemetaan jawaban spesifik atas setiap rumusan masalah yang diajukan, keterbatasan artefak yang dikembangkan, serta saran rekomendasi pengembangan teknis sistem dan arah penelitian lanjutan di masa mendatang.
@@ -622,7 +627,9 @@ Di luar tiga kebaruan tersebut, sistem memuat fitur pendukung kanvas langsung di
 
 ## 3.1 Desain Penelitian
 
-Penelitian ini menggunakan kerangka **Design Research Methodology (DRM)** yang dirumuskan oleh Blessing dan Chakrabarti (2009). DRM dipilih karena fokus utama penelitian ini adalah merancang bangun dukungan sistem (_support_) berupa sistem survei _dietary recall_ 24 jam berbasis web yang memadukan kolaborasi real-time, estimasi porsi visual, dan rekomendasi gizi kecerdasan buatan, dengan kriteria keberhasilan yang dirumuskan sebelum perancangan dan kedalaman tiap tahap yang terukur. DRM terdiri atas empat tahap, yaitu _Research Clarification_ (RC), _Descriptive Study I_ (DS-I), _Prescriptive Study_ (PS), dan _Descriptive Study II_ (DS-II). Pada tahap _Prescriptive Study_, proses rekayasa perangkat lunak dijalankan secara iteratif mengadopsi kerangka kerja **Scrum** (Schwaber & Sutherland, 2020) melalui enam sprint pengembangan.
+Penelitian ini menggunakan kerangka **Design Research Methodology (DRM)** yang dirumuskan oleh Blessing dan Chakrabarti (2009). DRM dipilih karena penelitian ini menghasilkan dukungan sistem (_support_) yang kegunaannya harus dievaluasi terhadap kriteria keberhasilan yang ditetapkan sejak awal, serta memungkinkan penentuan kedalaman tiap tahap secara eksplisit. DRM terdiri atas empat tahap — _Research Clarification_ (RC), _Descriptive Study I_ (DS-I), _Prescriptive Study_ (PS), dan _Descriptive Study II_ (DS-II) — yang masing-masing dapat dijalankan pada tingkat _review-based_, _comprehensive_, atau _initial_. Penelitian ini termasuk **DRM tipe ke-3**, yaitu RC dan DS-I berbasis kajian literatur (_review-based_), PS menyeluruh (_comprehensive_) melalui enam sprint **Scrum** (Schwaber & Sutherland, 2020), dan DS-II awal (_initial_) melalui pengujian terkendali dan evaluasi terbatas bersama tim ahli.
+
+**Kriteria Keberhasilan DRM.** Sebelum perancangan dimulai pada tahap RC, ditetapkan kriteria keberhasilan terukur yang dievaluasi pada tahap DS-II: (1) seluruh kebutuhan fungsional alur R24J, estimasi porsi `series`/`range`/`guide`, dan otorisasi peran lolos pengujian kotak-hitam; (2) latensi kolaborasi WebSocket memenuhi target waktu nyata (`NF-01`, `NF-02`); (3) keluaran rekomendasi LLM selalu mematuhi skema JSON dengan akurasi kalkulasi deterministik 100%; dan (4) skor kebergunaan SUS mencapai kategori layak pakai (`≥ 68`).
 
 **Gambar 3.1 Alur Design Research Methodology (Blessing & Chakrabarti, 2009)**
 
@@ -640,13 +647,13 @@ flowchart TD
 | Tahap DRM                               | Kegiatan Penelitian                                                                                                                                                                           | Luaran / Artefak                                                                     |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | **1. _Research Clarification_ (RC)**    | Analisis disparitas data stunting, bias metode R24J konvensional, ketiadaan pendampingan pada sistem mandiri, dan perumusan kriteria keberhasilan                                             | Rumusan masalah Bab I & kriteria keberhasilan                                        |
-| **2. _Descriptive Study I_ (DS-I)**     | Tinjauan literatur, analisis sistem pembanding (ASA24, Intake24, myfood24), serta penurunan daftar kebutuhan fungsional dan nonfungsional                                                      | Sintesis literatur Bab II (Tabel 2.1–2.2) & spesifikasi kebutuhan (Tabel 3.2–3.3)   |
+| **2. _Descriptive Study I_ (DS-I)**     | Tinjauan literatur, analisis sistem pembanding (ASA24, Intake24, myfood24), serta penurunan daftar kebutuhan fungsional (F-01 s.d. F-48) dan nonfungsional                                       | Sintesis literatur Bab II (Tabel 2.1–2.2) & spesifikasi kebutuhan (Tabel 3.2–3.3)   |
 | **3. _Prescriptive Study_ (PS)**        | Merancang dan membangun arsitektur sistem 3-tier, pemodelan UML, skema DB, protokol kolaborasi WebSocket, CMS anotasi poligon, dan pipeline LLM terstruktur melalui 6 sprint Scrum           | Kode sumber backend Go, frontend Next.js, dan basis data MySQL (Gambar 3.2–3.11)     |
 | **4. _Descriptive Study II_ (DS-II)**   | Evaluasi aplikasi meliputi 92 uji kotak-hitam, pengukuran kinerja latensi WebSocket (2–20 concurrent clients), uji kebergunaan SUS, dan validasi rekomendasi gizi bersama 5–7 evaluator pakar BRIN | Data hasil uji, temuan cacat & perbaikan (Tabel 4.5–4.12), serta naskah Bab IV–V     |
 
 ## 3.2 Subjek Evaluasi Penelitian (Partisipan Evaluasi Artefak)
 
-Penelitian ini merupakan penelitian rekayasa perangkat lunak dengan pendekatan _Design Research Methodology_ (DRM). Dalam DRM, evaluasi pada tahap _Descriptive Study II_ bertujuan untuk menilai kebergunaan (_usability_) dan kesesuaian dukungan yang dikembangkan terhadap kriteria keberhasilan, bukan untuk melakukan generalisasi statistik terhadap populasi masyarakat umum (Blessing & Chakrabarti, 2009). Oleh karena itu, subjek pengujian tidak melibatkan sampel responden publik dalam jumlah besar, melainkan dilakukan melalui **pengujian internal terfokus bersama 5–7 orang evaluator ahli dari Pusat Riset Kesehatan Masyarakat dan Gizi, Badan Riset dan Inovasi Nasional (BRIN)** selaku institusi mitra penyusun _Atlas Makananku_.
+Penelitian ini merupakan penelitian rekayasa perangkat lunak dengan pendekatan _Design Research Methodology_ (DRM) tipe ke-3. Tahap _Descriptive Study II_ dilaksanakan pada tingkat **awal (_initial_)** karena evaluasi dilakukan melalui pengujian terkendali dan pemakaian terbatas bersama evaluator ahli — bukan melalui survei gizi populasi berskala penuh (Blessing & Chakrabarti, 2009). Oleh karena itu, subjek pengujian tidak melibatkan sampel responden publik dalam jumlah besar, melainkan dilakukan melalui **pengujian internal terfokus bersama 5–7 orang evaluator ahli dari Pusat Riset Kesehatan Masyarakat dan Gizi, Badan Riset dan Inovasi Nasional (BRIN)** selaku institusi mitra penyusun _Atlas Makananku_.
 
 Ukuran 5–7 orang partisipan pakar ini merujuk pada standar evaluasi kebergunaan Nielsen dan Landauer (1993), Lewis & Sauro (2021), serta Alhadreti (2021), yang menyatakan bahwa pengujian kebergunaan formatif berbasis penelusuran tugas (_task walkthrough_) dengan 5–7 partisipan sudah mencapai titik efisiensi optimal (_point of diminishing returns_) yang mampu mengungkap 80%–85% cacat interaksi antarmuka dan friksi alur pengisian sebelum evaluasi sumatif lapangan. Faulkner (2003) juga membuktikan secara empiris bahwa 5 partisipan menemukan rerata 85,5% masalah kebergunaan dan kelompok 6–7 partisipan mengidentifikasi >90% masalah kritis. Evaluator dari BRIN memiliki keahlian ganda sebagai peneliti gizi (_domain experts_), penyusun standar porsi makan Indonesia, serta praktisi yang terbiasa melakukan survei _dietary recall_ 24 jam di lapangan.
 
@@ -1859,46 +1866,29 @@ Seluruh variabel tersebut sudah terekam sistem tanpa instrumentasi tambahan.
 
 ## 4.7 Pembahasan
 
-### 4.7.1 Menjawab RM-1 — Perancangan dan pembangunan sistem R24J
+### 4.7.1 Menjawab RM-1 — Sistem R24J dan Estimasi Porsi Visual (`Series`, `Range`, `Guide`)
 
-Sistem berhasil dibangun dengan alur enam langkah yang memetakan metode lintasan berganda (Subbab 3.6.6). Keputusan perancangan yang menentukan adalah **penyimpanan progres di sisi peramban dengan masa berlaku 24 jam**, yang menjawab sifat pengisian R24J yang kerap bertahap sepanjang hari dan berpindah perangkat. Perhitungan gizi dilakukan secara deterministik dua kali — di antarmuka sebagai umpan balik segera dan di server sebagai angka yang disimpan — lalu dibekukan sebagai _snapshot_ pada saat laporan diterima, sehingga laporan historis tidak berubah ketika basis data pangan diperbarui. Sifat ini diperlukan untuk data penelitian, dan perhitungan ulang di server memastikan angka yang tersimpan tidak bergantung pada kejujuran klien.
+Sistem berhasil dibangun dengan alur enam langkah yang memetakan metode lintasan berganda (Subbab 3.6.6), dilengkapi tiga tipe visualisasi foto porsi terpadu (`series`, `range`, dan `guide`) yang dikelola melalui CMS anotasi poligon mandiri. Keputusan perancangan yang menentukan adalah **penyimpanan progres di sisi peramban dengan masa berlaku 24 jam**, yang menjawab sifat pengisian R24J yang kerap bertahap sepanjang hari. Perhitungan gizi dilakukan secara deterministik dua kali — di antarmuka sebagai umpan balik segera dan di server sebagai angka yang disimpan (mencakup makanan utama serta konversi URT bahan tambahan/`additionals`) — lalu dibekukan sebagai _snapshot_ pada saat laporan diterima, sehingga laporan historis tidak berubah ketika basis data pangan diperbarui.
 
 `[⚠ TAMBAHKAN pembahasan berdasarkan tingkat keberhasilan uji kotak-hitam modul recall]`
 
-### 4.7.2 Menjawab RM-2 — Kolaborasi real-time dan sinkronisasi langkah
+### 4.7.2 Menjawab RM-2 — Kolaborasi Real-Time dan Kontrol Peran _Fail-Closed_
 
-Persoalan inti yang ditemukan adalah bahwa mekanisme _follow_ konvensional — yang memantulkan _path_ dan posisi gulir — **tidak memadai** untuk _wizard_ pada aplikasi satu halaman, karena seluruh langkah berbagi satu URL. Pengikut mendarat di halaman yang benar tetapi pada langkah yang berbeda, sehingga fungsi pendampingan gagal tepat pada saat paling dibutuhkan.
+Persoalan inti yang ditemukan adalah bahwa mekanisme _follow_ konvensional — yang memantulkan _path_ dan posisi gulir — **tidak memadai** untuk _wizard_ pada aplikasi satu halaman, karena seluruh langkah berbagi satu URL. Solusi yang diterapkan memperluas unsur "lokasi" dalam kerangka _workspace awareness_ (Gutwin & Greenberg, 2002) menjadi **posisi dalam alur kerja** melalui atribut `step` pada setiap pesan _viewport_, dilengkapi kanvas penunjuk foto porsi dan obrolan kursor.
 
-Solusi yang diterapkan memperluas unsur "lokasi" dalam kerangka _workspace awareness_ (Gutwin & Greenberg, 2002) dari sekadar posisi spasial menjadi **posisi dalam alur kerja**. Implementasinya menuntut tiga hal yang saling terkait: penyiaran atribut `step`, validasi nilai `step` dari jaringan sebelum diterapkan, dan — yang paling mudah terlewat — jaminan bahwa **setiap** pesan _viewport_ menyertakan `step` karena server menyimpannya secara _replace_. Cacat D-08 menunjukkan bahwa protokol yang sudah mendukung suatu medan tidak berarti medan itu terpakai; dan analisis lanjutan menunjukkan pengisian yang tidak menyeluruh justru menghasilkan kegagalan yang lebih halus (pengikut yang bergabung belakangan mendarat di langkah salah) dibanding tidak mengisi sama sekali.
+Selain itu, model otorisasi tiga lapis berhasil diterapkan untuk menjawab **mengapa tiga lapis diperlukan padahal lapis server sudah otoritatif**. Lapis server menjamin keamanan data, tetapi tanpa lapis antarmuka (`inert`) dan lapis klien (_fail-closed_), peserta `viewer` akan menekan tombol lalu menerima galat beruntun. Cacat D-11 dan NF-10 memperlihatkan pentingnya prinsip _fail-closed_ sejak koneksi dibuka serta penyimpanan peran per-pengguna di sisi ruang agar tidak bergantung pada parameter URL.
 
-`[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK-33 s.d. UK-38 dan latensi NF-02]`
+`[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK-33 s.d. UK-45 dan latensi NF-01/NF-02]`
 
-### 4.7.3 Menjawab RM-3 — Penegakan kontrol peran
-
-Model tiga lapis berhasil diterapkan. Yang layak dibahas adalah **mengapa tiga lapis diperlukan padahal lapis server sudah otoritatif**. Lapis server menjamin keamanan data, tetapi tidak menjamin pengalaman yang benar: tanpa lapis antarmuka, peserta _viewer_ akan menekan tombol yang tampak berfungsi lalu menerima galat — pengalaman yang membingungkan. Tanpa lapis klien, setiap penekanan menghasilkan pesan yang pasti ditolak, membebani jaringan dan memunculkan pemberitahuan galat beruntun.
-
-Cacat D-11 memperlihatkan pentingnya prinsip _fail-closed_: implementasi awal menganggap peran yang belum diketahui sebagai "boleh", sehingga terdapat jeda beberapa milidetik antara terbukanya koneksi dan tibanya `state_sync` yang dapat dimanfaatkan. Jeda sekecil itu mudah luput dari pengujian manual, tetapi merupakan celah nyata pada tingkat protokol.
-
-Temuan NF-10 juga penting: peran **tidak boleh** hanya bersandar pada parameter URL, karena navigasi internal biasa dapat menghilangkannya. Pengingatan peran per-pengguna di sisi ruang menutup celah kenaikan hak akses yang tidak disengaja maupun yang disengaja.
-
-`[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK-42 s.d. UK-45]`
-
-### 4.7.4 Menjawab RM-4 — Integrasi Rekomendasi Gizi Berbasis LLM
+### 4.7.3 Menjawab RM-3 — Rekomendasi Gizi LLM dan Evaluasi Sistem
 
 _Pipeline_ rekomendasi gizi pasca-laporan yang dibangun menempatkan LLM pada peran interpretasi naratif di atas angka deterministik tabel TKPI 2020 dan gramasi porsi BRIN, dibandingkan terhadap acuan AKG dinamis Permenkes RI Nomor 28 Tahun 2019 (berdasarkan jenis kelamin dan tanggal lahir responden). Tiga mekanisme mendukung reproduktibilitas dan auditabilitas: keluaran berkendala skema JSON dengan _temperature_ rendah; normalisasi dua lapis yang memperlakukan keluaran model sebagai masukan tidak tepercaya; serta penyimpanan hasil per-_submission_ yang sekaligus berfungsi sebagai jejak audit (model, token, latensi).
 
-`[⚠ TAMBAHKAN pembahasan berdasarkan hasil Subbab 4.6]`
+Pada aspek evaluasi DS-II, pengujian sistem yang memadukan verifikasi kotak-hitam (92 kasus uji), penelusuran alur _end-to-end_ (menemukan sebelas cacat logika yang seluruhnya telah dimitigasi), pengukuran kinerja real-time WebSocket, evaluasi kebergunaan SUS, dan validasi pakar gizi BRIN disiapkan untuk membuktikan kesiapan sistem pada skenario penggunaan terbatas.
 
-### 4.7.5 Menjawab RM-5 — Hasil Pengujian Fungsional, Kinerja, dan Kebergunaan
+`[⚠ ISI SETELAH SELURUH PENGUJIAN SELESAI: rangkum tingkat keberhasilan kotak-hitam, hasil kinerja terhadap target NF, skor SUS dan predikatnya, serta penilaian pakar Subbab 4.6]`
 
-Pengujian sistem yang memadukan verifikasi kotak-hitam, penelusuran alur _end-to-end_, pengukuran kinerja real-time, evaluasi kebergunaan SUS, dan validasi pakar gizi membuktikan kesiapan sistem untuk skenario lapangan:
-
-1. **Ketahanan Alur dan Pemulihan Cacat:** Penelusuran _end-to-end_ menemukan sebelas cacat logika yang seluruhnya telah dimitigasi, dengan 45,5% tergolong kehilangan data senyap atau kebuntuan alur. Pengujian kotak-hitam terhadap 92 kasus uji memastikan integritas fungsi penapisan multi-pass, sinkronisasi langkah kolaborasi, dan isolasi hak akses.
-2. **Kinerja dan Kebergunaan:** Arsitektur terdistribusi ringan dengan WebSocket menghasilkan latensi siaran kursor rendah yang memenuhi syarat _workspace awareness_, sementara antrean IndexedDB idempoten menjamin data laporan tidak terduplikasi saat koneksi terputus di lapangan.
-
-`[⚠ ISI SETELAH SELURUH PENGUJIAN SELESAI: rangkum tingkat keberhasilan kotak-hitam, hasil kinerja terhadap target NF, skor SUS dan predikatnya, serta penilaian pakar]`
-
-### 4.7.6 Pembahasan Modul Katalog Publik
+### 4.7.4 Pembahasan Modul Katalog Publik
 
 Modul _Find Your Food_ menjawab kebutuhan yang tidak terpenuhi oleh sistem sejenis: referensi porsi pangan yang dapat dijelajahi di luar alur pengisian survei. Datanya dilayani _endpoint_ tanpa token, meskipun halaman webnya pada versi 1 masih berada di balik login (catatan pada Subbab 4.1.4). Desain pemisahan _endpoint_ publik (`/public/*`) dari _endpoint_ terotentikasi memungkinkan modul ini berjalan di atas data yang sama tanpa duplikasi pemeliharaan. Pemilihan `photo_type` sebagai atribut di tabel `foods` (bukan logika _hardcode_ di antarmuka) berarti pengelola basis data dapat menentukan tampilan yang sesuai untuk setiap makanan tanpa penyebaran ulang aplikasi — prinsip yang sama dengan pemisahan _draft/published_ pada CMS anotasi.
 
@@ -1906,7 +1896,7 @@ Optimasi pencarian dari `LIKE` ke `MATCH … AGAINST IN BOOLEAN MODE` berdampak 
 
 `[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK-90 s.d. UK-95]`
 
-### 4.7.7 Pembahasan Kanvas Langsung dan Obrolan Kursor
+### 4.7.5 Pembahasan Kanvas Langsung dan Obrolan Kursor
 
 Kedua fitur ini memperluas unsur "aksi" pada kerangka _workspace awareness_ tanpa melanggar batasan bahwa pendamping tidak menulis ke laporan. Kursor bersama menjawab "di mana rekan saya berada"; kanvas menjawab "bagian mana yang ia maksud" — pembedaan yang menentukan pada langkah estimasi porsi, ketika pendamping perlu menunjuk satu potongan pada foto yang memuat beberapa ukuran. Penggunaan koordinat ternormalisasi terhadap foto, bukan terhadap layar, adalah syarat agar penunjukan itu bermakna ketika responden memakai telepon pintar dan pendamping memakai laptop.
 
@@ -1914,7 +1904,7 @@ Keputusan menggolongkan pesan kanvas sebagai pesan yang digerbangi peran patut d
 
 `[⚠ TAMBAHKAN pembahasan berdasarkan hasil UK-82 s.d. UK-89, dan — bila tersedia — tanggapan pendamping pada pertanyaan terbuka kuesioner]`
 
-### 4.7.8 Perbandingan dengan Sistem Terdahulu
+### 4.7.6 Perbandingan dengan Sistem Terdahulu
 
 | Aspek                                     | ASA24                   | Intake24                      | myfood24                                             | Atlas Food                                                                                        |
 | ----------------------------------------- | ----------------------- | ----------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
@@ -1947,11 +1937,9 @@ Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dime
 
 | Rumusan | Kesimpulan                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| RM-1    | Sistem survei R24J berbasis web berhasil dirancang dan dibangun dengan alur _wizard_ enam langkah yang memetakan metode lintasan berganda, dilengkapi estimasi porsi berbasis foto _as served_ (tipe _series_, _range_, dan _guide images_), perhitungan gizi deterministik untuk empat zat gizi makro, penyimpanan progres berbasis peramban ber-TTL 24 jam, validasi tiga aturan sebelum pengiriman, dan perhitungan ulang nilai gizi di server. `[⚠ TAMBAHKAN tingkat keberhasilan uji]`                                    |
-| RM-2    | Mekanisme kolaborasi real-time berbasis WebSocket berhasil diterapkan mencakup kehadiran, kursor bersama, umpan aktivitas, mode ikut, kanvas langsung di atas foto porsi, dan obrolan kursor. Persoalan penyelarasan langkah pada aplikasi satu halaman diselesaikan dengan memperluas unsur "lokasi" pada kerangka _workspace awareness_ menjadi posisi dalam alur kerja, diwujudkan sebagai atribut `step` yang disertakan pada **setiap** pesan _viewport_ dan divalidasi sebelum diterapkan. `[⚠ TAMBAHKAN hasil latensi]` |
-| RM-3    | Kontrol peran _owner_/_editor_/_viewer_ berhasil ditegakkan melalui tiga lapis independen — atribut `inert` pada antarmuka, gerbang pengiriman _fail-closed_ pada klien, dan penolakan otoritatif pada server — dilengkapi pengingatan peran per-pengguna di sisi ruang yang mencegah kenaikan hak akses melalui navigasi ulang. `[⚠ TAMBAHKAN hasil uji]`                                                                                                                                                                     |
-| RM-4    | Generator rekomendasi pasca-laporan berbasis LLM berhasil menyusun narasi edukatif berkendala skema JSON di atas kalkulasi deterministik TKPI 2020 dan acuan AKG dinamis PMK No. 28 Tahun 2019 dengan penyimpanan hasil dan jejak audit lengkap (model, token, latensi). `[⚠ TAMBAHKAN hasil penilaian pakar]`                                                                                                                                                                                                                                       |
-| RM-5    | Pengujian sistem menghasilkan `[⚠ ISI]`. Pengujian kotak-hitam terhadap 92 kasus uji memverifikasi kesesuaian fungsional seluruh alur, sementara penelusuran alur _end-to-end_ menemukan sebelas cacat logika yang seluruhnya telah diperbaiki (45,5% tergolong kehilangan data senyap atau kebuntuan alur). Evaluasi empiris bersama pakar gizi dan pakar informatika mengonfirmasi kelayakan teknis dan kebergunaan sistem.                                                                                                  |
+| RM-1    | Sistem survei R24J berbasis web berhasil dirancang dan dibangun dengan alur _wizard_ enam langkah, tiga tipe foto porsi _as served_ terpadu (`series`, `range`, dan `guide`), CMS anotasi poligon, perhitungan gizi deterministik (TKPI 2020 & gramasi BRIN) termasuk bahan tambahan, penyimpanan progres 24 jam, dan validasi ulang di server. `[⚠ TAMBAHKAN tingkat keberhasilan uji]`                                    |
+| RM-2    | Mekanisme kolaborasi real-time berbasis WebSocket berhasil diterapkan (kehadiran, kursor bersama, penyelarasan langkah `step`, mode ikut, kanvas foto porsi, dan obrolan kursor) disertai penegakan kontrol peran `owner`/`editor`/`viewer` tiga lapis secara _fail-closed_ sehingga pendamping tidak dapat mengubah data responden. `[⚠ TAMBAHKAN hasil uji & latensi]` |
+| RM-3    | Generator rekomendasi gizi pasca-laporan berbasis LLM berkendala skema JSON berhasil diintegrasikan mengacu pada AKG dinamis PMK No. 28 Tahun 2019 dengan penyimpanan hasil dan jejak audit (model, token, latensi), serta `[⚠ ISI hasil uji kotak-hitam 92 kasus, skor SUS, dan penilaian pakar BRIN]`.                                                                                                                                                                                                       |
 
 **Kesimpulan umum.** Penelitian ini menunjukkan bahwa tantangan klasik R24J mandiri (beban kognitif estimasi porsi, ketiadaan pendampingan langsung, dan bias pengukuran asupan gizi) dapat diatasi secara komprehensif melalui sinergi tiga pilar utama:
 
@@ -2016,8 +2004,6 @@ Faulkner, L. (2003). Beyond the five-user assumption: Benefits of increasing sam
 
 Fette, I., & Melnikov, A. (2011). _The WebSocket protocol_ (RFC 6455). Internet Engineering Task Force. https://doi.org/10.17487/RFC6455
 
-Fielding, R., Nottingham, M., & Reschke, J. (Eds.). (2022). _HTTP semantics_ (RFC 9110). Internet Engineering Task Force. https://doi.org/10.17487/RFC9110
-
 Follong, B., Haliburton, C., Mackay, S., Maiquez, M., Grey, J., & Ni Mhurchu, C. (2024). Evaluating user experiences and preferred features of a web-based 24-hour dietary assessment tool: Usability study. _JMIR Formative Research, 8_, e63823. https://doi.org/10.2196/63823
 
 Foster, E., Lee, C., Imamura, F., Hollidge, S. E., Westgate, K. L., Venables, M. C., Poliakov, I., Rowland, M. K., Osadchiy, T., Bradley, J. C., Simpson, E. L., Adamson, A. J., Olivier, P., Wareham, N., Forouhi, N. G., & Brage, S. (2019). Validity and reliability of an online self-report 24-h dietary recall method (Intake24): A doubly labelled water study and repeated-measures analysis. _Journal of Nutritional Science, 8_, e29. https://doi.org/10.1017/jns.2019.20
@@ -2066,9 +2052,7 @@ Subar, A. F., Kirkpatrick, S. I., Mittl, B., Zimmerman, T. P., Thompson, F. E., 
 
 Thirunavukarasu, A. J., Ting, D. S. J., Elangovan, K., Gutierrez, L., Tan, T. F., & Ting, D. S. W. (2023). Large language models in medicine. _Nature Medicine, 29_(8), 1930–1940. https://doi.org/10.1038/s41591-023-02448-8
 
-Tullis, T. S., & Stetson, J. N. (2004, Juni). _A comparison of questionnaires for assessing website usability_ [Makalah presentasi]. Usability Professionals Association (UPA) 2004 Conference, Minneapolis, MN, Amerika Serikat. https://web.archive.org/web/20050310050235/http://home.comcast.net/~tomtullis/publications/UPA2004TullisStetson.pdf
-
-`[⚠ TAMBAHKAN bila tersedia]` Rujukan berbahasa Indonesia mengenai penerapan R24J di Indonesia (jurnal gizi nasional terindeks SINTA). Proyek validasi Intake24 untuk populasi Indonesia (Monash University, 2022–2024) belum ditemukan publikasi hasilnya per Oktober 2026.
+`[⚠ TAMBAHKAN bila tersedia]` Rujukan resmi buku cetak _Atlas Makananku_ (BRIN × UPI) serta rujukan berbahasa Indonesia mengenai penerapan R24J di Indonesia (jurnal gizi nasional terindeks SINTA).
 
 ---
 
