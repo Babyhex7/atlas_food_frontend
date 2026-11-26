@@ -166,17 +166,17 @@ Penulis
 
 ## ABSTRAK
 
-_Dietary recall_ 24 jam (R24J) merupakan metode baku penilaian asupan gizi individu, namun kualitas datanya sangat bergantung pada pendampingan enumerator terlatih yang mahal dan terbatas secara geografis. Sistem R24J terkomputerisasi yang telah mapan bersifat mandiri penuh sehingga menghilangkan peran pendampingan tersebut. Penelitian ini merancang dan membangun Atlas Food, sistem survei R24J berbasis web yang memungkinkan pendampingan jarak jauh secara real-time tanpa mengorbankan kepemilikan data responden. Sistem dikembangkan menggunakan pendekatan _Design Science Research Methodology_ (DSRM) yang terintegrasi dengan enam sprint _Scrum_, dengan arsitektur terpisah antara antarmuka berbasis Next.js dan layanan Go yang menyediakan REST API sekaligus _hub_ WebSocket. Tiga kontribusi teknis dihasilkan: (1) mekanisme sinkronisasi langkah _wizard_ lintas pengguna pada aplikasi satu halaman melalui perluasan atribut `step` pada pesan _viewport_; (2) model otorisasi peran per-ruang berlapis tiga yang menegakkan peran _owner_, _editor_, dan _viewer_ pada lapis antarmuka, klien, dan server secara _fail-closed_; serta (3) _pipeline_ rekomendasi gizi berbasis _large language model_ dengan keluaran berkendala skema, penyimpanan hasil per-_submission_, dan jejak audit model, token, serta latensi. Sebagai pendukung interaksi visual, sistem dilengkapi kanvas anotasi langsung di atas foto porsi serta fitur obrolan kursor efemeral sebagai sarana penunjuk bagi pendamping. Pengujian fungsional dan evaluasi artefak dilakukan melalui penelusuran alur _end-to-end_, 92 kasus uji kotak-hitam, benchmarking latensi, dan evaluasi kebergunaan terfokus bersama 5–7 orang evaluator pakar dari Pusat Riset Kesehatan Masyarakat dan Gizi BRIN.
+_Dietary recall_ 24 jam (R24J) merupakan metode baku penilaian asupan gizi individu, namun kualitas datanya sangat bergantung pada pendampingan enumerator terlatih yang mahal dan terbatas secara geografis. Sistem R24J terkomputerisasi yang telah mapan bersifat mandiri penuh sehingga menghilangkan peran pendampingan tersebut. Penelitian ini merancang dan membangun Atlas Food, sistem survei R24J berbasis web yang memungkinkan pendampingan jarak jauh secara real-time tanpa mengorbankan kepemilikan data responden. Sistem dikembangkan menggunakan kerangka _Design Research Methodology_ (DRM) yang mencakup empat tahap (_Research Clarification_, _Descriptive Study I_, _Prescriptive Study_, dan _Descriptive Study II_) serta diintegrasikan dengan enam sprint _Scrum_ pada tahap perancangan dan pembangunan, dengan arsitektur terpisah antara antarmuka berbasis Next.js dan layanan Go yang menyediakan REST API sekaligus _hub_ WebSocket. Tiga kontribusi teknis dihasilkan: (1) mekanisme sinkronisasi langkah _wizard_ lintas pengguna pada aplikasi satu halaman melalui perluasan atribut `step` pada pesan _viewport_; (2) model otorisasi peran per-ruang berlapis tiga yang menegakkan peran _owner_, _editor_, dan _viewer_ pada lapis antarmuka, klien, dan server secara _fail-closed_; serta (3) _pipeline_ rekomendasi gizi berbasis _large language model_ dengan keluaran berkendala skema, penyimpanan hasil per-_submission_, dan jejak audit model, token, serta latensi. Sebagai pendukung interaksi visual, sistem dilengkapi kanvas anotasi langsung di atas foto porsi serta fitur obrolan kursor efemeral sebagai sarana penunjuk bagi pendamping. Pengujian fungsional dan evaluasi artefak dilakukan melalui penelusuran alur _end-to-end_, 92 kasus uji kotak-hitam, benchmarking latensi, dan evaluasi kebergunaan terfokus bersama 5–7 orang evaluator pakar dari Pusat Riset Kesehatan Masyarakat dan Gizi BRIN.
 
-**Kata kunci:** _design science research_, _dietary recall_ 24 jam, kolaborasi real-time, WebSocket, _large language model_, Atlas Makananku
+**Kata kunci:** _design research methodology_, _dietary recall_ 24 jam, kolaborasi real-time, WebSocket, _large language model_, Atlas Makananku
 
 ---
 
 ## ABSTRACT
 
-The 24-hour dietary recall (24HR) is a reference method for assessing individual nutrient intake, yet its data quality depends heavily on trained enumerator assistance, which is costly and geographically constrained. Established computerised 24HR systems are fully self-administered and therefore eliminate that assistance entirely. This study designs and develops Atlas Food, a web-based 24HR survey system enabling remote real-time assistance without compromising respondent data ownership. The system was developed using the Design Science Research Methodology (DSRM) framework integrated with six Scrum sprints, adopting a decoupled architecture between a Next.js interface and a Go service providing both a REST API and a WebSocket hub. Three technical contributions are produced: (1) a cross-user wizard step synchronisation mechanism for single-page applications through an extended `step` attribute on viewport messages; (2) a three-layer per-room authorisation model enforcing owner, editor, and viewer roles at the interface, client, and server layers in a fail-closed manner; and (3) a large-language-model-based nutrition recommendation pipeline with schema-constrained output, per-submission result caching, and an audit trail of model, token, and latency. In support of visual interactions, the system provides a live annotation canvas over portion photographs and an ephemeral cursor chat feature that serves as a pointing aid for the assistant. Functional testing and artefact evaluation are conducted through end-to-end walkthroughs, 92 black-box test cases, latency benchmarking, and usability assessment with 5–7 expert evaluators from the Research Center for Public Health and Nutrition BRIN.
+The 24-hour dietary recall (24HR) is a reference method for assessing individual nutrient intake, yet its data quality depends heavily on trained enumerator assistance, which is costly and geographically constrained. Established computerised 24HR systems are fully self-administered and therefore eliminate that assistance entirely. This study designs and develops Atlas Food, a web-based 24HR survey system enabling remote real-time assistance without compromising respondent data ownership. The system was developed using the Design Research Methodology (DRM) framework comprising four stages (Research Clarification, Descriptive Study I, Prescriptive Study, and Descriptive Study II), integrated with six Scrum sprints during system development, adopting a decoupled architecture between a Next.js interface and a Go service providing both a REST API and a WebSocket hub. Three technical contributions are produced: (1) a cross-user wizard step synchronisation mechanism for single-page applications through an extended `step` attribute on viewport messages; (2) a three-layer per-room authorisation model enforcing owner, editor, and viewer roles at the interface, client, and server layers in a fail-closed manner; and (3) a large-language-model-based nutrition recommendation pipeline with schema-constrained output, per-submission result caching, and an audit trail of model, token, and latency. In support of visual interactions, the system provides a live annotation canvas over portion photographs and an ephemeral cursor chat feature that serves as a pointing aid for the assistant. Functional testing and artefact evaluation are conducted through end-to-end walkthroughs, 92 black-box test cases, latency benchmarking, and usability assessment with 5–7 expert evaluators from the Research Center for Public Health and Nutrition BRIN.
 
-**Keywords:** design science research, 24-hour dietary recall, real-time collaboration, WebSocket, large language model, Atlas Makananku
+**Keywords:** design research methodology, 24-hour dietary recall, real-time collaboration, WebSocket, large language model, Atlas Makananku
 
 ---
 
@@ -306,7 +306,7 @@ The 24-hour dietary recall (24HR) is a reference method for assessing individual
 
 | No               | Judul Gambar                                                                                                  | Bab |
 | ---------------- | ------------------------------------------------------------------------------------------------------------- | --- |
-| Gambar 3.1       | Alur Design Science Research Methodology (Peffers et al., 2007)                                               | III |
+| Gambar 3.1       | Alur Design Research Methodology (Blessing & Chakrabarti, 2009)                                               | III |
 | Gambar 3.2       | Arsitektur sistem Atlas Food                                                                                  | III |
 | Gambar 3.3       | _Use case diagram_ sistem                                                                                     | III |
 | Gambar 3.4       | _Activity diagram_ pengisian recall                                                                           | III |
@@ -438,7 +438,7 @@ Penulisan skripsi ini disusun dalam lima bab dengan struktur dan sistematika pem
    Menguraikan landasan teori yang mendasari penelitian, meliputi metode _dietary recall_ 24 jam dan pendekatan lintasan berganda (_multiple-pass method_), telaah komparatif sistem terkomputerisasi terdahulu (ASA24, Intake24, myfood24), konsep _Computer-Supported Cooperative Work_ (CSCW) dan kerangka _workspace awareness_, protokol komunikasi real-time WebSocket, model konsistensi data kolaboratif, kontrol akses berbasis peran (RBAC), pemanfaatan _large language model_ (LLM) dan agen percakapan kontekstual berkendala skema, metode estimasi porsi visual foto _as served_, katalog pangan publik, serta tinjauan posisi kebaruan penelitian (_state of the art_).
 
 3. **BAB III METODOLOGI PENELITIAN**  
-   Menjelaskan pendekatan _Design Science Research Methodology_ (DSRM) yang diintegrasikan dengan kerangka kerja tangkas _Scrum_, lingkungan dan alat pengembangan, metode pengumpulan data, analisis kebutuhan fungsional dan non-fungsional, perancangan arsitektur sistem modular terpisah (Next.js dan Go), pemodelan sistem menggunakan diagram UML (_use case_, _activity_, _sequence_, _class_), _entity relationship diagram_ (ERD), diagram mesin keadaan _wizard_, perancangan basis data relasional MySQL, serta instrumen dan teknik pengujian sistem.
+   Menjelaskan pendekatan _Design Research Methodology_ (DRM) yang diintegrasikan dengan kerangka kerja tangkas _Scrum_, lingkungan dan alat pengembangan, metode pengumpulan data, analisis kebutuhan fungsional dan non-fungsional, perancangan arsitektur sistem modular terpisah (Next.js dan Go), pemodelan sistem menggunakan diagram UML (_use case_, _activity_, _sequence_, _class_), _entity relationship diagram_ (ERD), diagram mesin keadaan _wizard_, perancangan basis data relasional MySQL, serta instrumen dan teknik pengujian sistem.
 
 4. **BAB IV HASIL DAN PEMBAHASAN**  
    Menyajikan hasil implementasi sistem Atlas Food pada keenam modul utama, hasil verifikasi fungsional melalui pengujian kotak-hitam (_black-box testing_) terhadap 92 kasus uji, temuan dan klasifikasi cacat logika hasil penelusuran _end-to-end_, hasil pengujian kinerja real-time, evaluasi kebergunaan menggunakan _System Usability Scale_ (SUS), penilaian pakar gizi terhadap keluaran rekomendasi AI, serta pembahasan komprehensif yang menjawab kelima rumusan masalah penelitian.
@@ -622,35 +622,31 @@ Di luar tiga kebaruan tersebut, sistem memuat fitur pendukung kanvas langsung di
 
 ## 3.1 Desain Penelitian
 
-Penelitian ini menggunakan pendekatan **Design Science Research Methodology (DSRM)** yang diperkenalkan oleh Peffers et al. (2007). DSRM dipilih karena fokus utama penelitian ini adalah merancang bangun artefak teknologi informasi (_IT artifact_) inovatif berupa sistem survei _dietary recall_ 24 jam berbasis web yang memadukan kolaborasi real-time, estimasi porsi visual, dan rekomendasi gizi kecerdasan buatan. Pada tahap perancangan dan pengembangannya, proses rekayasa perangkat lunak dijalankan secara iteratif mengadopsi kerangka kerja **Scrum** (Schwaber & Sutherland, 2020) melalui enam sprint pengembangan.
+Penelitian ini menggunakan kerangka **Design Research Methodology (DRM)** yang dirumuskan oleh Blessing dan Chakrabarti (2009). DRM dipilih karena fokus utama penelitian ini adalah merancang bangun dukungan sistem (_support_) berupa sistem survei _dietary recall_ 24 jam berbasis web yang memadukan kolaborasi real-time, estimasi porsi visual, dan rekomendasi gizi kecerdasan buatan, dengan kriteria keberhasilan yang dirumuskan sebelum perancangan dan kedalaman tiap tahap yang terukur. DRM terdiri atas empat tahap, yaitu _Research Clarification_ (RC), _Descriptive Study I_ (DS-I), _Prescriptive Study_ (PS), dan _Descriptive Study II_ (DS-II). Pada tahap _Prescriptive Study_, proses rekayasa perangkat lunak dijalankan secara iteratif mengadopsi kerangka kerja **Scrum** (Schwaber & Sutherland, 2020) melalui enam sprint pengembangan.
 
-**Gambar 3.1 Alur Design Science Research Methodology (Peffers et al., 2007)**
+**Gambar 3.1 Alur Design Research Methodology (Blessing & Chakrabarti, 2009)**
 
 ```mermaid
 flowchart TD
-    A["1. Identifikasi Masalah & Motivasi<br/>Studi empiris stunting, bias R24J,<br/>analisis sistem ASA24 & Intake24"] --> B
-    B["2. Penetapan Tujuan Solusi<br/>Perumusan objektif solusi (OS-1..OS-8),<br/>36 kebutuhan fungsional & nonfungsional"] --> C
-    C["3. Perancangan & Pengembangan Artefak<br/>Arsitektur 3-tier, protokol WebSocket,<br/>auth fail-closed, pipeline LLM (6 Sprint Scrum)"] --> D
-    D["4. Demonstrasi Artefak<br/>Simulasi skenario alur recall mandiri &<br/>sesi pendampingan jarak jauh real-time"] --> E
-    E["5. Evaluasi Artefak<br/>Uji kotak-hitam (92 kasus), uji beban WebSocket,<br/>evaluasi kebergunaan SUS & review pakar BRIN"] --> F
-    F["6. Komunikasi<br/>Penyusunan naskah skripsi, publikasi ilmiah,<br/>dan diseminasi artefak ke tim riset BRIN"]
-    E -.->|"iterasi perbaikan artefak"| C
+    A["1. Research Clarification (RC)<br/>Identifikasi masalah R24J, tujuan,<br/>dan kriteria keberhasilan"] --> B
+    B["2. Descriptive Study I (DS-I)<br/>Analisis sistem pembanding (ASA24, Intake24,<br/>myfood24) & kebutuhan F-01..F-48"] --> C
+    C["3. Prescriptive Study (PS)<br/>Perancangan & pembangunan sistem web<br/>Next.js + Go + WebSocket + LLM (6 Sprint Scrum)"] --> D
+    D["4. Descriptive Study II (DS-II)<br/>Evaluasi aplikasi, uji kotak-hitam (92 kasus),<br/>uji kinerja, SUS & review pakar BRIN"]
+    D -.->|"umpan balik perbaikan sistem"| C
 ```
 
-**Uraian enam tahap DSRM dalam penelitian ini:**
+**Uraian empat tahap DRM dalam penelitian ini:**
 
-| Tahap DSRM                             | Kegiatan Penelitian                                                                                                                                                                           | Luaran / Artefak                                                                     |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **1. Identifikasi Masalah & Motivasi** | Analisis disparitas data stunting, bias metode R24J konvensional, ketiadaan pendampingan pada sistem mandiri, dan keterbatasan atlas cetak                                                    | Rumusan masalah Bab I & sintesis literatur Bab II (Tabel 2.1–2.2)                    |
-| **2. Penetapan Tujuan Solusi**         | Merumuskan sasaran solusi sistemik untuk mengatasi bias porsi dan isolasi responden, menurunkan daftar kebutuhan F-01 s.d. F-36 dan nonfungsional                                             | Spesifikasi kebutuhan sistem (Tabel 3.2 & 3.3)                                       |
-| **3. Perancangan & Pengembangan**      | Merancang arsitektur sistem 3-tier, pemodelan UML, skema DB, protokol kolaborasi WebSocket, CMS anotasi poligon, dan pipeline LLM terstruktur melalui 6 sprint Scrum                          | Kode sumber backend Go, frontend Next.js PWA, dan basis data MySQL (Gambar 3.2–3.11) |
-| **4. Demonstrasi**                     | Menjalankan artefak pada skenario pengisian R24J terpandu dan pendampingan kolaboratif antar-peran (_owner_, _editor_, _viewer_)                                                              | Bukti keterfungsian artefak (Subbab 4.1)                                             |
-| **5. Evaluasi**                        | Melakukan 92 uji kotak-hitam, pengukuran kinerja latensi WebSocket (2–20 concurrent clients), uji kebergunaan SUS, dan uji kelayakan klinis rekomendasi gizi bersama 5–7 evaluator pakar BRIN | Data hasil uji, temuan cacat & perbaikan (Tabel 4.5–4.12)                            |
-| **6. Komunikasi**                      | Menulis laporan skripsi utuh, menyajikan demonstrasi sidang tugas akhir, serta mendokumentasikan panduan integrasi sistem untuk Pusat Riset Kesehatan Masyarakat dan Gizi BRIN                | Naskah skripsi Bab I–V dan artikel publikasi                                         |
+| Tahap DRM                               | Kegiatan Penelitian                                                                                                                                                                           | Luaran / Artefak                                                                     |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **1. _Research Clarification_ (RC)**    | Analisis disparitas data stunting, bias metode R24J konvensional, ketiadaan pendampingan pada sistem mandiri, dan perumusan kriteria keberhasilan                                             | Rumusan masalah Bab I & kriteria keberhasilan                                        |
+| **2. _Descriptive Study I_ (DS-I)**     | Tinjauan literatur, analisis sistem pembanding (ASA24, Intake24, myfood24), serta penurunan daftar kebutuhan fungsional dan nonfungsional                                                      | Sintesis literatur Bab II (Tabel 2.1–2.2) & spesifikasi kebutuhan (Tabel 3.2–3.3)   |
+| **3. _Prescriptive Study_ (PS)**        | Merancang dan membangun arsitektur sistem 3-tier, pemodelan UML, skema DB, protokol kolaborasi WebSocket, CMS anotasi poligon, dan pipeline LLM terstruktur melalui 6 sprint Scrum           | Kode sumber backend Go, frontend Next.js, dan basis data MySQL (Gambar 3.2–3.11)     |
+| **4. _Descriptive Study II_ (DS-II)**   | Evaluasi aplikasi meliputi 92 uji kotak-hitam, pengukuran kinerja latensi WebSocket (2–20 concurrent clients), uji kebergunaan SUS, dan validasi rekomendasi gizi bersama 5–7 evaluator pakar BRIN | Data hasil uji, temuan cacat & perbaikan (Tabel 4.5–4.12), serta naskah Bab IV–V     |
 
 ## 3.2 Subjek Evaluasi Penelitian (Partisipan Evaluasi Artefak)
 
-Penelitian ini merupakan penelitian rekayasa perangkat lunak dengan pendekatan _Design Science Research Methodology_ (DSRM). Dalam DSRM, evaluasi artefak bertujuan untuk membuktikan kebergunaan (_utility_), keandalan (_performance_), dan kesesuaian domain (_domain validity_) artefak perangkat lunak, bukan untuk melakukan generalisasi statistik terhadap populasi masyarakat umum (Hevner et al., 2004; Venable et al., 2016). Oleh karena itu, subjek pengujian tidak melibatkan sampel responden publik dalam jumlah besar, melainkan dilakukan melalui **pengujian internal terfokus bersama 5–7 orang evaluator ahli dari Pusat Riset Kesehatan Masyarakat dan Gizi, Badan Riset dan Inovasi Nasional (BRIN)** selaku institusi mitra penyusun _Atlas Makananku_.
+Penelitian ini merupakan penelitian rekayasa perangkat lunak dengan pendekatan _Design Research Methodology_ (DRM). Dalam DRM, evaluasi pada tahap _Descriptive Study II_ bertujuan untuk menilai kebergunaan (_usability_) dan kesesuaian dukungan yang dikembangkan terhadap kriteria keberhasilan, bukan untuk melakukan generalisasi statistik terhadap populasi masyarakat umum (Blessing & Chakrabarti, 2009). Oleh karena itu, subjek pengujian tidak melibatkan sampel responden publik dalam jumlah besar, melainkan dilakukan melalui **pengujian internal terfokus bersama 5–7 orang evaluator ahli dari Pusat Riset Kesehatan Masyarakat dan Gizi, Badan Riset dan Inovasi Nasional (BRIN)** selaku institusi mitra penyusun _Atlas Makananku_.
 
 Ukuran 5–7 orang partisipan pakar ini merujuk pada standar evaluasi kebergunaan Nielsen dan Landauer (1993), Lewis & Sauro (2021), serta Alhadreti (2021), yang menyatakan bahwa pengujian kebergunaan formatif berbasis penelusuran tugas (_task walkthrough_) dengan 5–7 partisipan sudah mencapai titik efisiensi optimal (_point of diminishing returns_) yang mampu mengungkap 80%–85% cacat interaksi antarmuka dan friksi alur pengisian sebelum evaluasi sumatif lapangan. Faulkner (2003) juga membuktikan secara empiris bahwa 5 partisipan menemukan rerata 85,5% masalah kebergunaan dan kelompok 6–7 partisipan mengidentifikasi >90% masalah kritis. Evaluator dari BRIN memiliki keahlian ganda sebagai peneliti gizi (_domain experts_), penyusun standar porsi makan Indonesia, serta praktisi yang terbiasa melakukan survei _dietary recall_ 24 jam di lapangan.
 
@@ -660,7 +656,7 @@ Sebanyak 5–7 orang evaluator dari tim BRIN menjalankan skenario evaluasi artef
 
 | Peran Skenario                 | Jumlah Partisipan | Latar Belakang / Kualifikasi                             | Fokus Pengujian Artefak                                                                                                                                                                |
 | ------------------------------ | ----------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Responden Uji**              | 2–3 orang         | Peneliti gizi BRIN (berperan sebagai responden awam)     | Menguji kemudahan pengisian alur _wizard_ R24J, kejelasan estimasi porsi visual (_series_, _range_, _guide_), dan responsivitas aplikasi pada perangkat bergerak (PWA)                 |
+| **Responden Uji**              | 2–3 orang         | Peneliti gizi BRIN (berperan sebagai responden awam)     | Menguji kemudahan pengisian alur _wizard_ R24J, kejelasan estimasi porsi visual (_series_, _range_, _guide_), dan responsivitas aplikasi web pada perangkat bergerak                      |
 | **Pendamping (Enumerator)**    | 2 orang           | Tenaga riset survei gizi BRIN berpengalaman R24J         | Menguji efektivitas pendampingan jarak jauh real-time: sinkronisasi langkah _wizard_, obrolan kursor, kanvas penunjuk interaktif, serta penegakan hak akses peran _editor_ vs _viewer_ |
 | **Administrator & Pakar Gizi** | 2 orang           | Peneliti utama/pengelola data gizi dan porsi pangan BRIN | Menguji fungsionalitas CMS anotasi poligon foto porsi, manajemen survei, serta memvalidasi keakuratan hitungan zat gizi deterministik dan kelayakan narasi rekomendasi AI              |
 
@@ -708,14 +704,14 @@ Penetapan subjek pengujian dilakukan secara terarah (_purposive sampling_) denga
 
 ## 3.4 Metode Pengumpulan Data
 
-| Teknik                        | Sumber                                                  | Data yang diperoleh                                       | Tahap DSRM                     |
-| ----------------------------- | ------------------------------------------------------- | --------------------------------------------------------- | ------------------------------ |
-| Studi literatur               | Artikel jurnal, dokumentasi resmi, RFC                  | Landasan teori, celah penelitian, praktik baku            | 1 (Identifikasi Masalah)       |
-| Analisis sistem sejenis       | ASA24, Intake24, myfood24 (berdasarkan publikasi)       | Perbandingan fitur (Tabel 2.1)                            | 1 & 2 (Tujuan Solusi)          |
-| Observasi & pengujian mandiri | Sistem yang dibangun                                    | Hasil uji kotak-hitam, penelusuran skenario, temuan cacat | 4 & 5 (Demonstrasi & Evaluasi) |
-| Instrumentasi perangkat lunak | _Log_ aplikasi, tabel `ai_result_logs`, `/collab/stats` | Latensi, jumlah token, _throughput_                       | 5 (Evaluasi)                   |
-| Kuesioner                     | Responden & pendamping                                  | Skor SUS, umpan balik kualitatif                          | 5 (Evaluasi)                   |
-| Penilaian pakar               | Ahli gizi                                               | Kelayakan klinis keluaran LLM                             | 5 (Evaluasi)                   |
+| Teknik                        | Sumber                                                  | Data yang diperoleh                                       | Tahap DRM                        |
+| ----------------------------- | ------------------------------------------------------- | --------------------------------------------------------- | -------------------------------- |
+| Studi literatur               | Artikel jurnal, dokumentasi resmi, RFC                  | Landasan teori, celah penelitian, praktik baku            | RC & DS-I                        |
+| Analisis sistem sejenis       | ASA24, Intake24, myfood24 (berdasarkan publikasi)       | Perbandingan fitur (Tabel 2.1)                            | DS-I                             |
+| Observasi & pengujian mandiri | Sistem yang dibangun                                    | Hasil uji kotak-hitam, penelusuran skenario, temuan cacat | PS & DS-II                       |
+| Instrumentasi perangkat lunak | _Log_ aplikasi, tabel `ai_result_logs`, `/collab/stats` | Latensi, jumlah token, _throughput_                       | DS-II                            |
+| Kuesioner                     | Responden & pendamping                                  | Skor SUS, umpan balik kualitatif                          | DS-II                            |
+| Penilaian pakar               | Ahli gizi                                               | Kelayakan klinis keluaran LLM                             | DS-II                            |
 
 Catatan metodologis: sebagian data kinerja **tidak memerlukan instrumentasi tambahan** karena sistem sudah merekamnya secara rutin — tabel `ai_result_logs` menyimpan `model_used`, `token_used`, dan `latency_ms` untuk setiap analisis yang benar-benar dijalankan, sehingga evaluasi dapat dilakukan terhadap keluaran yang sungguh diterima responden.
 
@@ -1994,7 +1990,7 @@ Perbandingan ini harus disampaikan secara berimbang: Atlas Food unggul pada dime
 
 # DAFTAR PUSTAKA
 
-> **Catatan format:** daftar berikut menggunakan gaya APA edisi ke-7. **Sesuaikan dengan pedoman institusimu** (banyak kampus mewajibkan IEEE atau gaya selingkung sendiri). Per 15 Oktober 2026 seluruh entri berpengenal DOI telah dicocokkan dengan Crossref (penulis, judul, jurnal, volume, nomor, halaman), dan klaim yang dikutip di teks telah dicocokkan dengan abstrak atau teks lengkap publikasinya. Dari **43 rujukan**, **26 di antaranya (60,5%) terbit tahun 2020 atau sesudahnya**; rujukan yang lebih lama dipertahankan karena merupakan sumber primer/babon dari teori, instrumen baku, atau standar yang dipakai (SUS, DSRM, _workspace awareness_, CRDT, RFC WebSocket, dan publikasi awal sistem pembanding).
+> **Catatan format:** daftar berikut menggunakan gaya APA edisi ke-7. **Sesuaikan dengan pedoman institusimu** (banyak kampus mewajibkan IEEE atau gaya selingkung sendiri). Rujukan berbahasa Indonesia maupun regulasi pemerintah (TKPI 2020, PMK No. 28 Tahun 2019, SKI 2023) telah diselaraskan dengan standar sitasi; rujukan yang lebih lama dipertahankan karena merupakan sumber primer dari metodologi, instrumen baku, atau standar yang dipakai (DRM, SUS, _workspace awareness_, CRDT, RFC WebSocket, dan publikasi awal sistem pembanding).
 
 Amoutzopoulos, B., Page, P., Roberts, C., Roe, M., Cade, J., Steer, T., Baker, R., Hawes, T., Galloway, C., Yu, D., & Almiron-Roig, E. (2020). Portion size estimation in dietary assessment: A systematic review of existing tools, their strengths and limitations. _Nutrition Reviews, 78_(11), 885–900. https://doi.org/10.1093/nutrit/nuz107
 
@@ -2004,23 +2000,17 @@ Badan Kebijakan Pembangunan Kesehatan, Kementerian Kesehatan Republik Indonesia.
 
 Bangor, A., Kortum, P. T., & Miller, J. T. (2008). An empirical evaluation of the system usability scale. _International Journal of Human-Computer Interaction, 24_(6), 574–594. https://doi.org/10.1080/10447310802205776
 
+Blessing, L. T. M., & Chakrabarti, A. (2009). _DRM, a design research methodology_. Springer. https://doi.org/10.1007/978-1-84882-587-1
+
 Bhagtani, D., Amoutzopoulos, B., Steer, T., Collins, D., Abraham, S., Holmes, B. A., Rai, B. K., Pradeepa, R., Mahmood, S., Shamim, A. A., Mathur, P., Athauda, L., De Silva, L., Khawaja, K. I., Jha, V., Kasturiratne, A., Katulanda, P., Mridha, M. K., Anjana, R. M., . . . Forouhi, N. G. (2025). The adaptation, implementation, and performance evaluation of Intake24, a digital 24-h dietary recall tool for South Asian populations: The South Asia Biobank. _Current Developments in Nutrition, 9_(2), 104543. https://doi.org/10.1016/j.cdnut.2025.104543
 
 Bradley, J., Simpson, E., Poliakov, I., Matthews, J. N. S., Olivier, P., Adamson, A. J., & Foster, E. (2016). Comparison of INTAKE24 (an online 24-h dietary recall tool) with interviewer-led 24-h recall in 11–24 year-old. _Nutrients, 8_(6), 358. https://doi.org/10.3390/nu8060358
 
 Brooke, J. (1996). SUS: A "quick and dirty" usability scale. In P. W. Jordan, B. Thomas, B. A. Weerdmeester, & I. L. McClelland (Eds.), _Usability evaluation in industry_ (pp. 189–194). Taylor & Francis.
 
-Cáceres, M., Murphy, D., Liebel, C., Giuca, M., Kostiainen, A., Gustafson, A., Lamouri, M., Dolin, R., Christiansen, K. R., & González, D. (Eds.). (2026). _Web application manifest_ (W3C Working Draft). World Wide Web Consortium. Diakses 14 Oktober 2026, dari https://www.w3.org/TR/appmanifest/
-
 Carter, M. C., Albar, S. A., Morris, M. A., Mulla, U. Z., Hancock, N., Evans, C. E., Alwan, N. A., Greenwood, D. C., Hardie, L. J., Frost, G. S., Wark, P. A., & Cade, J. E. (2015). Development of a UK online 24-h dietary assessment tool: myfood24. _Nutrients, 7_(6), 4016–4032. https://doi.org/10.3390/nu7064016
 
-Chintala, M., & Yanagisawa, Y. (Eds.). (2026). _Service workers nightly_ (W3C Candidate Recommendation Draft). World Wide Web Consortium. Diakses 14 Oktober 2026, dari https://www.w3.org/TR/service-workers/
-
 Dalakleidi, K. V., Papadelli, M., Kapolos, I., & Papadimitriou, K. (2022). Applying image-based food-recognition systems on dietary assessment: A systematic review. _Advances in Nutrition, 13_(6), 2590–2619. https://doi.org/10.1093/advances/nmac078
-
-Deterding, S., Dixon, D., Khaled, R., & Nacke, L. (2011). From game design elements to gamefulness: Defining "gamification". In _Proceedings of the 15th International Academic MindTrek Conference: Envisioning Future Media Environments_ (pp. 9–15). ACM. https://doi.org/10.1145/2181037.2181040
-
-Fauzan, R., Krisnahati, I., Nurwibowo, B. D., & Wibowo, D. A. (2022). A systematic literature review on progressive web application practice and challenges. _IPTEK The Journal for Technology and Science, 33_(1), 43–58. https://doi.org/10.12962/j20882033.v33i1.13904
 
 Faulkner, L. (2003). Beyond the five-user assumption: Benefits of increasing sample size in usability testing. _Behavior Research Methods, Instruments, & Computers, 35_(3), 379–383. https://doi.org/10.3758/BF03195514
 
@@ -2038,6 +2028,8 @@ Gutwin, C., & Greenberg, S. (2002). A descriptive framework of workspace awarene
 
 Hyzy, M., Bond, R., Mulvenna, M., Bai, L., Dix, A., Leigh, S., & Hunt, S. (2022). System Usability Scale benchmarking for digital health apps: Meta-analysis. _JMIR mHealth and uHealth, 10_(8), e37290. https://doi.org/10.2196/37290
 
+Kementerian Kesehatan Republik Indonesia. (2019). _Peraturan Menteri Kesehatan Republik Indonesia Nomor 28 Tahun 2019 tentang Angka Kecukupan Gizi yang Dianjurkan untuk Masyarakat Indonesia_. Kementerian Kesehatan Republik Indonesia.
+
 Kementerian Kesehatan Republik Indonesia. (2020). _Tabel komposisi pangan Indonesia (TKPI) 2020_. Direktorat Gizi Masyarakat, Direktorat Jenderal Kesehatan Masyarakat, Kementerian Kesehatan Republik Indonesia.
 
 Koch, S. A. J., Conrad, J., Cade, J. E., Weinhold, L., Alexy, U., & Nöthlings, U. (2021). Validation of the web-based self-administered 24-h dietary recall myfood24-Germany: Comparison with a weighed dietary record and biomarkers. _European Journal of Nutrition, 60_(7), 4069–4082. https://doi.org/10.1007/s00394-021-02547-7
@@ -2046,9 +2038,9 @@ Laddad, S., Power, C., Milano, M., Cheung, A., Crooks, N., & Hellerstein, J. M. 
 
 Lewis, J. R., & Sauro, J. (2021). Usability and user experience: Design and evaluation. In G. Salvendy & W. Karwowski (Eds.), _Handbook of Human Factors and Ergonomics_ (5th ed., pp. 972–1015). John Wiley & Sons. https://doi.org/10.1002/9781119634782.ch38
 
-Mazeas, A., Duclos, M., Pereira, B., & Chalabaev, A. (2022). Evaluating the effectiveness of gamification on physical activity: Systematic review and meta-analysis of randomized controlled trials. _Journal of Medical Internet Research, 24_(1), e26779. https://doi.org/10.2196/26779
-
 Moshfegh, A. J., Rhodes, D. G., Baer, D. J., Murayi, T., Clemens, J. C., Rumpler, W. V., Paul, D. R., Sebastian, R. S., Kuczynski, K. J., Ingwersen, L. A., Staples, R. C., & Cleveland, L. E. (2008). The US Department of Agriculture Automated Multiple-Pass Method reduces bias in the collection of energy intakes. _The American Journal of Clinical Nutrition, 88_(2), 324–332. https://doi.org/10.1093/ajcn/88.2.324
+
+MRC Epidemiology Unit. (2024). _Intake24: An open-source dietary assessment system_. University of Cambridge. https://github.com/intake24
 
 Murai, U., Tajima, R., Matsumoto, M., Sato, Y., Horie, S., Fujiwara, A., Koshida, E., Okada, E., Sumikura, T., Yokoyama, T., Ishikawa, M., Kurotani, K., & Takimoto, H. (2023). Validation of dietary intake estimated by web-based dietary assessment methods and usability using dietary records or 24-h dietary recalls: A scoping review. _Nutrients, 15_(8), 1816. https://doi.org/10.3390/nu15081816
 
@@ -2056,17 +2048,15 @@ Nakadate, M., Kobayashi, S., Ishihara, J., Takachi, R., Sugawara, S., Hoshina, Y
 
 National Cancer Institute. (2012). _ASA24® dietary assessment tool_. Epidemiology and Genomics Research Program, National Cancer Institute. https://epi.grants.cancer.gov/asa24/
 
-O'Hara, C., Kent, G., Flynn, A. C., Gibney, E. R., & Timon, C. M. (2025). An evaluation of ChatGPT for nutrient content estimation from meal photographs. _Nutrients, 17_(4), 607. https://doi.org/10.3390/nu17040607
+Nielsen, J., & Landauer, T. K. (1993). A mathematical model of the finding of usability problems. In _Proceedings of the INTERACT '93 and CHI '93 Conference on Human Factors in Computing Systems_ (pp. 206–213). ACM. https://doi.org/10.1145/169059.169166
 
-Peffers, K., Tuunanen, T., Rothenberger, M. A., & Chatterjee, S. (2007). A design science research methodology for information systems research. _Journal of Management Information Systems, 24_(3), 45–77. https://doi.org/10.2753/MIS0742-1222240302
+O'Hara, C., Kent, G., Flynn, A. C., Gibney, E. R., & Timon, C. M. (2025). An evaluation of ChatGPT for nutrient content estimation from meal photographs. _Nutrients, 17_(4), 607. https://doi.org/10.3390/nu17040607
 
 Pigat, S., Soshina, M., Berezhnaya, Y., & Kryzhanovskaya, E. (2023). Web-based 24-hour dietary recall tool for Russian adults and school-aged children: Validation study. _JMIR Formative Research, 7_, e41774. https://doi.org/10.2196/41774
 
 Rowland, M. K., Adamson, A. J., Poliakov, I., Bradley, J., Simpson, E., Olivier, P., & Foster, E. (2018). Field testing of the use of Intake24—An online 24-hour dietary recall system. _Nutrients, 10_(11), 1690. https://doi.org/10.3390/nu10111690
 
-Ryan, R. M., & Deci, E. L. (2000). Self-determination theory and the facilitation of intrinsic motivation, social development, and well-being. _American Psychologist, 55_(1), 68–78. https://doi.org/10.1037/0003-066X.55.1.68
-
-Ryan, R. M., & Deci, E. L. (2020). Intrinsic and extrinsic motivation from a self-determination theory perspective: Definitions, theory, practices, and future directions. _Contemporary Educational Psychology, 61_, 101860. https://doi.org/10.1016/j.cedpsych.2020.101860
+Schwaber, K., & Sutherland, J. (2020). _The Scrum Guide: The definitive guide to Scrum: The rules of the game_. Scrum.org. https://scrumguides.org/
 
 Shapiro, M., Preguiça, N., Baquero, C., & Zawirski, M. (2011). Conflict-free replicated data types. In X. Défago, F. Petit, & V. Villain (Eds.), _Stabilization, Safety, and Security of Distributed Systems (SSS 2011)_ (Lecture Notes in Computer Science, Vol. 6976, pp. 386–400). Springer. https://doi.org/10.1007/978-3-642-24550-3_29
 
@@ -2077,12 +2067,6 @@ Subar, A. F., Kirkpatrick, S. I., Mittl, B., Zimmerman, T. P., Thompson, F. E., 
 Thirunavukarasu, A. J., Ting, D. S. J., Elangovan, K., Gutierrez, L., Tan, T. F., & Ting, D. S. W. (2023). Large language models in medicine. _Nature Medicine, 29_(8), 1930–1940. https://doi.org/10.1038/s41591-023-02448-8
 
 Tullis, T. S., & Stetson, J. N. (2004, Juni). _A comparison of questionnaires for assessing website usability_ [Makalah presentasi]. Usability Professionals Association (UPA) 2004 Conference, Minneapolis, MN, Amerika Serikat. https://web.archive.org/web/20050310050235/http://home.comcast.net/~tomtullis/publications/UPA2004TullisStetson.pdf
-
-Venable, J., Pries-Heje, J., & Baskerville, R. (2016). FEDS: a framework for evaluation in design science research. _European Journal of Information Systems, 25_(1), 77–89. https://doi.org/10.1057/ejis.2014.36
-
-vom Brocke, J., Hevner, A., & Maedche, A. (2020). Introduction to design science research. In J. vom Brocke, A. Hevner, & A. Maedche (Eds.), _Design science research. Cases_ (pp. 1–13). Springer. https://doi.org/10.1007/978-3-030-46781-4_1
-
-Yang, Y., Hu, H., & Koenigstorfer, J. (2022). Effects of gamified smartphone applications on physical activity: A systematic review and meta-analysis. _American Journal of Preventive Medicine, 62_(4), 602–613. https://doi.org/10.1016/j.amepre.2021.10.005
 
 `[⚠ TAMBAHKAN bila tersedia]` Rujukan berbahasa Indonesia mengenai penerapan R24J di Indonesia (jurnal gizi nasional terindeks SINTA). Proyek validasi Intake24 untuk populasi Indonesia (Monash University, 2022–2024) belum ditemukan publikasi hasilnya per Oktober 2026.
 
